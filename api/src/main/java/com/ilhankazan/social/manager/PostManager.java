@@ -9,13 +9,14 @@ import com.ilhankazan.social.dto.post.UpdatePostRequest;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.mapper.PostMapper;
-import com.ilhankazan.social.repository.AccountRepository;
+import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +30,12 @@ public class PostManager {
 
     private final PostService postService;
     private final PostMapper postMapper;
-    private final AccountRepository accountRepository;
+    private final AccountService accountService;
     private final InteractionService interactionService;
 
     private Account getCurrentAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return accountRepository.findByUsername(username)
-            .orElseThrow(() -> new EntityNotFoundException("Current user not found"));
+        return accountService.getAccount(username);
     }
 
     private boolean isAdmin() {
@@ -84,7 +84,22 @@ public class PostManager {
     @Transactional
     public void softDelete(Long id) {
         Account current = getCurrentAccount();
+
+        Post post = postService.getById(id);
+        if (!isAdmin() && !post.getAccount().getId().equals(current.getId())) {
+            throw new AccessDeniedException("You can only delete your own posts");
+        }
+
+        interactionService.softDeletePostInteractions(id);
+        postService.softDeleteReplies(id);
         postService.softDelete(current.getId(), isAdmin(), id);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PostResponse> searchPosts(String query, int page, int size) {
+        Account current = getCurrentAccount();
+        Page<Post> posts = postService.searchPosts(query, PageRequest.of(page, size));
+        return enrichPage(posts, current.getId());
     }
 
     @Transactional(readOnly = true)
@@ -110,8 +125,7 @@ public class PostManager {
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getProfileFeed(String username, int page, int size) {
         Account current = getCurrentAccount();
-        Account target = accountRepository.findByUsername(username)
-            .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+        Account target = accountService.getAccount(username);
         Page<Post> posts = postService.getProfileFeed(target.getId(), PageRequest.of(page, size));
         return enrichPage(posts, current.getId());
     }

@@ -64,6 +64,21 @@ public class PostService {
         postRepository.save(post);
     }
 
+    @Transactional
+    public void softDeleteUserPosts(Long accountId) {
+        postRepository.softDeleteByAccountId(accountId);
+    }
+
+    @Transactional
+    public void softDeleteReplies(Long parentPostId) {
+        postRepository.softDeleteRepliesByParentId(parentPostId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Post> searchPosts(String query, Pageable pageable) {
+        return postRepository.searchPosts(query, pageable);
+    }
+
     @Transactional(readOnly = true)
     public Post getById(Long postId) {
         return postRepository.findById(postId)

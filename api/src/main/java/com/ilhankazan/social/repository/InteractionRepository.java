@@ -5,6 +5,7 @@ import com.ilhankazan.social.entity.InteractionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -51,4 +52,12 @@ public interface InteractionRepository extends JpaRepository<Interaction, Long> 
         Long getPostId();
         InteractionType getType();
     }
+
+    @Modifying
+    @Query("UPDATE Interaction i SET i.deletedAt = CURRENT_TIMESTAMP WHERE i.account.id = :accountId AND i.deletedAt IS NULL")
+    void softDeleteByAccountId(@Param("accountId") Long accountId);
+
+    @Modifying
+    @Query("UPDATE Interaction i SET i.deletedAt = CURRENT_TIMESTAMP WHERE i.post.id = :postId AND i.deletedAt IS NULL")
+    void softDeleteByPostId(@Param("postId") Long postId);
 }
