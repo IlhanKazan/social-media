@@ -1,0 +1,54 @@
+package com.ilhankazan.social.repository;
+
+import com.ilhankazan.social.entity.Interaction;
+import com.ilhankazan.social.entity.InteractionType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface InteractionRepository extends JpaRepository<Interaction, Long> {
+
+    Optional<Interaction> findByAccountIdAndPostIdAndType(Long accountId, Long postId, InteractionType type);
+
+    @Query("""
+        SELECT i.post.id AS postId, i.type AS type, COUNT(i) AS count
+        FROM Interaction i
+        WHERE i.post.id IN :postIds
+        GROUP BY i.post.id, i.type
+        """)
+    List<CountRow> countByPostIds(@Param("postIds") List<Long> postIds);
+
+    @Query("""
+        SELECT i.post.id AS postId, i.type AS type
+        FROM Interaction i
+        WHERE i.account.id = :userId
+          AND i.post.id IN :postIds
+          AND i.type IN :types
+        """)
+    List<UserReactionRow> findUserReactionsForPosts(
+        @Param("userId") Long userId,
+        @Param("postIds") List<Long> postIds,
+        @Param("types") List<InteractionType> types
+    );
+
+    @Query("SELECT i FROM Interaction i WHERE i.post.id = :postId AND i.type = com.ilhankazan.social.entity.InteractionType.COMMENT ORDER BY i.createdAt ASC")
+    Page<Interaction> findCommentsByPostId(@Param("postId") Long postId, Pageable pageable);
+
+    interface CountRow {
+        Long getPostId();
+        InteractionType getType();
+        Long getCount();
+    }
+
+    interface UserReactionRow {
+        Long getPostId();
+        InteractionType getType();
+    }
+}

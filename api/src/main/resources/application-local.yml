@@ -1,0 +1,11 @@
+logging:
+  level:
+    root: INFO
+    com.ilhankazan.social: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
