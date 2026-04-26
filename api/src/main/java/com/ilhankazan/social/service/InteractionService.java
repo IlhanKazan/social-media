@@ -35,7 +35,7 @@ public class InteractionService {
     private final InteractionRepository interactionRepository;
 
     @Transactional
-    public InteractionStatusResponse toggleReaction(Account account, Post post, InteractionType type) {
+    public void toggleReaction(Account account, Post post, InteractionType type) {
         Optional<Interaction> existingLike =
             interactionRepository.findByAccountIdAndPostIdAndType(account.getId(), post.getId(), InteractionType.LIKE);
         Optional<Interaction> existingDislike =
@@ -58,8 +58,6 @@ public class InteractionService {
                 createReaction(account, post, InteractionType.DISLIKE);
             }
         }
-
-        return buildStatus(account.getId(), post.getId());
     }
 
     @Transactional
@@ -89,6 +87,16 @@ public class InteractionService {
 
         comment.softDelete();
         interactionRepository.save(comment);
+    }
+
+    @Transactional
+    public void softDeleteUserInteractions(Long accountId) {
+        interactionRepository.softDeleteByAccountId(accountId);
+    }
+
+    @Transactional
+    public void softDeletePostInteractions(Long postId) {
+        interactionRepository.softDeleteByPostId(postId);
     }
 
     @Transactional(readOnly = true)
