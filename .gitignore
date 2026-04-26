@@ -1,0 +1,40 @@
+# Build output
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Editor temp files
+*.swp
+*.swo
+*~
+
+# Local reference copies of archived 2024 repos
+backend/
+frontend/
+
+# One-off planning and setup documents (kept locally, not public)
+README-NEW-REPO.md
+README-OLD-REPO-NOTE.md
+REPO-STRATEGY.md
+SETUP.md

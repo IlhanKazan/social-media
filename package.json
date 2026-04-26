@@ -1,0 +1,9 @@
+{
+  "name": "social-media-monorepo",
+  "private": true,
+  "scripts": {
+    "api:dev": "cd api && ./mvnw spring-boot:run",
+    "client:dev": "cd client && npm run dev",
+    "lint:client": "cd client && npm run lint"
+  }
+}
