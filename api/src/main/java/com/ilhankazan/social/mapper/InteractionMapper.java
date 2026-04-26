@@ -8,6 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {AccountMapper.class})
 public interface InteractionMapper {
 
-    @Mapping(target = "author", source = "account")
+    @Mapping(target = "author", source = "account", qualifiedByName = "noFollow")
     CommentResponse toCommentResponse(Interaction interaction);
 }

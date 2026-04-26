@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {AccountMapper.class})
 public interface PostMapper {
 
-    @Mapping(target = "author", source = "post.account")
+    @Mapping(target = "author", source = "post.account", qualifiedByName = "noFollow")
     @Mapping(target = "parentPostId", source = "post.parentPost.id")
     @Mapping(target = "likeCount", source = "counts.likes")
     @Mapping(target = "dislikeCount", source = "counts.dislikes")
