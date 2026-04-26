@@ -62,7 +62,7 @@ addresses issues; you re-review.
   support these — they're only on `useMutation`).
 - Missing error handling around external calls (Cloudinary, DB, WS).
 - Inconsistent naming (camelCase column in DB, snake_case in TS, etc.).
-- Backend: `SecurityContextHolder` accessed outside the AuthContext helper.
+- Backend: `SecurityContextHolder` accessed outside the manager layer (service/repository must not touch it).
 - WebSocket listener not using `@TransactionalEventListener AFTER_COMMIT`.
 
 ### 🟢 Minor — nice to fix, not blocking

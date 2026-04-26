@@ -1,8 +1,8 @@
 # <Project Name>
 
 A real-time social media platform — feed, follow, like, comment, direct
-messages, notifications. Built as a portfolio piece showcasing modern
-full-stack development with WebSocket-based live updates.
+messages, notifications, and global search. Built as a portfolio piece showcasing modern
+full-stack development with WebSocket-based live updates and robust security.
 
 > **About this project:** This is a 2026 ground-up rewrite of an earlier
 > 2024 portfolio project. The original implementation is preserved at
@@ -11,27 +11,28 @@ full-stack development with WebSocket-based live updates.
 > for comparison. Read the [case study](docs/CASE-STUDY.md) for what
 > changed and why.
 
-[**🌐 Live demo**](<render-url>) · [**📐 Architecture**](docs/ARCHITECTURE.md)
+[**Live demo**](<render-url>) · [**Architecture**](docs/ARCHITECTURE.md)
 
 ---
 
-## ✨ Features
+## Features
 
-- 🐦 **Microblog feed** — post, reply, like, dislike, comment
-- 🔄 **Real-time updates** — new posts and reactions stream in over WebSocket without refresh
-- 👥 **Follow system** — follow/unfollow, follow-based feed vs. global explore
-- 💬 **Direct messages** — real-time 1:1 chat with read receipts
-- 🔔 **Live notifications** — push-based via WebSocket, with unread badges
-- 🖼️ **Image uploads** — profile, cover, post images via Cloudinary
-- 🔐 **Auth** — JWT access + refresh, BCrypt password hashing, role-based access
-- 🌓 **Dark mode** — system-aware with manual override
+- **Microblog feed** — post, reply, like, dislike, comment
+- **Real-time updates** — new posts and reactions stream in over WebSocket without refresh
+- **Follow system** — follow/unfollow, follow-based feed vs. global explore
+- **Global search** — unified search endpoint for discovering users and posts
+- **Direct messages** — real-time 1:1 chat with read receipts
+- **Live notifications** — push-based via WebSocket, with unread badges
+- **Image uploads** — profile, cover, and post images via Cloudinary with strict multipart validation
+- **Security & Auth** — JWT access + refresh, stateless token blacklisting (Caffeine in-memory cache), BCrypt password hashing, Bucket4j rate limiting, and asynchronous login history tracking
+- **Dark mode** — system-aware with manual override
 
-## 🛠 Stack
+## Stack
 
 **Backend**
 - Java 21 (LTS) · Spring Boot 3.4 · PostgreSQL 16 · Flyway
 - Spring Security 6 · jjwt 0.12 · Spring WebSocket (STOMP)
-- MapStruct · Lombok · Cloudinary · Bucket4j · springdoc-openapi
+- MapStruct · Lombok · Cloudinary · Bucket4j · Caffeine · springdoc-openapi
 - Logback (JSON structured logging)
 
 **Frontend**
@@ -43,12 +44,12 @@ full-stack development with WebSocket-based live updates.
 **Infra**
 - Docker (multi-stage) · Docker Compose · Render.com · GitHub Actions
 
-## 🚀 Quick start (local)
+## Quick start (local)
 
 Requires Docker and Node.js 20+.
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
+git clone [https://github.com/](https://github.com/)<your-username>/<repo-name>.git
 cd <repo-name>
 cp .env.example .env
 # Fill in JWT_SECRET (any 32+ byte string for local) and Cloudinary keys
@@ -66,7 +67,7 @@ Open http://localhost:5173.
 
 API runs at http://localhost:8080. Swagger UI at http://localhost:8080/swagger-ui.html.
 
-## 📁 Project structure
+## Project structure
 
 ```text
 .
@@ -79,7 +80,7 @@ API runs at http://localhost:8080. Swagger UI at http://localhost:8080/swagger-u
 │   │   ├── repository/   # JPA repositories
 │   │   ├── entity/       # JPA entities
 │   │   ├── dto/          # Request/response records
-│   │   ├── security/     # JWT, filters
+│   │   ├── security/     # JWT, filters, rate limiting
 │   │   ├── event/        # Domain events
 │   │   ├── websocket/    # Broadcasters
 │   │   └── exception/    # Global exception handler
@@ -100,14 +101,14 @@ API runs at http://localhost:8080. Swagger UI at http://localhost:8080/swagger-u
 └── docs/
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 cd api && ./mvnw verify          # backend (Testcontainers Postgres)
 cd client && npm run test        # frontend (Vitest)
 ```
 
-## 📤 Deployment
+## Deployment
 
 Production runs on Render.com via `render.yaml`:
 - API: Web Service (Docker)
@@ -116,13 +117,13 @@ Production runs on Render.com via `render.yaml`:
 
 Push to `main` → GitHub Actions runs CI → Render auto-deploys.
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 Original 2024 version of this project taught me where the rough edges were.
 Two repos preserved for context:
 - [social-media-api](<old-backend-url>)
 - [social-media-frontend](<old-frontend-url>)
 
-## 📄 License
+## License
 
 MIT
