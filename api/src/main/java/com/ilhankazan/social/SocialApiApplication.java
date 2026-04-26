@@ -7,10 +7,12 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import com.ilhankazan.social.config.AppProperties;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableJpaAuditing
 @ConfigurationPropertiesScan
+@EnableAsync
 public class SocialApiApplication {
 
 	public static void main(String[] args) {

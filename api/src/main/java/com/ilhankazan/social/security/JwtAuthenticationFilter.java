@@ -1,5 +1,6 @@
 package com.ilhankazan.social.security;
 
+import com.ilhankazan.social.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,28 +24,34 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
+
         try {
             String jwt = getJwtFromRequest(request);
+
+            if (StringUtils.hasText(jwt) && tokenBlacklistService.isBlacklisted(jwt)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
 
             if (StringUtils.hasText(jwt)) {
                 Claims claims = jwtTokenProvider.validateToken(jwt);
                 String username = claims.getSubject();
-                
+
                 @SuppressWarnings("unchecked")
                 List<String> roles = claims.get("roles", List.class);
-                
+
                 var authorities = roles != null ? roles.stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList()) : List.<SimpleGrantedAuthority>of();
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         username, null, authorities);
-                
+
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
