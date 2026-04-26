@@ -6,14 +6,18 @@ import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.manager.AccountManager;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
+@Validated
 public class AccountController {
 
     private final AccountManager accountManager;
@@ -26,14 +30,6 @@ public class AccountController {
     @GetMapping("/{username}")
     public ResponseEntity<PublicAccountResponse> getAccountProfile(@PathVariable String username) {
         return ResponseEntity.ok(accountManager.getPublicProfile(username));
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<PageResponse<PublicAccountResponse>> searchAccounts(
-            @RequestParam String q,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(accountManager.searchAccounts(q, page, size));
     }
 
     @PatchMapping("/me")
