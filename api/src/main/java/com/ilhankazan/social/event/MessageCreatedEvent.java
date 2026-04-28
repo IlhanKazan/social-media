@@ -1,7 +1,9 @@
 package com.ilhankazan.social.event;
 
+import com.ilhankazan.social.dto.message.MessageResponse;
+
 public record MessageCreatedEvent(
-    Long messageId,
-    Long conversationId,
-    Long senderId
+    MessageResponse message,
+    String participantAUsername,
+    String participantBUsername
 ) {}
