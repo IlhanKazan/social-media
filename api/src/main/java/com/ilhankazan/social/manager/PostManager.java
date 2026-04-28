@@ -8,12 +8,14 @@ import com.ilhankazan.social.dto.post.PostResponse;
 import com.ilhankazan.social.dto.post.UpdatePostRequest;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
+import com.ilhankazan.social.event.PostCreatedEvent;
 import com.ilhankazan.social.mapper.PostMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,6 +34,7 @@ public class PostManager {
     private final PostMapper postMapper;
     private final AccountService accountService;
     private final InteractionService interactionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private Account getCurrentAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -71,7 +74,9 @@ public class PostManager {
     public PostResponse create(CreatePostRequest request) {
         Account current = getCurrentAccount();
         Post post = postService.create(current.getId(), request.content(), request.imageUrl(), request.parentPostId());
-        return toEnriched(post, current.getId());
+        PostResponse response = postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY);
+        eventPublisher.publishEvent(new PostCreatedEvent(response));
+        return response;
     }
 
     @Transactional

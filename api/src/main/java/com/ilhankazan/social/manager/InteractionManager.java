@@ -8,11 +8,13 @@ import com.ilhankazan.social.dto.interaction.UserInteractions;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.InteractionType;
 import com.ilhankazan.social.entity.Post;
+import com.ilhankazan.social.event.InteractionCreatedEvent;
 import com.ilhankazan.social.mapper.InteractionMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class InteractionManager {
     private final PostService postService;
     private final InteractionMapper interactionMapper;
     private final AccountService accountService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private Account getCurrentAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -44,6 +47,12 @@ public class InteractionManager {
         Account current = getCurrentAccount();
         Post post = postService.getById(postId);
         interactionService.toggleReaction(current, post, InteractionType.LIKE);
+
+        // Sadece Like eklendiginde bildirim gitsin
+        InteractionStatusResponse status = buildStatus(current.getId(), postId);
+        if (status.liked()) {
+            eventPublisher.publishEvent(new InteractionCreatedEvent(null, postId, current.getId(), "LIKE", null));}
+
         return buildStatus(current.getId(), postId);
     }
 
@@ -67,6 +76,7 @@ public class InteractionManager {
         Account current = getCurrentAccount();
         Post post = postService.getById(postId);
         var comment = interactionService.addComment(current, post, content);
+        eventPublisher.publishEvent(new InteractionCreatedEvent(comment.getId(), postId, current.getId(), "COMMENT", content));
         return interactionMapper.toCommentResponse(comment);
     }
 

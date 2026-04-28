@@ -4,10 +4,12 @@ import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.follow.FollowStatusResponse;
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.event.FollowCreatedEvent;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.FollowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +27,7 @@ public class FollowManager {
     private final FollowService followService;
     private final AccountService accountService;
     private final AccountMapper accountMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     private Long getCurrentAccountId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -48,6 +51,7 @@ public class FollowManager {
         Account target = accountService.getAccountReference(targetId);
 
         followService.follow(follower, target);
+        eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId));
     }
 
     public void unfollow(Long targetId) {
