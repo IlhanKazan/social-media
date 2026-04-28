@@ -432,6 +432,8 @@ DTOs (records under `dto/auth/`):
 
 Manager layer (`manager/AuthManager`) wraps service for transaction + auth context.
 
+> **Note:** This phase ships a stateless refresh-token flow. Persistence, rotation, and reuse-detection are added in **Phase 5.5** before WebSocket work begins. Frontend interceptors (Phase 10.4) and auth store (Phase 10.5) must be written against the **rotated** contract — see Phase 5.5 for the wire format.
+
 ### [x] 2.3 Auth controller
 
 `controller/AuthController` at `/api/v1/auth`:
@@ -439,10 +441,12 @@ Manager layer (`manager/AuthManager`) wraps service for transaction + auth conte
 POST /register
 POST /login
 POST /refresh
-POST /logout         # optional: blacklists refresh token via in-memory or DB blacklist
+POST /logout         # blacklists access token via in-memory Caffeine cache (done in 5.5.4)
 ```
 
 Apply Bucket4j rate limiting (Phase 9.1) to login + register later.
+
+> **Note:** A `POST /logout-all` endpoint (revoke all sessions on all devices) is added in Phase 5.5 alongside refresh-token persistence. The current `logout` endpoint only invalidates the current access token; the refresh token of the device that called it is also revoked once Phase 5.5 lands.
 
 **Acceptance:** Register a new user → log in with returned credentials → use access token to call a protected endpoint (e.g., `GET /api/v1/accounts/me`).
 
@@ -545,7 +549,7 @@ DTOs:
 
 ## Phase 4 — Follow System
 
-### [ ] 4.1 Follow entity + repository
+### [x] 4.1 Follow entity + repository
 
 - `entity/Follow.java`: `Account follower`, `Account following`, `createdAt` (no soft delete — unfollow is hard delete since the relation is just a boolean state)
 - `repository/FollowRepository`:
@@ -555,12 +559,12 @@ DTOs:
   - `Page<Account> findFollowersByFollowingId(Long, Pageable)`
   - `countByFollowerId`, `countByFollowingId`
 
-### [ ] 4.2 Follow service + manager
+### [x] 4.2 Follow service + manager
 
 - Validates: cannot follow self, target must exist
 - `follow(Long targetId)`, `unfollow(Long targetId)`, `getFollowers(Long, Pageable)`, `getFollowing(Long, Pageable)`, `isFollowing(Long currentUserId, Long targetId)`
 
-### [ ] 4.3 Follow controller
+### [x] 4.3 Follow controller
 
 `/api/v1/follow`:
 ```
@@ -575,7 +579,7 @@ GET    /is-following/{accountId}               # for current user
 
 **Acceptance:** Follow → counts increment → appears in following list → posts from followed user appear in feed.
 
-### [ ] 4.4 Follow-based feed JPQL
+### [x] 4.4 Follow-based feed JPQL
 
 Add to `PostRepository`:
 ```java
@@ -596,7 +600,7 @@ Page<Post> findFollowingFeed(@Param("userId") Long userId, Pageable pageable);
 
 ## Phase 5 — Cloudinary Image Upload
 
-### [ ] 5.1 Cloudinary integration
+### [x] 5.1 Cloudinary integration
 
 - `config/CloudinaryConfig.java` — bean wiring from `app.cloudinary.*`
 - `service/ImageUploadService`:
@@ -605,7 +609,7 @@ Page<Post> findFollowingFeed(@Param("userId") Long userId, Pageable pageable);
   - `uploadPostImage(MultipartFile, Long accountId)` → URL, folder `social/posts/`
 - Validation: ≤5MB, content-type starts with `image/`, allowed types: jpeg, png, webp, gif
 
-### [ ] 5.2 Wire upload endpoints
+### [x] 5.2 Wire upload endpoints
 
 Replace stubs in `2.5`:
 - `POST /api/v1/accounts/me/avatar` → uploads, updates `profileImageUrl`, returns full account
@@ -616,9 +620,180 @@ Replace stubs in `2.5`:
 
 ---
 
+## Phase 5.5 — Auth Hardening + Architectural Refinements
+
+This phase consolidates retrofit work performed against the Phase 1–5 baseline
+and ships a production-grade refresh-token flow before any WebSocket code is
+written. WebSocket auth (Phase 6.2) reuses the same `JwtTokenProvider`, so the
+token lifecycle must be sound first.
+
+### [x] 5.5.1 Service-layer DTO leak cleanup
+
+Enforce the rule that `service` returns entities (or primitive values), and
+only `manager` performs DTO mapping. Audited and fixed across:
+- `AccountService`, `AuthService`, `InteractionService` no longer construct
+  response DTOs.
+- All `*Mapper` (MapStruct) calls live in the manager layer.
+- `ImageUploadService` returns a plain URL string; the calling manager
+  decides what wrapper DTO to produce.
+
+**Acceptance (verified):** `grep -r "Response" api/src/main/java/.../service/` returns no DTO references except parameter types passed through.
+
+### [x] 5.5.2 Soft-delete cascade
+
+`Account.softDelete()` cascades to all the user's posts and interactions
+(set `deleted_at = NOW()` for each via batched repository update). `Post.softDelete()` cascades to its replies (recursive: `parent_post_id = id` chain) and to all interactions on it. Hard deletes still forbidden for user content.
+
+**Acceptance (verified):** Soft-deleting an account → user's posts disappear from feeds, comments by that user disappear from threads, no orphan rows visible from any read endpoint.
+
+### [x] 5.5.3 N+1 elimination on hot paths
+
+- Followers / following list queries: bulk-fetch the `isFollowing` flag
+  for the current viewer in a single `findAllByFollowerIdAndFollowingIdIn(...)` query, then map by ID.
+- Search results: same pattern — collect candidate account IDs, single bulk lookup, map back.
+- Post feed: counts (`like`, `dislike`, `comment`) joined in a single grouped query per page, never per-row.
+
+**Acceptance (verified):** Hibernate SQL log shows ≤ 3 queries per paginated list endpoint regardless of page size.
+
+### [x] 5.5.4 Stateless JWT blacklist (Caffeine)
+
+In-memory access-token blacklist using Caffeine, sized to expire entries at the token's natural expiry (TTI = `accessTtlMs`). On `/auth/logout`:
+- Extract `jti` (or token-hash if `jti` not yet set), put into blacklist with TTL = remaining lifetime.
+- `JwtAuthenticationFilter` checks blacklist before honoring a token.
+
+This is **per-instance**. Render free tier runs one instance, so this is fine
+for now. If we ever scale horizontally, swap Caffeine for a Postgres-backed
+blacklist table or Redis (decision deferred — note in ARCHITECTURE.md).
+
+**Acceptance (verified):** Logging out then reusing the same access token returns 401 within the same process.
+
+### [x] 5.5.5 Login history
+
+`entity/LoginHistory` (separate from BaseEntity — no soft delete, no
+updated_at): `account_id`, `ip_address INET`, `user_agent VARCHAR(500)`,
+`logged_in_at TIMESTAMPTZ`. Recorded by an `@Async` listener on a custom
+`LoginSucceededEvent` published from `AuthManager` after successful
+authentication. Audit-only, not user-facing yet (read endpoint can be added
+later if a "Recent activity" panel is wanted).
+
+Migration was added as the second post-V1 migration — confirm the version
+number when checking out (do **not** edit it).
+
+**Acceptance (verified):** Successful login produces one row in `login_history`; failure produces none.
+
+### [x] 5.5.6 Pagination safety
+
+All paginated controllers use `@Validated` at the class level and
+`@RequestParam @Max(50) int size` (and `@Min(0) int page`) on the size /
+page parameters. Defaults: `page=0`, `size=20`. Bypassed defaults via large
+`size` values are rejected with 400 by `GlobalExceptionHandler`.
+
+**Acceptance (verified):** `?size=10000` returns 400 with a structured field error.
+
+---
+
+### [x] 5.5.7 Refresh-token persistence + rotation + reuse detection
+
+Replace the stateless refresh-token flow with a persisted, rotating, reuse-detecting design. This is the core of the phase.
+
+**Threat model addressed:**
+- Stolen refresh token (e.g., from compromised localStorage) must be detectable.
+- A revoked refresh token must never grant access.
+- A logout on one device must not invalidate sessions on the user's other devices, BUT the user must be able to invalidate all sessions explicitly ("log out everywhere").
+
+**Design:**
+- Each successful login creates a **token family** (UUID). All refresh tokens issued from the same login chain share that `family_id`.
+- On `/refresh`: the presented refresh token is consumed (marked `revoked_at`) and a **new** refresh token is issued in the same family. Access token is also reissued.
+- If a refresh token is presented that is already `revoked_at != NULL`, this is **reuse** — almost certainly token theft. Revoke the **entire family**, audit-log the event, and reject with 401.
+- Refresh tokens are stored as **SHA-256 hex hashes**, never plaintext. The wire token is the random secret; the DB has only the hash. Lookup by hash is constant-time and DB-poisoning doesn't leak bearer tokens.
+- The wire format remains JWT for backwards compatibility with the current `JwtTokenProvider`, but the JWT itself is treated as an opaque bearer (signature still validated as defense-in-depth, but DB row is the source of truth).
+
+**Files to add:**
+- `db/migration/V<n>__refresh_tokens.sql` — next sequential version. Schema:
+  ```sql
+  CREATE TABLE refresh_tokens (
+      id BIGSERIAL PRIMARY KEY,
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      token_hash CHAR(64) NOT NULL UNIQUE,
+      family_id UUID NOT NULL,
+      issued_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ NOT NULL,
+      revoked_at TIMESTAMPTZ,
+      replaced_by CHAR(64),
+      user_agent VARCHAR(500),
+      ip_address INET,
+      CONSTRAINT chk_replaced_by_only_when_revoked CHECK (
+          replaced_by IS NULL OR revoked_at IS NOT NULL
+      )
+  );
+
+  CREATE INDEX idx_refresh_tokens_account_active
+      ON refresh_tokens(account_id) WHERE revoked_at IS NULL;
+  CREATE INDEX idx_refresh_tokens_family ON refresh_tokens(family_id);
+  CREATE INDEX idx_refresh_tokens_cleanup ON refresh_tokens(expires_at);
+  ```
+  No `updated_at` and no `deleted_at` — this table is append + revoke only, never edited.
+
+- `entity/RefreshToken.java` — does **not** extend BaseEntity (different lifecycle). Plain `@Entity` with `id`, `accountId` (or `@ManyToOne Account`), `tokenHash`, `familyId UUID`, `issuedAt`, `expiresAt`, `revokedAt`, `replacedBy`, `userAgent`, `ipAddress`.
+- `repository/RefreshTokenRepository`:
+  - `Optional<RefreshToken> findByTokenHash(String hash)`
+  - `@Modifying @Query` bulk revoke by `familyId` (single UPDATE setting `revoked_at = NOW()` where `revoked_at IS NULL`).
+  - `@Modifying @Query` bulk revoke by `accountId` (for logout-all).
+  - `int deleteByExpiresAtBefore(Instant cutoff)` for the cleanup job.
+- `service/RefreshTokenService`:
+  - `issue(Account account, UUID familyId, String userAgent, String ipAddress)` — generates a 256-bit random secret, hashes it, persists row with `expires_at = NOW() + refreshTtl`, returns the **plaintext** wire token (only time it's ever seen in plaintext).
+  - `rotate(String presentedToken, String userAgent, String ipAddress)` — the heart of the flow. Hash it, look up. Three branches:
+    1. Not found → 401.
+    2. `revoked_at != NULL` → **reuse detected**. Revoke entire family. Log warn with `account_id` + `family_id` + presenting `ipAddress`. Throw `TokenReuseDetectedException` (mapped to 401 by GlobalExceptionHandler).
+    3. Active and not expired → revoke this row (`revoked_at = NOW()`, `replaced_by = newHash`), persist a new row with same `family_id`, return `(newAccessToken, newRefreshToken)`.
+  - `revokeFamily(UUID familyId)` — used by reuse detection and by logout (revokes the device's family).
+  - `revokeAllForAccount(Long accountId)` — used by `/auth/logout-all`.
+- `manager/AuthManager`:
+  - `login(...)` now: authenticate → start a new family (UUID) → issue access + refresh in that family, return `AuthResponse(accessToken, refreshToken, expiresIn, ...)`.
+  - `refresh(...)` now: delegate to `RefreshTokenService.rotate(...)`.
+  - `logout(currentAccessToken, currentRefreshToken)`: blacklist access token (existing 5.5.4 path) **and** revoke the refresh token's family.
+  - `logoutAll(accountId)`: revoke all refresh tokens for the account; access tokens still expire naturally (≤ 15 min).
+- `controller/AuthController`:
+  - Existing `POST /login`, `POST /refresh`, `POST /logout` — same paths, updated semantics.
+  - **New:** `POST /logout-all` — requires authenticated caller, no body.
+- Scheduled cleanup: `@EnableScheduling` (if not already), `@Scheduled(cron = "0 0 3 * * *")` daily at 03:00 UTC, deletes rows where `expires_at < NOW() - INTERVAL '7 days'`. Keeps revoked-but-not-expired rows around so reuse detection still works for the token's full validity window.
+
+**Wire contract (frontend implication — Phase 10.4 + 10.5):**
+- `POST /auth/login` response body: `{ accessToken, refreshToken, accessTokenExpiresIn, refreshTokenExpiresIn, account: {...} }`. Same shape for register.
+- `POST /auth/refresh` request: `{ refreshToken }`. Response: same shape as login (rotation: a **new** refresh token in the response — client must overwrite the stored one).
+- `POST /auth/logout` request: `{ refreshToken }` (so the server can revoke that specific family). Response: 204.
+- `POST /auth/logout-all` request: empty body, requires bearer auth. Response: 204.
+- Frontend interceptor (Phase 10.4) must be **race-safe**: concurrent 401s should share a single in-flight refresh promise (queue subsequent requests behind the first refresh). The current sketch in Phase 10.4 with a bare `isRefreshing` flag is insufficient — replace with a promise-queue pattern. Auth store (Phase 10.5) must overwrite **both** tokens on every successful refresh, not just the access token.
+
+**Hard rules:**
+- Plaintext refresh tokens NEVER persisted, NEVER logged. The hash is what lives in the DB and what shows up in any debug log.
+- `family_id` is generated server-side per login. The client never sees it.
+- Reuse detection logs MUST include `account_id`, `family_id`, presenting `ip_address`, `user_agent`, and `presented_at` so we can build an admin-side incident view later. Use a dedicated logger name (`security.auth.reuse`) so it can be routed separately in prod.
+- The `RefreshToken` entity does NOT use `@SQLRestriction` — we want to be able to query revoked rows for the reuse-detection check.
+- Migration version number is whatever the next free `V<n>` is (currently the third post-V1, after the login_history migration). Verify with `ls api/src/main/resources/db/migration/` before naming.
+- Don't reuse `BaseEntity` — its soft-delete + auditing semantics don't fit this table.
+
+**Test surface:**
+- Integration test: register → login (capture refresh token A) → refresh (token A is revoked, capture refresh token B) → attempt refresh with **token A again** → expect 401, expect token B's row to also be revoked, expect log line at WARN under `security.auth.reuse`.
+- Integration test: login on "device 1", login on "device 2" (separate families), logout on device 1 → device 2's refresh still works.
+- Integration test: `POST /logout-all` → both device 1 and device 2 refresh tokens are now revoked.
+- Unit test: cleanup job deletes only expired rows older than the grace window.
+
+**Acceptance:**
+- Stolen-token simulation (replay an old refresh token) revokes the family and forces re-login.
+- Frontend can keep a session alive indefinitely (within refresh TTL) without observable interruption — interceptor refreshes on 401 transparently, including when multiple concurrent requests hit 401 at the same time.
+- A user with active sessions on three browsers can hit `/logout-all` and be required to log in again on all three within one access-token lifetime (≤ 15 min) at worst, immediately if they retry an action that triggers the interceptor.
+
+**Out of scope for this task:**
+- Device naming / "active sessions" UI (deferred — could be a Phase 16 polish item).
+- TOTP / 2FA (separate future phase, not in current PLAN).
+- Sliding refresh window (the current model is fixed-expiry rotation; sliding would be a follow-up if user retention metrics demand it).
+
+---
+
 ## Phase 6 — WebSocket Foundation
 
-### [ ] 6.1 WebSocket config
+### [x] 6.1 WebSocket config
 
 `config/WebSocketConfig.java`:
 - `@EnableWebSocketMessageBroker`
@@ -628,7 +803,7 @@ Replace stubs in `2.5`:
 - User destination prefix `/user`
 - Allow handshake from `app.cors.allowed-origins`
 
-### [ ] 6.2 WebSocket JWT authentication
+### [x] 6.2 WebSocket JWT authentication
 
 `security/WebSocketAuthInterceptor` implementing `ChannelInterceptor`:
 - On `CONNECT` frame, read `Authorization` STOMP header
@@ -743,11 +918,11 @@ When recipient marks read, push `/user/{sender}/queue/read-receipts` with `{ con
 
 ## Phase 9 — Backend Polish
 
-### [ ] 9.1 Rate limiting on auth endpoints
+### [x] 9.1 Rate limiting on auth endpoints
 - Bucket4j: 5 login attempts per minute per IP. Same for register.
 - Custom `@RateLimit` annotation + AOP aspect.
 
-### [ ] 9.2 Search endpoints
+### [x] 9.2 Search endpoints
 - `GET /api/v1/search/users?q=&page=&size=` — username/displayName ILIKE
 - `GET /api/v1/search/posts?q=&page=&size=` — content ILIKE
 - Combined: `GET /api/v1/search?q=` returns top-N of each
@@ -880,12 +1055,16 @@ api.interceptors.response.use(
 );
 ```
 
+> **Note (see Phase 5.5.7):** The `isRefreshing` boolean shown above is a sketch — replace with a single-flight refresh promise. When a 401 hits while a refresh is already in flight, queue the failed request and retry it once the in-flight refresh resolves. Otherwise N concurrent 401s trigger N parallel `/auth/refresh` calls, only one of which succeeds (the first to land), and the others trigger reuse-detection on the server, killing the user's whole token family. This is the single most common implementation mistake for rotating refresh tokens.
+
 ### [ ] 10.5 Auth store (Zustand)
 
 `stores/auth-store.ts`:
 - State: `accessToken`, `refreshToken`, `user`, `isAuthenticated`
 - Actions: `login(response)`, `logout()`, `tryRefresh()`, `setUser(user)`
 - `persist` middleware (localStorage) — but ONLY persists the refreshToken + user, not the accessToken (which is short-lived)
+
+> **Note (see Phase 5.5.7):** Every successful `tryRefresh()` returns **both** a new access token AND a new refresh token (rotation). The store must overwrite both atomically — forgetting to overwrite `refreshToken` means the next refresh will present an already-revoked token and the server will revoke the entire family. `logout()` must call `POST /auth/logout` with the current refresh token in the body so the server can revoke that specific family; clearing local state without calling the server leaves the family alive in the DB until natural expiry.
 
 ### [ ] 10.6 Query client + Providers
 
@@ -1248,7 +1427,8 @@ Then archive both old repos via Settings → Archive on GitHub.
 
 - **Schema is set in stone after V1.** Once V1 lands on main, never edit it. Changes go through V2, V3, ...
 - **DTOs must mirror exactly across stack.** When you add a field to `PostResponse` in Java, add it to `src/types/api.ts` in the same task.
-- **Soft delete is universal except for `Follow` and `Notification`.** A follow has a binary state (followed or not). A notification is read or unread, but deletion is hard (or just left alone — they accumulate, paginate them).
+- **Soft delete is universal except for `Follow`, `Notification`, and `RefreshToken`.** A follow has a binary state (followed or not). A notification is read or unread, but deletion is hard (or just left alone — they accumulate, paginate them). A refresh token is either active or revoked — revoked rows must remain queryable for reuse detection (Phase 5.5.7).
 - **Self-actions don't generate notifications.** Liking your own post should not create a notification.
 - **Backwards compatibility within a deploy.** Backend changes that affect the frontend contract land in the same commit — never deploy a backend that breaks the deployed frontend.
 - **Tests aim for confidence, not coverage.** One happy-path integration test per major flow > 80% coverage of getters and setters.
+- **Auth contract is the single hardest cross-cutting contract.** Any change to login/refresh/logout response shapes must update Phase 10.4 (interceptor), Phase 10.5 (store), and Phase 13.1 (STOMP client `connectHeaders`) in the same PR. The refresh-rotation contract from Phase 5.5.7 is non-negotiable: stored refresh token must be overwritten on every successful refresh.

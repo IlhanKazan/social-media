@@ -1,4 +1,4 @@
-# <Project Name>
+# MicroBlog
 
 A real-time social media platform — feed, follow, like, comment, direct
 messages, notifications, and global search. Built as a portfolio piece showcasing modern
@@ -6,12 +6,8 @@ full-stack development with WebSocket-based live updates and robust security.
 
 > **About this project:** This is a 2026 ground-up rewrite of an earlier
 > 2024 portfolio project. The original implementation is preserved at
-> [social-media-api](https://github.com/ilhankazan/social-media-api) and
-> [social-media-frontend](https://github.com/ilhankazan/social-media-frontend)
-> for comparison. Read the [case study](docs/CASE-STUDY.md) for what
-> changed and why.
-
-[**Live demo**](<render-url>) · [**Architecture**](docs/ARCHITECTURE.md)
+> [social-media-api](https://github.com/IlhanKazan/social-media-api) and
+> [social-media-frontend](https://github.com/IlhanKazan/social-media-frontend)
 
 ---
 
@@ -49,8 +45,8 @@ full-stack development with WebSocket-based live updates and robust security.
 Requires Docker and Node.js 20+.
 
 ```bash
-git clone [https://github.com/](https://github.com/)<your-username>/<repo-name>.git
-cd <repo-name>
+git clone [https://github.com/](https://github.com/)IlhanKazan/social-media.git
+cd social-media
 cp .env.example .env
 # Fill in JWT_SECRET (any 32+ byte string for local) and Cloudinary keys
 
@@ -121,9 +117,6 @@ Push to `main` → GitHub Actions runs CI → Render auto-deploys.
 
 Original 2024 version of this project taught me where the rough edges were.
 Two repos preserved for context:
-- [social-media-api](<old-backend-url>)
-- [social-media-frontend](<old-frontend-url>)
+- [social-media-api](https://github.com/IlhanKazan/social-media-api)
+- [social-media-frontend](https://github.com/IlhanKazan/social-media-frontend)
 
-## License
-
-MIT
