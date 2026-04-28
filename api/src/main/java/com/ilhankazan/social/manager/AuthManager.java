@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class AuthManager {
     private final ApplicationEventPublisher eventPublisher;
     private final AccountService accountService;
 
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         Account account = authService.register(
             request.username(),
@@ -44,6 +46,7 @@ public class AuthManager {
         return buildInitialAuthResponse(account, null, null);
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request, String ipAddress, String userAgent) {
         Account account = authService.authenticate(request.identifier(), request.password());
         eventPublisher.publishEvent(new LoginSuccessEvent(account, ipAddress, userAgent));
