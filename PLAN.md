@@ -815,13 +815,13 @@ Register the interceptor in `WebSocketConfig.configureClientInboundChannel`.
 
 **Acceptance:** Connection without/invalid token rejected; valid token connects and can subscribe.
 
-### [ ] 6.3 Domain event infrastructure
+### [x] 6.3 Domain event infrastructure
 
 - `event/PostCreatedEvent`, `event/InteractionCreatedEvent`, `event/FollowCreatedEvent`, `event/MessageCreatedEvent`
 - Publish via `ApplicationEventPublisher` from manager layer after persistence
 - Listeners use `@TransactionalEventListener(phase = AFTER_COMMIT)` so rolled-back transactions don't trigger broadcasts
 
-### [ ] 6.4 Post broadcast
+### [x] 6.4 Post broadcast
 
 `websocket/PostBroadcaster` listens to `PostCreatedEvent`:
 - Sends `PostResponse` to `/topic/feed`
@@ -834,7 +834,7 @@ Frontend (Phase 13) filters: only display if from a followed account.
 
 ## Phase 7 — Notifications
 
-### [ ] 7.1 Notification entity + repository
+### [x] 7.1 Notification entity + repository
 
 - `entity/Notification.java`: `recipient`, `actor`, `type` (enum), `referenceId`, `readAt`, `createdAt` (no soft delete)
 - `repository/NotificationRepository`:
@@ -843,7 +843,7 @@ Frontend (Phase 13) filters: only display if from a followed account.
   - `int countByRecipientIdAndReadAtIsNull(Long)`
   - Bulk update: `@Modifying @Query` to set `readAt = NOW()` for all unread by recipient
 
-### [ ] 7.2 Notification service + listeners
+### [x] 7.2 Notification service + listeners
 
 - `service/NotificationService`:
   - `create(recipientId, actorId, type, referenceId)` — skip if recipient == actor (no self-notify)
@@ -855,7 +855,7 @@ Frontend (Phase 13) filters: only display if from a followed account.
   - Same pattern for `FollowCreatedEvent` → notify followed user
   - For each notification created, also push via WebSocket to `/user/{username}/queue/notifications`
 
-### [ ] 7.3 Notification controller
+### [x] 7.3 Notification controller
 
 `/api/v1/notifications`:
 ```
