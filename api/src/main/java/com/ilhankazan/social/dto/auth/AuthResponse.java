@@ -3,6 +3,8 @@ package com.ilhankazan.social.dto.auth;
 public record AuthResponse(
     String accessToken,
     String refreshToken,
+    long accessTokenExpiresIn,
+    long refreshTokenExpiresIn,
     AccountSummary account
 ) {
     public record AccountSummary(

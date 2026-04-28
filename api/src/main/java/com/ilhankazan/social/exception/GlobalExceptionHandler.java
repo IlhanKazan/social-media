@@ -64,6 +64,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, "CONFLICT", "Database conflict occurred", request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(TokenReuseDetectedException.class)
+    public ResponseEntity<ErrorResponse> handleTokenReuseDetected(TokenReuseDetectedException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "TOKEN_REUSE_DETECTED", ex.getMessage(), request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception occurred at {}: {}", request.getRequestURI(), ex.getMessage(), ex);

@@ -1,9 +1,6 @@
 package com.ilhankazan.social.controller;
 
-import com.ilhankazan.social.dto.auth.AuthResponse;
-import com.ilhankazan.social.dto.auth.LoginRequest;
-import com.ilhankazan.social.dto.auth.RefreshRequest;
-import com.ilhankazan.social.dto.auth.RegisterRequest;
+import com.ilhankazan.social.dto.auth.*;
 import com.ilhankazan.social.manager.AuthManager;
 import com.ilhankazan.social.security.RateLimit;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,13 +34,24 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
-        return ResponseEntity.ok(authManager.refresh(request.refreshToken()));
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request, HttpServletRequest httpRequest) {
+        String ip = httpRequest.getHeader("X-Forwarded-For");
+        if (ip == null) ip = httpRequest.getRemoteAddr();
+        String userAgent = httpRequest.getHeader("User-Agent");
+        return ResponseEntity.ok(authManager.refresh(request.refreshToken(), ip, userAgent));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        authManager.logout(authHeader);
+    public ResponseEntity<Void> logout(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @Valid @RequestBody LogoutRequest request) {
+        authManager.logout(authHeader, request.refreshToken());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/logout-all")
+    public ResponseEntity<Void> logoutAll() {
+        authManager.logoutAll();
         return ResponseEntity.noContent().build();
     }
 }
