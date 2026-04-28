@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test Usta</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px;">
+    <h2>MicroBlog WebSocket Testi</h2>
+
+    <label>JWT Access Token:</label><br>
+    <input type="text" id="token" placeholder="eyJh..." style="width: 400px; padding: 5px;">
+    <button onclick="connect()" style="padding: 6px;">Baglan</button>
+    <button onclick="disconnect()" style="padding: 6px;">Kopar</button>
+
+    <h3 style="margin-top: 20px;">Loglar:</h3>
+    <div id="messages" style="background: #f4f4f4; padding: 10px; height: 300px; overflow-y: auto; border: 1px solid #ccc;"></div>
+
+    <script>
+        let stompClient = null;
+
+        function connect() {
+          const token = document.getElementById('token').value;
+          if(!token) {
+            logMessage("Hata: Once token girmelisin!");
+            return;
+          }
+
+          stompClient = new StompJs.Client({
+            // Sunucudaki SockJS endpoint'imiz
+            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            connectHeaders: {
+              Authorization: 'Bearer ' + token
+            },
+            debug: function (str) { console.log(str); },
+
+            onConnect: function (frame) {
+              logMessage('BAGLANTI BASARILI! Guvenlik duvari asildi.');
+
+              stompClient.subscribe('/topic/feed', function (message) {
+                logMessage('YENI POST DÜŞTÜ: ' + message.body);
+              });
+              logMessage('/topic/feed kanali dinleniyor...');
+
+              stompClient.subscribe('/user/queue/notifications', function (message) {
+                logMessage('BILDIRIM GELDI: ' + message.body);
+              });
+              logMessage('/user/queue/notifications kanali dinleniyor...');
+            },
+            onStompError: function (frame) {
+              logMessage('HATA: ' + frame.headers['message']);
+            },
+            onWebSocketError: function (event) {
+              logMessage('HATA: Token gecersiz veya sunucu kapali.');
+            }
+          });
+
+          stompClient.activate();
+        }
+
+        function disconnect() {
+          if (stompClient !== null) {
+            stompClient.deactivate();
+            logMessage("Baglanti koparildi.");
+          }
+        }
+
+        function logMessage(message) {
+          const div = document.getElementById('messages');
+          div.innerHTML += '<p style="margin: 5px 0;">' + message + '</p>';
+          div.scrollTop = div.scrollHeight;
+        }
+    </script>
+</body>
+</html>
