@@ -871,7 +871,7 @@ PUT  /read-all
 
 ## Phase 8 — Direct Messages
 
-### [ ] 8.1 Conversation + Message entities
+### [x] 8.1 Conversation + Message entities
 
 - `entity/Conversation.java`: `participantA`, `participantB` (canonical: a.id < b.id), `lastMessageAt`
 - `entity/Message.java`: `Conversation conversation`, `Account sender`, `String content`, `Instant readAt`
@@ -882,7 +882,7 @@ PUT  /read-all
   - `Page<Message> findByConversationId(Long, Pageable)` — newest first
   - Bulk read receipt update
 
-### [ ] 8.2 Service + manager
+### [x] 8.2 Service + manager
 
 - `getOrCreateConversation(currentUserId, otherUserId)` — canonical ordering enforced before insert (smaller ID = participant_a)
 - `sendMessage(conversationId, senderId, content)` — auth check + persist + bump `lastMessageAt` + publish event
@@ -890,7 +890,7 @@ PUT  /read-all
 - `listMessages(conversationId, userId, Pageable)` — auth check (user must be participant)
 - `markRead(conversationId, userId)` — sets `readAt` on all messages from the OTHER participant
 
-### [ ] 8.3 REST endpoints
+### [x] 8.3 REST endpoints
 
 `/api/v1/conversations`:
 ```
@@ -900,7 +900,7 @@ GET  /{id}/messages?page=&size=
 PUT  /{id}/read                         # mark all unread (from other party) as read
 ```
 
-### [ ] 8.4 WebSocket message handling
+### [x] 8.4 WebSocket message handling
 
 Client sends to `/app/dm.send` with `{ conversationId, content }`.
 
