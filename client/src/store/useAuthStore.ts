@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AccountSummary } from '@/types/api';
+import type { AccountSummary } from '@/types/api';
 
 interface AuthState {
   token: string | null;
