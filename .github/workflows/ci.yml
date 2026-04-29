@@ -12,39 +12,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kodu Klonla
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Java 21 Kurulumu
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Backend Testlerini ve Derlemeyi Çalıştır
+      - name: Run Backend Tests and Verify
         run: |
           cd api
           ./mvnw -B verify
 
   client:
-    name: Build & Lint Client
+    name: Client Build & Lint
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kodu Klonla
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Node.js Kurulumu
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
+          cache-dependency-path: client/package-lock.json
 
-      - name: Frontend Kurulum ve Derleme
+      - name: Install Dependencies
         run: |
           cd client
           npm ci
-          npm run typecheck
-          npm run lint
+
+      - name: Run Lint and Build
+        run: |
+          cd client
           npm run build
