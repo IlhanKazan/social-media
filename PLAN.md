@@ -943,7 +943,7 @@ When recipient marks read, push `/user/{sender}/queue/read-receipts` with `{ con
 
 ## Phase 10 — Frontend Foundation
 
-### [ ] 10.1 Project structure
+### [x] 10.1 Project structure
 ```
 client/src/
 ├── app/                      # router + provider tree + layouts
@@ -983,7 +983,7 @@ client/src/
 └── main.tsx
 ```
 
-### [ ] 10.2 Tailwind v4 + shadcn theme
+### [x] 10.2 Tailwind v4 + shadcn theme
 
 `src/styles/globals.css`:
 ```css
@@ -1008,7 +1008,7 @@ Run `npx shadcn@latest init`. Choose:
 - CSS variables: yes
 - React Server Components: no (SPA)
 
-### [ ] 10.3 Install initial shadcn components
+### [x] 10.3 Install initial shadcn components
 ```bash
 npx shadcn@latest add button input label textarea avatar
 npx shadcn@latest add card dialog dropdown-menu sheet
@@ -1017,7 +1017,7 @@ npx shadcn@latest add tabs separator badge tooltip
 npx shadcn@latest add form  # RHF integration
 ```
 
-### [ ] 10.4 Axios instance + interceptors
+### [x] 10.4 Axios instance + interceptors
 
 `lib/api.ts`:
 ```ts
@@ -1057,7 +1057,7 @@ api.interceptors.response.use(
 
 > **Note (see Phase 5.5.7):** The `isRefreshing` boolean shown above is a sketch — replace with a single-flight refresh promise. When a 401 hits while a refresh is already in flight, queue the failed request and retry it once the in-flight refresh resolves. Otherwise N concurrent 401s trigger N parallel `/auth/refresh` calls, only one of which succeeds (the first to land), and the others trigger reuse-detection on the server, killing the user's whole token family. This is the single most common implementation mistake for rotating refresh tokens.
 
-### [ ] 10.5 Auth store (Zustand)
+### [x] 10.5 Auth store (Zustand)
 
 `stores/auth-store.ts`:
 - State: `accessToken`, `refreshToken`, `user`, `isAuthenticated`
@@ -1066,13 +1066,13 @@ api.interceptors.response.use(
 
 > **Note (see Phase 5.5.7):** Every successful `tryRefresh()` returns **both** a new access token AND a new refresh token (rotation). The store must overwrite both atomically — forgetting to overwrite `refreshToken` means the next refresh will present an already-revoked token and the server will revoke the entire family. `logout()` must call `POST /auth/logout` with the current refresh token in the body so the server can revoke that specific family; clearing local state without calling the server leaves the family alive in the DB until natural expiry.
 
-### [ ] 10.6 Query client + Providers
+### [x] 10.6 Query client + Providers
 
 `lib/query-client.ts` — `QueryClient` with sane defaults (staleTime 30s, retry 1 on 4xx never, retry 3 on 5xx).
 
 `app/Providers.tsx` wraps children with: `QueryClientProvider`, `ReactQueryDevtools`, `BrowserRouter` or `RouterProvider`, theme/dark-mode provider, `<Toaster />` from sonner.
 
-### [ ] 10.7 Routing skeleton
+### [x] 10.7 Routing skeleton
 
 `routes/index.tsx`:
 - Public: `/login`, `/register`
@@ -1094,7 +1094,7 @@ api.interceptors.response.use(
 
 ## Phase 11 — Frontend Auth
 
-### [ ] 11.1 Zod schemas + types
+### [x] 11.1 Zod schemas + types
 
 `features/auth/schemas.ts`:
 ```ts
@@ -1107,7 +1107,7 @@ export const registerSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 ```
 
-### [ ] 11.2 Login + Register pages
+### [x] 11.2 Login + Register pages
 
 Use shadcn Form components (`Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`) wired with RHF `useForm({ resolver: zodResolver(schema) })`.
 
@@ -1122,7 +1122,7 @@ Manual: register → log in → see `/` → refresh page → still logged in →
 
 ## Phase 12 — Frontend Layout + Core Pages
 
-### [ ] 12.1 AppLayout
+### [x] 12.1 AppLayout
 
 - Sidebar (left): logo, nav items (Feed, Explore, Notifications, Messages, Profile, Settings, Logout), user mini-card at bottom
 - Main content (center)
