@@ -1,0 +1,50 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  api:
+    name: Build & Test API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu Klonla
+        uses: actions/checkout@v4
+
+      - name: Java 21 Kurulumu
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Backend Testlerini ve Derlemeyi Çalıştır
+        run: |
+          cd api
+          ./mvnw -B verify
+
+  client:
+    name: Build & Lint Client
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu Klonla
+        uses: actions/checkout@v4
+
+      - name: Node.js Kurulumu
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Frontend Kurulum ve Derleme
+        run: |
+          cd client
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm run build

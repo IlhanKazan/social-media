@@ -12,6 +12,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class JwtTokenProvider {
     public String generateAccessToken(String username, List<String> roles) {
         return Jwts.builder()
                 .subject(username)
+                .id(UUID.randomUUID().toString())
                 .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProps.accessTtlMs()))
@@ -38,6 +40,7 @@ public class JwtTokenProvider {
     public String generateRefreshToken(String username) {
         return Jwts.builder()
                 .subject(username)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProps.refreshTtlMs()))
                 .signWith(key, Jwts.SIG.HS256)
