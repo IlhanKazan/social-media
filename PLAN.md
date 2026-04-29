@@ -1129,7 +1129,7 @@ Manual: register → log in → see `/` → refresh page → still logged in →
 - Right rail (optional): trending / suggestions
 - Mobile: sidebar collapses to bottom nav
 
-### [ ] 12.2 Feed page
+### [x] 12.2 Feed page
 
 `features/feed/FeedPage.tsx`:
 - Tabs: "Following" (default) / "Explore"
@@ -1137,7 +1137,7 @@ Manual: register → log in → see `/` → refresh page → still logged in →
 - Infinite scroll via `useInfiniteQuery({ queryKey: ['feed', tab], queryFn: ... })`
 - Each post = `<PostCard>`
 
-### [ ] 12.3 PostCard
+### [x] 12.3 PostCard
 
 - Avatar, displayName, @username, relative time (date-fns `formatDistanceToNow`)
 - Content + optional image
@@ -1166,7 +1166,7 @@ shadcn `<Dialog>` with form (RHF + Zod):
 
 ## Phase 13 — Frontend WebSocket
 
-### [ ] 13.1 STOMP client
+### [x] 13.1 STOMP client
 
 `lib/ws.ts`:
 ```ts
@@ -1183,14 +1183,14 @@ export function createStompClient(token: string) {
 }
 ```
 
-### [ ] 13.2 useWebSocket hook
+### [x] 13.2 useWebSocket hook
 
 Mounted ONCE at `AppLayout` level, not per page.
 - Connects on mount with token from `useAuthStore`.
 - Exposes via context: `subscribe(destination, handler)` returning unsubscribe fn.
 - Reconnects on token refresh.
 
-### [ ] 13.3 Real-time feed updates
+### [x] 13.3 Real-time feed updates
 
 In `FeedPage`:
 - Subscribe to `/topic/feed` on mount.

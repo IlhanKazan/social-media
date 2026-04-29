@@ -4,9 +4,9 @@ import { AppLayout } from '@/app/layouts/AppLayout';
 import { AuthLayout } from '@/app/layouts/AuthLayout';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
+import {FeedPage} from "@/features/feed/FeedPage.tsx";
 
 // TODO: Replace remaining dummies with real pages from features/
-const Dashboard = () => <div className="rounded-xl border bg-card p-8 shadow-sm"><h1 className="text-2xl font-bold">Feed</h1></div>;
 const NotFound = () => <div className="p-8 text-center"><h1 className="text-2xl font-bold">404 Not Found</h1></div>;
 
 export const router = createBrowserRouter([
@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <Dashboard /> },
+          { index: true, element: <FeedPage /> },
           { path: '/explore', element: <div>Explore</div> },
           { path: '/u/:username', element: <div>Profile</div> },
           { path: '/notifications', element: <div>Notifications</div> },

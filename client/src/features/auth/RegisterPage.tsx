@@ -9,6 +9,7 @@ import { registerSchema, type RegisterInput } from './schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 import type { AuthResponse, ErrorResponse } from '@/types/api';
 
 export function RegisterPage() {
@@ -37,7 +38,7 @@ export function RegisterPage() {
       } else if (error.response?.data?.message) {
         setError('root', { message: error.response.data.message });
       } else {
-        setError('root', { message: 'Registration failed. Please try again.' });
+        setError('root', { message: 'Kayıt olunamadı. Lütfen tekrar dene.' });
       }
     }
   });
@@ -47,84 +48,86 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
-        <p className="text-sm text-muted-foreground mt-1">Enter your details to get started</p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Aramıza katıl</h1>
+        <p className="text-muted-foreground font-light text-lg">Hesabını oluştur ve akışta yerini al.</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username" className={errors.username ? "text-destructive" : ""}>Kullanıcı Adı</Label>
           <Input
             id="username"
             placeholder="ilhankazan"
-            className="bg-background"
+            className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.username ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.username}
             {...register('username')}
           />
           {errors.username && (
-            <p className="text-sm font-medium text-destructive">{errors.username.message}</p>
+            <p className="text-xs font-medium text-destructive">{errors.username.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className={errors.email ? "text-destructive" : ""}>E-posta</Label>
           <Input
             id="email"
             type="email"
-            placeholder="mail@example.com"
-            className="bg-background"
+            placeholder="mail@ornek.com"
+            className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.email ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.email}
             {...register('email')}
           />
           {errors.email && (
-            <p className="text-sm font-medium text-destructive">{errors.email.message}</p>
+            <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="displayName">Display Name (Optional)</Label>
+          <Label htmlFor="displayName" className={errors.displayName ? "text-destructive" : ""}>Görünen Ad (İsteğe bağlı)</Label>
           <Input
             id="displayName"
             placeholder="İlhan Kazan"
-            className="bg-background"
+            className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.displayName ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.displayName}
             {...register('displayName')}
           />
           {errors.displayName && (
-            <p className="text-sm font-medium text-destructive">{errors.displayName.message}</p>
+            <p className="text-xs font-medium text-destructive">{errors.displayName.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>Şifre</Label>
           <Input
             id="password"
             type="password"
             placeholder="••••••••"
-            className="bg-background"
+            className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.password ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.password}
             {...register('password')}
           />
           {errors.password && (
-            <p className="text-sm font-medium text-destructive">{errors.password.message}</p>
+            <p className="text-xs font-medium text-destructive">{errors.password.message}</p>
           )}
         </div>
 
         {errors.root && (
-          <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
+          <div className="rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive border border-destructive/20">
+            {errors.root.message}
+          </div>
         )}
 
-        <Button type="submit" className="w-full mt-2" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Creating account...' : 'Sign up'}
+        <Button type="submit" className="w-full h-12 text-base font-semibold transition-transform active:scale-95" disabled={mutation.isPending}>
+          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Kayıt Ol'}
         </Button>
       </form>
 
-      <div className="text-sm text-center text-muted-foreground">
-        Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-primary hover:underline">
-          Sign in
+      <div className="text-center text-sm text-muted-foreground">
+        Zaten hesabın var mı?{' '}
+        <Link to="/login" className="font-bold text-primary hover:underline transition-colors">
+          Giriş yap
         </Link>
       </div>
     </div>
