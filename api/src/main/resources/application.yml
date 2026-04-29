@@ -24,6 +24,9 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
 
 server:
   port: ${SERVER_PORT:8080}
