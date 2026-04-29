@@ -931,7 +931,7 @@ When recipient marks read, push `/user/{sender}/queue/read-receipts` with `{ con
 - Every controller method gets `@Operation(summary, description)` + `@ApiResponse` for non-200 cases.
 - Tag controllers (`@Tag(name = "Posts")`).
 
-### [ ] 9.4 Integration tests
+### [x] 9.4 Integration tests
 - `@SpringBootTest` with Testcontainers Postgres for happy-path tests on each major flow:
   - Auth: register → login → use token
   - Posts: create → fetch → like → comment → delete
@@ -1373,7 +1373,7 @@ databases:
     postgresMajorVersion: "16"
 ```
 
-### [ ] 17.4 GitHub Actions CI
+### [x] 17.4 GitHub Actions CI
 `.github/workflows/ci.yml`:
 - Trigger: PR + push to main
 - Job `api`: setup-java@v4 (temurin 21), cache `~/.m2`, `cd api && ./mvnw -B verify`
