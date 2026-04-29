@@ -927,7 +927,7 @@ When recipient marks read, push `/user/{sender}/queue/read-receipts` with `{ con
 - `GET /api/v1/search/posts?q=&page=&size=` — content ILIKE
 - Combined: `GET /api/v1/search?q=` returns top-N of each
 
-### [ ] 9.3 OpenAPI annotations
+### [x] 9.3 OpenAPI annotations
 - Every controller method gets `@Operation(summary, description)` + `@ApiResponse` for non-200 cases.
 - Tag controllers (`@Tag(name = "Posts")`).
 
