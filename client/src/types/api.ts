@@ -56,6 +56,7 @@ export interface PublicAccountResponse {
   followerCount: number;
   followingCount: number;
   isFollowing: boolean;
+  joinedAt: string;
 }
 
 export interface UpdateProfileRequest {
