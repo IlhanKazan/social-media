@@ -1,8 +1,20 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { WebSocketProvider } from '@/hooks/use-websocket';
+import {useEffect} from "react";
+import {useNotificationStore} from "@/stores/notification-store.ts";
+import {useAuthStore} from "@/stores/auth-store.ts";
 
 export function AppLayout() {
+  const account = useAuthStore((state) => state.account);
+  const fetchUnread = useNotificationStore((state) => state.fetchUnreadCount);
+
+  useEffect(() => {
+    if (account) {
+      fetchUnread();
+    }
+  }, [fetchUnread, account?.id]);
+
   return (
     <WebSocketProvider>
       <div className="mx-auto flex min-h-screen w-full max-w-7xl justify-center">

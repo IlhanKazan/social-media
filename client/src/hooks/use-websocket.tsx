@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth-store';
+import { useNotificationStore } from '@/stores/notification-store';
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -34,7 +36,31 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      onConnect: () => setIsConnected(true),
+      onConnect: () => {
+        setIsConnected(true);
+
+        // GLOBAL BİLDİRİM DİNLEYİCİSİ BURADA
+        client.subscribe('/user/queue/notifications', (message) => {
+          if (message.body) {
+            const notification = JSON.parse(message.body);
+
+            // 1. Sidebar'daki sayacı artır
+            useNotificationStore.getState().incrementUnread();
+
+            // 2. Sağ alttan toast çıkar
+            toast(notification.title || 'Yeni Bildirim', {
+              description: notification.message,
+              action: {
+                label: 'Görüntüle',
+                onClick: () => {
+                  console.log('Bildirime tıklandı, hedef ID:', notification.referenceId);
+                  // React Router navigate() will be here soon
+                },
+              },
+            });
+          }
+        });
+      },
       onDisconnect: () => setIsConnected(false),
       onStompError: (frame) => console.error('Broker reported error: ' + frame.headers['message']),
     });
