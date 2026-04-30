@@ -545,7 +545,7 @@ DTOs:
 
 **Acceptance:** Liking the same post twice is idempotent (still ends with one like); switching to dislike removes the like; comments paginate correctly.
 
-### [ ] 3.5 Profile Extended Feeds (Replies & Likes)
+### [x] 3.5 Profile Extended Feeds (Replies & Likes)
 - Update `repository/PostRepository` with custom JPQL queries to fetch a user's replies (`parentPost IS NOT NULL`) and liked posts (join with `Interaction` where type is `LIKE`).
 - Update `service/PostService` and `manager/PostManager` to implement `getProfileReplies` and `getProfileLikes`, ensuring proper interaction count enrichment.
 - Expose endpoints in `controller/PostController`: `GET /by-user/{username}/replies` and `GET /by-user/{username}/likes` with pagination.

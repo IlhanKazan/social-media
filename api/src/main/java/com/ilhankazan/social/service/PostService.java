@@ -104,4 +104,14 @@ public class PostService {
     public Page<Post> getReplies(Long parentPostId, Pageable pageable) {
         return postRepository.findReplies(parentPostId, pageable);
     }
+
+    @Transactional(readOnly = true)
+    public Page<Post> getRepliesByAccount(Long accountId, Pageable pageable) {
+        return postRepository.findRepliesByAccountId(accountId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Post> getLikedPostsByAccount(Long accountId, Pageable pageable) {
+        return postRepository.findLikedPostsByAccountId(accountId, pageable);
+    }
 }

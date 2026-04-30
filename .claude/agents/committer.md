@@ -206,3 +206,48 @@ unilaterally.
 inside the same commit as the dep bump", or "found a stray console.log
 in feed.tsx, did NOT commit, please address">
 ```
+
+Git & Commit Workflow (AI Instructions)
+
+**CRITICAL RULE:** Unless the user explicitly says "commit", "give me a commit message", or "let's commit", DO NOT generate commit messages on your own initiative. During the development process, only provide code and solutions, and keep track of modified/added files in your memory.
+
+When the user issues the "commit" command, analyze the changes and respond EXACTLY in the following format:
+
+### 1. Branch Suggestion
+If the user hasn't created a branch yet, suggest an appropriate branch name based on the work done (following Conventional Commits).
+* Format: `feat/short-description` or `fix/short-description`
+
+### 2. Core Code Commit
+Provide the main commit message covering only the application (frontend/backend) code changes.
+* Commit type must be `feat`, `fix`, `refactor`, `chore`, etc.
+* In the body, list the changes file by file or module by module as bullet points.
+```bash
+git add [only_changed_code_files]
+git commit -m "$(cat <<'COMMIT_MSG'
+<type>(<scope>): <short_title>
+
+<general_summary_of_the_work_done>
+
+- <file_or_module>: <change_description>
+- <file_or_module>: <change_description>
+
+Refs: <related_task_or_issue>
+COMMIT_MSG
+)"
+3. PLAN.md Update Commit
+Provide a separate commit just for updating PLAN.md (or docs) progress, completely independent of the core code.
+
+Bash
+git add PLAN.md
+git commit -m "docs(plan): mark <task_name_and_number> as completed"
+4. Pull Request (PR) Template
+Provide a clean title and description for the user to use when opening a PR on GitHub/GitLab.
+
+PR Title:
+<type>(<scope>): <short and clear title>
+
+PR Description:
+A short and professional summary explaining what was done, what new features were added, or which bugs were fixed, separating backend/frontend if necessary.
+
+
+***

@@ -92,4 +92,22 @@ public class PostController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
         return ResponseEntity.ok(postManager.getReplies(id, page, size));
     }
+
+    @Operation(summary = "Get user's replies", description = "Returns a paginated list of replies made by a specific user.")
+    @GetMapping("/by-user/{username}/replies")
+    public ResponseEntity<PageResponse<PostResponse>> getProfileReplies(
+        @PathVariable String username,
+        @RequestParam(defaultValue = "0") @Min(0) int page,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(postManager.getProfileReplies(username, page, size));
+    }
+
+    @Operation(summary = "Get user's liked posts", description = "Returns a paginated list of posts liked by a specific user.")
+    @GetMapping("/by-user/{username}/likes")
+    public ResponseEntity<PageResponse<PostResponse>> getProfileLikes(
+        @PathVariable String username,
+        @RequestParam(defaultValue = "0") @Min(0) int page,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(postManager.getProfileLikes(username, page, size));
+    }
 }
