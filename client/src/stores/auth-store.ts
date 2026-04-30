@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AccountSummary, AuthResponse } from '@/types/api';
 import axios from 'axios';
+import {useNotificationStore} from "@/stores/notification-store.ts";
 
 interface AuthState {
   token: string | null;
@@ -38,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
           }
         }
         set({ token: null, refreshToken: null, account: null });
+        useNotificationStore.getState().reset();
       },
       tryRefresh: async () => {
         const currentRefresh = get().refreshToken;

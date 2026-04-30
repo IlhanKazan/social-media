@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -8,6 +8,8 @@ import { EditProfileDialog } from './components/EditProfileDialog';
 import { useProfile } from './hooks/use-profile';
 import { useProfileFeed } from './hooks/use-profile-feed';
 import { useFollowUser } from './hooks/use-follow-user';
+import { useProfileReplies } from './hooks/use-profile-replies';
+import { useProfileLikes } from './hooks/use-profile-likes';
 import { useAuthStore } from '@/stores/auth-store';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
@@ -15,22 +17,33 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PostCard } from '@/features/feed/components/PostCard';
+import type {PostResponse} from "@/types/api.ts";
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const currentUser = useAuthStore((state) => state.account);
 
   const { data: profile, status: profileStatus } = useProfile(username!);
-  const { data: feed, fetchNextPage, hasNextPage, isFetchingNextPage, status: feedStatus } = useProfileFeed(username!);
+  const feedQuery = useProfileFeed(username!);
   const followMutation = useFollowUser(username!, profile?.id || 0);
+  const repliesQuery = useProfileReplies(username!);
+  const likesQuery = useProfileLikes(username!);
+
+  const [activeTab, setActiveTab] = useState('posts');
 
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
 
   useEffect(() => {
-    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (isIntersecting) {
+      if (activeTab === 'posts' && feedQuery.hasNextPage && !feedQuery.isFetchingNextPage) {
+        feedQuery.fetchNextPage();
+      } else if (activeTab === 'replies' && repliesQuery.hasNextPage && !repliesQuery.isFetchingNextPage) {
+        repliesQuery.fetchNextPage();
+      } else if (activeTab === 'likes' && likesQuery.hasNextPage && !likesQuery.isFetchingNextPage) {
+        likesQuery.fetchNextPage();
+      }
     }
-  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [isIntersecting, activeTab, feedQuery, repliesQuery, likesQuery]);
 
   if (profileStatus === 'pending') {
     return (
@@ -103,41 +116,58 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="posts" className="w-full">
+      <Tabs defaultValue="posts" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList variant="line" className="w-full justify-start rounded-none border-b bg-transparent p-0 h-12">
-          <TabsTrigger
-            value="posts"
-            className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
-          >
+          <TabsTrigger value="posts" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
             Gönderiler
           </TabsTrigger>
-          <TabsTrigger value="replies" className="flex-1 rounded-none" disabled>
+          <TabsTrigger value="replies" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
             Yanıtlar
           </TabsTrigger>
-          <TabsTrigger value="likes" className="flex-1 rounded-none" disabled>
+          <TabsTrigger value="likes" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
             Beğeniler
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts" className="m-0 border-none outline-none">
-          {feedStatus === 'pending' ? (
-            <div className="flex h-32 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : feedStatus === 'error' ? (
+          {feedQuery.status === 'pending' ? (
+            <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : feedQuery.status === 'error' ? (
             <div className="p-4 text-center text-sm text-destructive">Gönderiler yüklenemedi.</div>
           ) : (
             <div className="flex flex-col">
-              {feed.pages.map((page) =>
-                page.content.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))
-              )}
+              {feedQuery.data.pages.map((page) => page.content.map((post: PostResponse) => <PostCard key={post.id} post={post} />))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
-                {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-                {!hasNextPage && feed.pages[0]?.content.length === 0 && (
-                  <span className="text-sm text-muted-foreground">Henüz gönderi yok.</span>
-                )}
+                {feedQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+                {!feedQuery.hasNextPage && feedQuery.data.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Henüz gönderi yok.</span>}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="replies" className="m-0 border-none outline-none">
+          {repliesQuery.status === 'pending' ? (
+            <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="flex flex-col">
+              {repliesQuery.data?.pages.map((page) => page.content.map((post: PostResponse) => <PostCard key={post.id} post={post} />))}
+              <div ref={targetRef} className="flex h-16 items-center justify-center">
+                {repliesQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+                {!repliesQuery.hasNextPage && repliesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Henüz yanıt yok.</span>}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="likes" className="m-0 border-none outline-none">
+          {likesQuery.status === 'pending' ? (
+            <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="flex flex-col">
+              {likesQuery.data?.pages.map((page) => page.content.map((post: PostResponse) => <PostCard key={post.id} post={post} />))}
+              <div ref={targetRef} className="flex h-16 items-center justify-center">
+                {likesQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+                {!likesQuery.hasNextPage && likesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Henüz beğenilen gönderi yok.</span>}
               </div>
             </div>
           )}

@@ -82,6 +82,26 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-300 dark:bg-zinc-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-400 dark:bg-zinc-600;
+  }
 }
 
 @theme inline {

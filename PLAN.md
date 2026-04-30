@@ -1215,13 +1215,13 @@ Globally subscribe to `/user/queue/notifications`:
 
 ## Phase 14 — Frontend Notifications
 
-### [ ] 14.1 NotificationDropdown
+### [x] 14.1 NotificationDropdown
 - Bell icon in header → shadcn `<DropdownMenu>` or `<Popover>`
 - Unread count badge on bell
 - Top N unread, scroll to load more
 - Click item → mark read + navigate
 
-### [ ] 14.2 NotificationsPage `/notifications`
+### [x] 14.2 NotificationsPage `/notifications`
 - Full list, paginated
 - Tabs: Unread / All
 - "Mark all read" button
