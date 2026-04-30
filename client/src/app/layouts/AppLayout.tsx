@@ -5,23 +5,19 @@ import { WebSocketProvider } from '@/hooks/use-websocket';
 export function AppLayout() {
   return (
     <WebSocketProvider>
-      <div className="flex min-h-screen bg-background justify-center">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl justify-center">
         <Sidebar />
 
-        <main className="flex-1 max-w-[600px] w-full border-x border-zinc-100 dark:border-zinc-800/50 min-h-screen">
-          <div className="w-full">
-            <Outlet />
-          </div>
+        <main className="flex min-h-screen w-full min-w-0 flex-1 flex-col border-x border-zinc-100 sm:max-w-[600px] dark:border-zinc-800/50">
+          <Outlet />
         </main>
 
-        <aside className="hidden lg:block w-80 p-6">
-          <div className="sticky top-6">
-            <div className="rounded-xl bg-zinc-50 dark:bg-zinc-900/50 p-4 border border-zinc-100 dark:border-zinc-800/50">
-              <h3 className="font-bold mb-2">Kimi Takip Etmeli</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Önerilen kullanıcılar ve trendler modülü yakında eklenecek.
-              </p>
-            </div>
+        <aside className="sticky top-0 hidden h-screen w-80 shrink-0 flex-col p-6 lg:flex">
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/50">
+            <h3 className="mb-2 font-bold">Kimi Takip Etmeli</h3>
+            <p className="leading-relaxed text-sm text-muted-foreground">
+              Önerilen kullanıcılar ve trendler modülü yakında eklenecek.
+            </p>
           </div>
         </aside>
       </div>
