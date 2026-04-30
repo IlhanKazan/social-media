@@ -36,4 +36,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p WHERE LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%')) AND p.deletedAt IS NULL ORDER BY p.createdAt DESC")
     Page<Post> searchPosts(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.account.id = :accountId AND p.parentPost IS NOT NULL AND p.deletedAt IS NULL ORDER BY p.createdAt DESC")
+    Page<Post> findRepliesByAccountId(@Param("accountId") Long accountId, Pageable pageable);
+
+    @Query("SELECT p FROM Post p JOIN Interaction i ON i.post = p WHERE i.account.id = :accountId AND i.type = com.ilhankazan.social.entity.InteractionType.LIKE AND p.deletedAt IS NULL AND i.deletedAt IS NULL ORDER BY i.createdAt DESC")
+    Page<Post> findLikedPostsByAccountId(@Param("accountId") Long accountId, Pageable pageable);
 }

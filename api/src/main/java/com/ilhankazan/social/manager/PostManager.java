@@ -141,4 +141,20 @@ public class PostManager {
         Page<Post> posts = postService.getReplies(id, PageRequest.of(page, size));
         return enrichPage(posts, current.getId());
     }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PostResponse> getProfileReplies(String username, int page, int size) {
+        Account current = getCurrentAccount();
+        Account target = accountService.getAccount(username);
+        Page<Post> posts = postService.getRepliesByAccount(target.getId(), PageRequest.of(page, size));
+        return enrichPage(posts, current.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PostResponse> getProfileLikes(String username, int page, int size) {
+        Account current = getCurrentAccount();
+        Account target = accountService.getAccount(username);
+        Page<Post> posts = postService.getLikedPostsByAccount(target.getId(), PageRequest.of(page, size));
+        return enrichPage(posts, current.getId());
+    }
 }
