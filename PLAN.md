@@ -545,6 +545,12 @@ DTOs:
 
 **Acceptance:** Liking the same post twice is idempotent (still ends with one like); switching to dislike removes the like; comments paginate correctly.
 
+### [ ] 3.5 Profile Extended Feeds (Replies & Likes)
+- Update `repository/PostRepository` with custom JPQL queries to fetch a user's replies (`parentPost IS NOT NULL`) and liked posts (join with `Interaction` where type is `LIKE`).
+- Update `service/PostService` and `manager/PostManager` to implement `getProfileReplies` and `getProfileLikes`, ensuring proper interaction count enrichment.
+- Expose endpoints in `controller/PostController`: `GET /by-user/{username}/replies` and `GET /by-user/{username}/likes` with pagination.
+
+**Acceptance:** `GET /by-user/{username}/likes` returns the user's liked posts. `GET /by-user/{username}/replies` returns only the user's reply posts.
 ---
 
 ## Phase 4 — Follow System
@@ -1145,7 +1151,7 @@ Manual: register → log in → see `/` → refresh page → still logged in →
 - Optimistic mutation on like/dislike with rollback
 - Click anywhere on card → navigate to `/post/:id` (post detail with replies)
 
-### [ ] 12.4 Profile page `/u/:username`
+### [x] 12.4 Profile page `/u/:username`
 
 - Header: cover image, avatar overlapping cover bottom, displayName + @username, bio
 - Stat row: Posts | Following | Followers
@@ -1153,7 +1159,7 @@ Manual: register → log in → see `/` → refresh page → still logged in →
 - Tabs: Posts | Replies | Likes
 - Tab content: infinite list of relevant items
 
-### [ ] 12.5 Edit profile dialog
+### [x] 12.5 Edit profile dialog
 
 shadcn `<Dialog>` with form (RHF + Zod):
 - displayName, bio textarea
