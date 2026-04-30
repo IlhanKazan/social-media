@@ -91,6 +91,19 @@ export interface PostResponse {
   createdAt: string;  // ISO-8601 Instant
 }
 
+// ─── Notification ──────────────────────────────────────────────
+
+export type NotificationType = 'LIKE' | 'COMMENT' | 'FOLLOW' | 'REPLY' | 'MENTION';
+
+export interface NotificationResponse {
+  id: number;
+  type: NotificationType;
+  actor: PublicAccountResponse;
+  referenceId: number | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
 // ─── Common ───────────────────────────────────────────────────────────────────
 
 export interface PageResponse<T> {

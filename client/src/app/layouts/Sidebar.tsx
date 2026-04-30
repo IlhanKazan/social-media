@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Compass, Bell, Mail, User, Settings, LogOut, Zap } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
+import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -8,10 +9,12 @@ export function Sidebar() {
   const account = useAuthStore((state) => state.account);
   const logout = useAuthStore((state) => state.logout);
 
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+
   const navItems = [
     { name: 'Akış', to: '/', icon: Home },
     { name: 'Keşfet', to: '/explore', icon: Compass },
-    { name: 'Bildirimler', to: '/notifications', icon: Bell },
+    { name: 'Bildirimler', to: '/notifications', icon: Bell, badge: unreadCount },
     { name: 'Mesajlar', to: '/messages', icon: Mail },
     { name: 'Profil', to: `/u/${account?.username}`, icon: User },
     { name: 'Ayarlar', to: '/settings', icon: Settings },
@@ -39,7 +42,15 @@ export function Sidebar() {
               )
             }
           >
-            <item.icon className="h-6 w-6 shrink-0" />
+            <div className="relative flex items-center justify-center">
+              <item.icon className="h-6 w-6 shrink-0" />
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground ring-2 ring-background">
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
+            </div>
+
             <span className="hidden xl:block">{item.name}</span>
           </NavLink>
         ))}
