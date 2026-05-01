@@ -24,8 +24,9 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public Account getAccountReference(Long id) {
-        return accountRepository.getReferenceById(id);
+    public Account getAccountById(Long id) {
+        return accountRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Account not found: " + id));
     }
 
     @Transactional(readOnly = true)
