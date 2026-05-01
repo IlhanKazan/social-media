@@ -1,24 +1,74 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFeed } from './hooks/use-feed';
+import { useExploreFeed } from './hooks/use-explore-feed';
 import { PostCard } from './components/PostCard';
 import { CreatePost } from './components/CreatePost';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useWebSocket } from '@/hooks/use-websocket';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import type { PostResponse, PageResponse } from '@/types/api';
+import type { InfiniteData } from '@tanstack/react-query';
 
-export function FeedPage() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useFeed();
+interface FeedTabContentProps {
+  data: InfiniteData<PageResponse<PostResponse>>;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  emptyMessage: string;
+}
+
+function FeedTabContent({
+  data,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  emptyMessage,
+}: FeedTabContentProps) {
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
-  const { subscribe } = useWebSocket();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isIntersecting && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  return (
+    <>
+      <div className="flex flex-col gap-0 sm:gap-4 px-0 sm:px-4 sm:pt-4">
+        {data.pages.map((page) =>
+          page.content.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))
+        )}
+      </div>
+
+      <div ref={targetRef} className="flex h-16 items-center justify-center mt-4">
+        {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+        {!hasNextPage && data.pages[0] !== undefined && data.pages[0].content.length > 0 && (
+          <span className="text-sm text-muted-foreground">Tüm gönderileri gördün.</span>
+        )}
+        {!hasNextPage && data.pages[0] !== undefined && data.pages[0].content.length === 0 && (
+          <span className="text-sm text-muted-foreground">{emptyMessage}</span>
+        )}
+      </div>
+    </>
+  );
+}
+
+interface FeedPageProps {
+  defaultTab?: 'following' | 'explore';
+}
+
+export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
+
+  const following = useFeed();
+  const explore = useExploreFeed();
+
+  const { subscribe } = useWebSocket();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const subscription = subscribe('/topic/feed', (message) => {
@@ -31,10 +81,12 @@ export function FeedPage() {
         if (exists) return old;
 
         const newPages = [...old.pages];
-        newPages[0] = {
-          ...newPages[0],
-          content: [newPost, ...newPages[0].content]
-        };
+        if (newPages[0] !== undefined) {
+          newPages[0] = {
+            ...newPages[0],
+            content: [newPost, ...newPages[0].content],
+          };
+        }
         return { ...old, pages: newPages };
       });
     });
@@ -44,21 +96,36 @@ export function FeedPage() {
     };
   }, [subscribe, queryClient]);
 
-  if (status === 'pending') {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  const renderTabBody = (
+    query: typeof following | typeof explore,
+    emptyMessage: string
+  ) => {
+    if (query.status === 'pending') {
+      return (
+        <div className="flex h-32 items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      );
+    }
 
-  if (status === 'error') {
+    if (query.status === 'error') {
+      return (
+        <div className="p-4 text-center text-sm text-destructive">
+          Akış yüklenirken bir hata oluştu. Lütfen tekrar deneyin.
+        </div>
+      );
+    }
+
     return (
-      <div className="p-4 text-center text-sm text-destructive">
-        Akış yüklenirken bir hata oluştu. Lütfen tekrar deneyin.
-      </div>
+      <FeedTabContent
+        data={query.data}
+        fetchNextPage={query.fetchNextPage}
+        hasNextPage={query.hasNextPage}
+        isFetchingNextPage={query.isFetchingNextPage}
+        emptyMessage={emptyMessage}
+      />
     );
-  }
+  };
 
   return (
     <div className="flex flex-col gap-0 pb-4">
@@ -68,23 +135,28 @@ export function FeedPage() {
 
       <CreatePost />
 
-      <div className="flex flex-col gap-0 sm:gap-4 px-0 sm:px-4 sm:pt-4">
-        {data.pages.map((page) =>
-          page.content.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))
-        )}
-      </div>
+      <Tabs
+        defaultValue={activeTab}
+        onValueChange={(value) => setActiveTab(value as string)}
+        className="w-full"
+      >
+        <TabsList variant="line" className="w-full border-b rounded-none px-4">
+          <TabsTrigger value="following" className="flex-1">
+            Takip Edilen
+          </TabsTrigger>
+          <TabsTrigger value="explore" className="flex-1">
+            Keşfet
+          </TabsTrigger>
+        </TabsList>
 
-      <div ref={targetRef} className="flex h-16 items-center justify-center mt-4">
-        {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-        {!hasNextPage && data.pages[0].content.length > 0 && (
-          <span className="text-sm text-muted-foreground">Tüm gönderileri gördün.</span>
-        )}
-        {!hasNextPage && data.pages[0].content.length === 0 && (
-          <span className="text-sm text-muted-foreground">Henüz hiç gönderi yok. Birilerini takip etmeye başla!</span>
-        )}
-      </div>
+        <TabsContent value="following">
+          {renderTabBody(following, 'Henüz hiç gönderi yok. Birilerini takip etmeye başla!')}
+        </TabsContent>
+
+        <TabsContent value="explore">
+          {renderTabBody(explore, 'Henüz hiç gönderi yok.')}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <FeedPage /> },
-          { path: '/explore', element: <div>Explore</div> },
+          { path: '/explore', element: <FeedPage defaultTab="explore" /> },
           { path: 'u/:username', element: <ProfilePage /> },
           { path: '/notifications', element: <NotificationsPage/> },
           { path: '/messages', element: <div>Messages</div> },
