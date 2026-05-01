@@ -28,6 +28,8 @@ export interface AccountSummary {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
+  accessTokenExpiresIn: number;
+  refreshTokenExpiresIn: number;
   account: AccountSummary;
 }
 
