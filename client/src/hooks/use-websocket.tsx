@@ -39,24 +39,14 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       onConnect: () => {
         setIsConnected(true);
 
-        // GLOBAL BİLDİRİM DİNLEYİCİSİ BURADA
         client.subscribe('/user/queue/notifications', (message) => {
           if (message.body) {
             const notification = JSON.parse(message.body);
 
-            // 1. Sidebar'daki sayacı artır
             useNotificationStore.getState().incrementUnread();
 
-            // 2. Sağ alttan toast çıkar
             toast(notification.title || 'Yeni Bildirim', {
               description: notification.message,
-              action: {
-                label: 'Görüntüle',
-                onClick: () => {
-                  console.log('Bildirime tıklandı, hedef ID:', notification.referenceId);
-                  // React Router navigate() will be here soon
-                },
-              },
             });
           }
         });

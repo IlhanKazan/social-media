@@ -8,7 +8,6 @@ import {FeedPage} from "@/features/feed/FeedPage.tsx";
 import {ProfilePage} from "@/features/profile/ProfilePage.tsx";
 import { NotificationsPage } from '@/features/notifications/NotificationsPage';
 
-// TODO: Replace remaining dummies with real pages from features/
 const NotFound = () => <div className="p-8 text-center"><h1 className="text-2xl font-bold">404 Not Found</h1></div>;
 
 export const router = createBrowserRouter([
