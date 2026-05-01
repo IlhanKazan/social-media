@@ -1,7 +1,6 @@
 package com.ilhankazan.social.service;
 
 import com.ilhankazan.social.dto.interaction.InteractionCounts;
-import com.ilhankazan.social.dto.interaction.InteractionStatusResponse;
 import com.ilhankazan.social.dto.interaction.UserInteractions;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Interaction;
@@ -157,10 +156,4 @@ public class InteractionService {
         interactionRepository.save(reaction);
     }
 
-    private InteractionStatusResponse buildStatus(Long accountId, Long postId) {
-        List<Long> ids = List.of(postId);
-        InteractionCounts counts = getCountsForPosts(ids).getOrDefault(postId, InteractionCounts.EMPTY);
-        UserInteractions ui = getUserInteractionsForPosts(ids, accountId).getOrDefault(postId, UserInteractions.EMPTY);
-        return new InteractionStatusResponse(ui.liked(), ui.disliked(), counts.likes(), counts.dislikes());
-    }
 }
