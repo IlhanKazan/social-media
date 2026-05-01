@@ -47,8 +47,8 @@ public class FollowManager {
         }
 
         // Fazladan veritabanı okuması yapmamak için Proxy objeler (Referans) kullanıyoruz.
-        Account follower = accountService.getAccountReference(currentId);
-        Account target = accountService.getAccountReference(targetId);
+        Account follower = accountService.getAccountById(currentId);
+        Account target = accountService.getAccountById(targetId);
 
         followService.follow(follower, target);
         eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId));

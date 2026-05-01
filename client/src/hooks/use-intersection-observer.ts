@@ -6,7 +6,7 @@ export function useIntersectionObserver(options = {}) {
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      setIsIntersecting(entry.isIntersecting);
+      if (entry) setIsIntersecting(entry.isIntersecting);
     }, options);
 
     if (targetRef.current) {

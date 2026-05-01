@@ -48,12 +48,11 @@ public class InteractionManager {
         Post post = postService.getById(postId);
         interactionService.toggleReaction(current, post, InteractionType.LIKE);
 
-        // Sadece Like eklendiginde bildirim gitsin
         InteractionStatusResponse status = buildStatus(current.getId(), postId);
         if (status.liked()) {
-            eventPublisher.publishEvent(new InteractionCreatedEvent(null, postId, current.getId(), "LIKE", null));}
-
-        return buildStatus(current.getId(), postId);
+            eventPublisher.publishEvent(new InteractionCreatedEvent(null, postId, current.getId(), "LIKE", null));
+        }
+        return status;
     }
 
     @Transactional

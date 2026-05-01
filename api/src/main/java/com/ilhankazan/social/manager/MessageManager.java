@@ -48,7 +48,7 @@ public class MessageManager {
     @Transactional
     public ConversationResponse getOrCreateConversation(Long targetAccountId) {
         Account current = getCurrentAccount();
-        Account target = accountService.getAccountReference(targetAccountId);
+        Account target = accountService.getAccountById(targetAccountId);
 
         if (current.getId().equals(targetAccountId)) {
             throw new IllegalArgumentException("Cannot create conversation with yourself");

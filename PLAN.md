@@ -1205,7 +1205,7 @@ In `FeedPage`:
 
 Use `useEffect` cleanup to unsubscribe.
 
-### [ ] 13.4 Real-time notifications
+### [x] 13.4 Real-time notifications
 
 Globally subscribe to `/user/queue/notifications`:
 - Increment unread count badge in sidebar.

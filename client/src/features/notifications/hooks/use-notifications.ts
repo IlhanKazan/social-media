@@ -9,7 +9,7 @@ export function useNotifications() {
       return data;
     },
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
+    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
   });
 }
 
