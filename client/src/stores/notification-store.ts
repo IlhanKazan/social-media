@@ -24,8 +24,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     try {
       const response = await api.get<number>('/notifications/unread-count');
       set({ unreadCount: response.data });
-    } catch (error) {
-      console.error('Bildirim sayısı alınamadı:', error);
+    } catch {
     }
   },
 }));

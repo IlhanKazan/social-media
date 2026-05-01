@@ -52,7 +52,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         });
       },
       onDisconnect: () => setIsConnected(false),
-      onStompError: (frame) => console.error('Broker reported error: ' + frame.headers['message']),
+      onStompError: () => setIsConnected(false),
     });
 
     client.activate();

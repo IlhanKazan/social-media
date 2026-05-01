@@ -25,8 +25,6 @@ export function NotificationCard({ notification }: Props) {
 
     if (notification.type === 'FOLLOW') {
       navigate(`/u/${notification.actor.username}`);
-    } else if (notification.referenceId) {
-      console.log('Gönderiye git:', notification.referenceId);
     }
   };
 

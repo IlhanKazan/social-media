@@ -34,8 +34,7 @@ export const useAuthStore = create<AuthState>()(
               `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'}/auth/logout`,
               { refreshToken }
             );
-          } catch (e) {
-            console.error("Logout failed on server", e);
+          } catch {
           }
         }
         set({ token: null, refreshToken: null, account: null });
