@@ -93,6 +93,17 @@ export interface PostResponse {
   createdAt: string;  // ISO-8601 Instant
 }
 
+export interface CommentRequest {
+  content: string;
+}
+
+export interface CommentResponse {
+  id: number;
+  content: string;
+  author: PublicAccountResponse;
+  createdAt: string;
+}
+
 // ─── Notification ──────────────────────────────────────────────
 
 export type NotificationType = 'LIKE' | 'COMMENT' | 'FOLLOW' | 'REPLY' | 'MENTION';
@@ -104,6 +115,35 @@ export interface NotificationResponse {
   referenceId: number | null;
   readAt: string | null;
   createdAt: string;
+}
+
+// ─── Messages ──────────────────────────────────────────────────
+
+export interface ConversationResponse {
+  id: number;
+  otherParticipant: PublicAccountResponse;
+  lastMessageAt: string | null;
+  unreadCount: number;
+}
+
+export interface MessageResponse {
+  id: number;
+  conversationId: number;
+  sender: PublicAccountResponse;
+  content: string;
+  readAt: string | null;
+  createdAt: string;
+  isOptimistic?: boolean;
+}
+
+export interface CombinedSearchResponse {
+  users: PublicAccountResponse[];
+  posts: PostResponse[];
+}
+
+export interface ReadReceiptPayload {
+  conversationId: number;
+  readAt: string;
 }
 
 // ─── Common ───────────────────────────────────────────────────────────────────

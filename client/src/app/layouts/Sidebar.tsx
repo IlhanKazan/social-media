@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Bell, Mail, User, Settings, LogOut, Zap } from 'lucide-react';
+import { Home, Compass, Bell, Mail, User, Settings, LogOut, Zap, Search } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ export function Sidebar() {
 
   const navItems = [
     { name: 'Akış', to: '/', icon: Home },
+    { name: 'Ara', to: '/search', icon: Search },
     { name: 'Keşfet', to: '/explore', icon: Compass },
     { name: 'Bildirimler', to: '/notifications', icon: Bell, badge: unreadCount },
     { name: 'Mesajlar', to: '/messages', icon: Mail },
