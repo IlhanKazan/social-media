@@ -36,7 +36,7 @@ function FeedTabContent({
 
   return (
     <>
-      <div className="flex flex-col gap-0 sm:gap-4 px-0 sm:px-4 sm:pt-4">
+      <div className="flex flex-col">
         {data.pages.map((page) =>
           page.content.map((post) => (
             <PostCard key={post.id} post={post} />
