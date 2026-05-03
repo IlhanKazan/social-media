@@ -7,6 +7,10 @@ import { RegisterPage } from '@/features/auth/RegisterPage';
 import {FeedPage} from "@/features/feed/FeedPage.tsx";
 import {ProfilePage} from "@/features/profile/ProfilePage.tsx";
 import { NotificationsPage } from '@/features/notifications/NotificationsPage';
+import {MessagingPage} from "@/features/messaging/MessagingPage.tsx";
+import {PostDetailPage} from "@/features/post/PostDetailPage.tsx";
+import {SearchPage} from "@/features/search/SearchPage.tsx";
+import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
 
 const NotFound = () => <div className="p-8 text-center"><h1 className="text-2xl font-bold">404 Not Found</h1></div>;
 
@@ -26,12 +30,13 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <FeedPage /> },
           { path: '/explore', element: <FeedPage defaultTab="explore" /> },
+          { path: '/post/:id', element: <PostDetailPage /> },
+          { path: '/search', element: <SearchPage /> },
           { path: 'u/:username', element: <ProfilePage /> },
           { path: '/notifications', element: <NotificationsPage/> },
-          { path: '/messages', element: <div>Messages</div> },
-          { path: '/messages/:conversationId', element: <div>Conversation Detail</div> },
-          { path: '/search', element: <div>Search</div> },
-          { path: '/settings', element: <div>Settings</div> },
+          { path: '/messages', element: <MessagingPage /> },
+          { path: '/messages/:conversationId', element: <MessagingPage /> },
+          { path: '/settings', element: <SettingsPage /> },
         ],
       },
     ],
