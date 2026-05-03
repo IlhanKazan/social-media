@@ -1230,54 +1230,107 @@ Globally subscribe to `/user/queue/notifications`:
 
 ## Phase 15 — Frontend DM
 
-### [ ] 15.1 ConversationsList `/messages`
+### [x] 15.1 ConversationsList `/messages`
 - Two-pane layout (collapses to single-pane on mobile)
 - Left: list of conversations with last message preview + unread badge
 - Right: empty state ("Select a conversation") or selected thread
 
-### [ ] 15.2 ConversationView `/messages/:conversationId`
+### [x] 15.2 ConversationView `/messages/:conversationId`
 - Header: other participant info
 - Scrollable message list (reverse-paginated, oldest at top)
 - Composer at bottom
 
-### [ ] 15.3 Real-time message handling
+### [x] 15.3 Real-time message handling
 
 - Subscribe to `/user/queue/messages` globally.
 - On receive: if matches current open conversation → append + scroll to bottom + mark read; else → bump conversation in list + increment unread.
 - Sending: optimistic append (status "sending") via STOMP `/app/dm.send` → on echo update status to "sent".
 
-### [ ] 15.4 Read receipts UI
+### [x] 15.4 Read receipts UI
 - Subscribe to `/user/queue/read-receipts`.
 - "Seen at HH:MM" caption under last sent message.
 
 ---
 
-## Phase 16 — Frontend Polish
+## Phase 16 — Frontend Feature Completion & UX Polish
 
-### [ ] 16.1 Search page
+This phase addresses the missing UI components, fixes type mismatches between the frontend and the OpenAPI specification, and polishes the overall user experience.
+
+### [x] 16.1 Type Sync & Interface Overhaul
+- Sync `src/types/api.ts` strictly with the Swagger API definitions.
+- **Critical Fix:** Update `MessageResponse` to use `sender: PublicAccountResponse` instead of `senderId: number`. Refactor `ConversationView` to map `msg.sender.id` to prevent runtime errors.
+- Add missing interfaces: `CommentRequest`, `CommentResponse`, and `CombinedSearchResponse`.
+  **Acceptance:** `npm run typecheck` passes without errors; DM view renders correctly without undefined `senderId` issues.
+
+### [x] 16.2 Post Detail & Comment System
+- Create `features/post/PostDetailPage.tsx` mapped to the `/post/:id` route.
+- Fetch the main post via `GET /api/v1/posts/{id}` (gracefully handle 404/Empty State).
+- Implement infinite scrolling for comments using `GET /api/v1/posts/{postId}/interactions/comments`.
+- Add a comment composer (similar to `CreatePost`) hitting `POST /api/v1/posts/{postId}/interactions/comments`.
+- Add delete action for comments (`DELETE /api/v1/posts/{postId}/interactions/comments/{commentId}`), restricted to the comment author or an admin.
+  **Acceptance:** Clicking the comment icon on a `PostCard` navigates to the post detail page, where users can view, add, and delete their own comments.
+
+### [x] 16.3 Post Management (Edit/Delete) & Cleanup
+- Remove the non-functional "Repost" (Repeat2) button from `PostCard.tsx`.
+- Add a shadcn `<DropdownMenu>` to the top-right of `PostCard`.
+- Wire up the "Delete" option to `DELETE /api/v1/posts/{id}` (visible only to the author).
+- Wire up the "Edit" option to `PATCH /api/v1/posts/{id}` via a shadcn `<Dialog>` modal (visible only to the author).
+- *Note: Post image uploading is deferred until a dedicated upload endpoint is added to the backend.*
+  **Acceptance:** Authors can edit or soft-delete their posts from the feed, with UI updating optimistically or via query invalidation.
+
+### [x] 16.4 Profile Enhancements & DM Initiation
+- Add a "Message" button next to the "Follow" button on `ProfilePage` (if viewing someone else's profile).
+- Wire the "Message" button to trigger `POST /api/v1/conversations/with/{accountId}` and immediately redirect to `/messages/:conversationId`.
+- Add interactive Follower/Following dialogs: Clicking the stats on the profile opens a `<Dialog>` listing users fetched via `GET /api/v1/follow/followers/{accountId}` and `GET /api/v1/follow/following/{accountId}`.
+  **Acceptance:** Users can seamlessly initiate a DM from a profile and view detailed follower/following lists.
+
+### [x] 16.5 Global Search Page
+- Create `features/search/SearchPage.tsx` mapped to the `/search` route.
+- Add a global search bar in the header or sidebar that routes to `/search?q=...`.
+- Fetch results via `GET /api/v1/search?q=` and display the `CombinedSearchResponse` using a tabbed interface (Tabs: "Users" | "Posts").
+  **Acceptance:** Searching a keyword returns relevant posts and accounts, displayed in distinct, toggleable tabs.
+
+### [x] 16.6 Typeahead Search & PostgreSQL Performance
+- Create a new Flyway migration (`V<n>__add_search_indexes.sql`) to enable `pg_trgm` and add GIN indexes to `accounts.username` and `accounts.display_name`.
+- Create a `useDebounce` hook (e.g., 300ms) to prevent backend spamming during keystrokes.
+- Add a global search input to the Sidebar/Header. Display a dropdown/popover fetching `GET /api/v1/search/users?q=...&size=5` as the user types.
+- Pressing Enter or clicking "See all results" navigates to the detailed `/search?q=...` page.
+
+### [x] 16.7 Settings & Security
+- Create `features/settings/SettingsPage.tsx` mapped to the `/settings` route.
+- Implement a Dark/Light mode toggle (saving preference to `localStorage` and updating the `html` class).
+- Add a "Log out everywhere" button triggering `POST /api/v1/auth/logout-all` (redirects to `/login`).
+- Add a "Delete Account" danger zone button triggering `DELETE /api/v1/accounts/me` with a strict confirmation dialog.
+  **Acceptance:** Users can toggle themes, revoke all active sessions across devices, and soft-delete their account successfully.
+
+---
+
+## Phase 17 — Frontend Polish
+
+### [x] 17.1 Search page
 - Single search bar in header → routes to `/search?q=...`
 - Results: Users tab + Posts tab
 - Empty / loading / error states
 
-### [ ] 16.2 Skeletons + empty states
+### [ ] 17.2 Skeletons + empty states
 Every list page uses shadcn `<Skeleton>` while loading. Empty state with friendly message + CTA.
 
-### [ ] 16.3 ErrorBoundary
+### [ ] 17.3 ErrorBoundary
 Root-level `<ErrorBoundary>` catches render errors → shows recovery UI with reload button.
 
-### [ ] 16.4 Dark mode
+### [x] 17.4 Dark mode
 shadcn includes the `next-themes`-style toggle (or use a manual one with class on `<html>`). Persist to localStorage.
 
-### [ ] 16.5 Mobile polish
+### [~] 17.5 Mobile polish
 - Sidebar → bottom nav on `< md`
 - Composer modal-style on mobile
 - All pages tested on 375px width
 
 ---
 
-## Phase 17 — DevOps
+## Phase 18 — DevOps
 
-### [ ] 17.1 docker-compose.yml
+### [ ] 18.1 docker-compose.yml
 ```yaml
 services:
   postgres:
@@ -1312,7 +1365,7 @@ volumes:
   postgres_data:
 ```
 
-### [ ] 17.2 api/Dockerfile (multi-stage, optimized)
+### [ ] 18.2 api/Dockerfile (multi-stage, optimized)
 ```dockerfile
 # Build
 FROM maven:3.9-eclipse-temurin-21 AS build
@@ -1335,7 +1388,7 @@ HEALTHCHECK --interval=30s --timeout=3s \
 ENTRYPOINT ["java","-XX:+UseZGC","-XX:MaxRAMPercentage=75","-jar","app.jar"]
 ```
 
-### [ ] 17.3 render.yaml
+### [ ] 18.3 render.yaml
 ```yaml
 services:
   - type: web
@@ -1379,20 +1432,20 @@ databases:
     postgresMajorVersion: "16"
 ```
 
-### [x] 17.4 GitHub Actions CI
+### [x] 18.4 GitHub Actions CI
 `.github/workflows/ci.yml`:
 - Trigger: PR + push to main
 - Job `api`: setup-java@v4 (temurin 21), cache `~/.m2`, `cd api && ./mvnw -B verify`
 - Job `client`: setup-node@v4 (20), cache npm, `cd client && npm ci && npm run typecheck && npm run lint && npm run build`
 
-### [ ] 17.5 .env.example finalized
+### [ ] 18.5 .env.example finalized
 List every required env var with description.
 
 ---
 
-## Phase 18 — Launch
+## Phase 19 — Launch
 
-### [ ] 18.1 Root README.md
+### [ ] 19.1 Root README.md
 Sections:
 - Hero: project name, screenshot/gif, live link
 - Overview: what + why
@@ -1403,13 +1456,13 @@ Sections:
 - Architecture: link to ARCHITECTURE.md
 - Acknowledgements: link to the 2024 legacy version
 
-### [ ] 18.2 ARCHITECTURE.md
+### [ ] 19.2 ARCHITECTURE.md
 - Mermaid diagram of: client ↔ api ↔ postgres + cloudinary, with WebSocket overlay
 - Module boundaries explanation
 - Why monorepo, why monolith
 - Real-time data flow (post → event → broadcast → client)
 
-### [ ] 18.3 Deploy to Render
+### [ ] 19.3 Deploy to Render
 - Create Render account
 - Connect GitHub
 - Apply `render.yaml`
@@ -1417,13 +1470,13 @@ Sections:
 - Verify both services healthy
 - Test full happy path on live URLs
 
-### [ ] 18.4 Update legacy repo READMEs
+### [ ] 19.4 Update legacy repo READMEs
 Add to top of `social-media-api/README.md` and `social-media-frontend/README.md`:
 > ⚠️ **Archived 2024 version.** This is preserved for reference. The 2026 modern rewrite — with WebSocket-based real-time feed, follow system, direct messaging, image uploads, and a shadcn/ui frontend — lives at [`<new-repo-url>`](url).
 
 Then archive both old repos via Settings → Archive on GitHub.
 
-### [ ] 18.5 Portfolio integration
+### [ ] 19.5 Portfolio integration
 - Add link from main portfolio site
 - Optional: case study page describing the rewrite (1 paragraph each: 2024 state → identified issues → 2026 redesign → result)
 
