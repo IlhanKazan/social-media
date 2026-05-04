@@ -10,6 +10,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import { Card, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -92,8 +93,16 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <>
       <Card
-        className="border-x-0 border-t-0 border-b border-zinc-100 dark:border-zinc-800/50 ring-0 rounded-none shadow-none bg-transparent hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 cursor-pointer transition-colors"
+        role="button"
+        tabIndex={0}
+        className="border-x-0 border-t-0 border-b border-zinc-100 dark:border-zinc-800/50 ring-0 rounded-none shadow-none bg-transparent hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 cursor-pointer transition-colors focus-visible:bg-zinc-50 dark:focus-visible:bg-zinc-900/20 outline-none"
         onClick={() => navigate(`/post/${post.id}`)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigate(`/post/${post.id}`);
+          }
+        }}
       >
         <CardHeader className="flex flex-row items-start gap-3 p-3 pb-0">
           <Link to={`/u/${post.author.username}`} className="shrink-0 z-10" onClick={(e) => e.stopPropagation()}>
@@ -138,9 +147,33 @@ export function PostCard({ post }: PostCardProps) {
 
             <div className="mt-1">
               <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{post.content}</p>
+
               {post.imageUrl && (
-                <div className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                  <img src={post.imageUrl} alt="Post attachment" className="w-full object-cover max-h-[500px]" />
+                <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                  <Dialog>
+                    <DialogTrigger render={
+                      <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 cursor-zoom-in group">
+                        <img
+                          src={post.imageUrl}
+                          alt="Post attachment"
+                          className="w-full object-cover max-h-[500px] transition-transform group-hover:scale-[1.02]"
+                        />
+                      </div>
+                    } />
+
+                    <DialogContent
+                      className="max-w-none sm:max-w-none w-screen h-[100dvh] p-0 m-0 border-none bg-black/95 shadow-none flex items-center justify-center rounded-none text-white [&>button]:text-white [&>button]:hover:bg-white/20 [&>button]:right-4 [&>button]:top-4 [&>button]:h-10 [&>button]:w-10"
+                      showCloseButton={true}
+                    >
+                      <DialogTitle className="sr-only">Fotoğrafı İncele</DialogTitle>
+
+                      <img
+                        src={post.imageUrl}
+                        alt="Post attachment fullscreen"
+                        className="max-w-full max-h-full w-auto h-auto object-contain select-none"
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
             </div>
