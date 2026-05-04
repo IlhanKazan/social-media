@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ilhankazan.social.base.BaseIntegrationTest;
 import com.ilhankazan.social.dto.auth.AuthResponse;
 import com.ilhankazan.social.dto.auth.RegisterRequest;
-import com.ilhankazan.social.dto.interaction.CommentRequest;
-import com.ilhankazan.social.dto.interaction.CommentResponse;
 import com.ilhankazan.social.dto.interaction.InteractionStatusResponse;
 import com.ilhankazan.social.dto.post.CreatePostRequest;
 import com.ilhankazan.social.dto.post.PostResponse;
@@ -74,25 +72,26 @@ class PostIntegrationTest extends BaseIntegrationTest {
         assertThat(likeStatus.liked()).isTrue();
         assertThat(likeStatus.likeCount()).isEqualTo(1);
 
-        CommentRequest commentReq = new CommentRequest("Harika bir gönderi!");
-        HttpEntity<CommentRequest> commentEntity = new HttpEntity<>(commentReq, headers);
+        CreatePostRequest replyReq = new CreatePostRequest("Harika bir gönderi!", null, postId);
+        HttpEntity<CreatePostRequest> replyEntity = new HttpEntity<>(replyReq, headers);
 
-        ResponseEntity<String> commentRes = restTemplate.exchange(
-            "/api/v1/posts/" + postId + "/interactions/comments", HttpMethod.POST, commentEntity, String.class);
+        ResponseEntity<String> replyRes = restTemplate.exchange(
+            "/api/v1/posts", HttpMethod.POST, replyEntity, String.class);
 
-        assertThat(commentRes.getStatusCode())
-            .as("Comment action failed: " + commentRes.getBody())
+        assertThat(replyRes.getStatusCode())
+            .as("Reply action failed: " + replyRes.getBody())
             .isEqualTo(HttpStatus.CREATED);
 
-        CommentResponse commentResponse = objectMapper.readValue(commentRes.getBody(), CommentResponse.class);
-        assertThat(commentResponse.content()).isEqualTo("Harika bir gönderi!");
+        PostResponse replyResponse = objectMapper.readValue(replyRes.getBody(), PostResponse.class);
+        assertThat(replyResponse.content()).isEqualTo("Harika bir gönderi!");
+        assertThat(replyResponse.parentPostId()).isEqualTo(postId);
 
         ResponseEntity<String> fetchRes = restTemplate.exchange(
             "/api/v1/posts/" + postId, HttpMethod.GET, emptyEntity, String.class);
 
         PostResponse fetchedPost = objectMapper.readValue(fetchRes.getBody(), PostResponse.class);
         assertThat(fetchedPost.likeCount()).isEqualTo(1);
-        assertThat(fetchedPost.commentCount()).isEqualTo(1);
+        assertThat(fetchedPost.replyCount()).isEqualTo(1);
         assertThat(fetchedPost.likedByMe()).isTrue();
     }
 }
