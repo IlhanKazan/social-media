@@ -21,7 +21,7 @@ export function RegisterPage() {
     defaultValues: { username: '', email: '', password: '', displayName: '' },
   });
 
-  const mutation = useMutation<AuthResponse, AxiosError<ErrorResponse>, RegisterInput>({
+  const mutation = useMutation<AuthResponse, AxiosError<ErrorResponse>, Omit<RegisterInput, 'confirmPassword'>>({
     mutationFn: async (data) => {
       const res = await api.post<AuthResponse>('/auth/register', data);
       return res.data;
@@ -44,7 +44,8 @@ export function RegisterPage() {
   });
 
   const onSubmit = (values: RegisterInput) => {
-    mutation.mutate(values);
+    const { confirmPassword, ...dataToSend } = values;
+    mutation.mutate(dataToSend);
   };
 
   return (
@@ -110,6 +111,21 @@ export function RegisterPage() {
           />
           {errors.password && (
             <p className="text-xs font-medium text-destructive">{errors.password.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword" className={errors.confirmPassword ? "text-destructive" : ""}>Şifre Tekrarı</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="••••••••"
+            className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.confirmPassword ? "border-destructive focus:ring-destructive/20" : ""}`}
+            aria-invalid={!!errors.confirmPassword}
+            {...register('confirmPassword')}
+          />
+          {errors.confirmPassword && (
+            <p className="text-xs font-medium text-destructive">{errors.confirmPassword.message}</p>
           )}
         </div>
 

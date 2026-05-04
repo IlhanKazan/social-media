@@ -13,9 +13,13 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -109,5 +113,13 @@ public class PostController {
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
         return ResponseEntity.ok(postManager.getProfileLikes(username, page, size));
+    }
+
+    @Operation(summary = "Upload post image", description = "Uploads an image before creating a post. Returns the secure URL.")
+    @ApiResponse(responseCode = "200", description = "Image successfully uploaded")
+    @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        String url = postManager.uploadPostImage(file);
+        return ResponseEntity.ok(Map.of("url", url));
     }
 }
