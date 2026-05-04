@@ -3,15 +3,18 @@ import { RouterProvider } from 'react-router-dom';
 import { queryClient } from '@/lib/query-client';
 import { router } from '@/routes';
 import { Toaster } from '@/components/ui/sonner';
-import {ThemeProvider} from "@/components/theme-provider.tsx";
+import { ThemeProvider } from "@/components/theme-provider.tsx";
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 export function Providers() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster />
-      </QueryClientProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <Toaster />
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
