@@ -112,9 +112,14 @@ export function EditProfileDialog() {
                 <AvatarFallback className="text-xl">{account?.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <input type="file" ref={avatarInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar')} />
-              <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none outline-none appearance-none"
+                onClick={() => avatarInputRef.current?.click()}
+              >
                 <Camera className="h-6 w-6 text-white" />
-              </div>
+              </button>
             </div>
           </div>
         </div>

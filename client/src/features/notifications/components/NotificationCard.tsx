@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Heart, MessageCircle, UserPlus, AtSign, CornerDownRight, Bell } from 'lucide-react';
-import type {NotificationResponse} from '@/types/api';
+import { Heart, UserPlus, AtSign, CornerDownRight, Bell } from 'lucide-react';
+import type { NotificationResponse } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMarkAsRead } from '../hooks/use-notifications';
@@ -25,13 +25,16 @@ export function NotificationCard({ notification }: Props) {
 
     if (notification.type === 'FOLLOW') {
       navigate(`/u/${notification.actor.username}`);
+    } else if (notification.type === 'REPLY' || notification.type === 'MENTION' || notification.type === 'LIKE') {
+      if (notification.referenceId) {
+        navigate(`/post/${notification.referenceId}`);
+      }
     }
   };
 
   const getIcon = () => {
     switch (notification.type) {
       case 'LIKE': return <Heart className="h-6 w-6 text-red-500 fill-red-500" />;
-      case 'COMMENT': return <MessageCircle className="h-6 w-6 text-blue-500 fill-blue-500" />;
       case 'REPLY': return <CornerDownRight className="h-6 w-6 text-indigo-500" />;
       case 'MENTION': return <AtSign className="h-6 w-6 text-yellow-500" />;
       case 'FOLLOW': return <UserPlus className="h-6 w-6 text-primary fill-primary" />;
@@ -42,7 +45,6 @@ export function NotificationCard({ notification }: Props) {
   const getMessage = () => {
     switch (notification.type) {
       case 'LIKE': return 'gönderini beğendi.';
-      case 'COMMENT': return 'gönderine yorum yaptı.';
       case 'REPLY': return 'sana bir yanıt verdi.';
       case 'MENTION': return 'senden bahsetti.';
       case 'FOLLOW': return 'seni takip etmeye başladı.';

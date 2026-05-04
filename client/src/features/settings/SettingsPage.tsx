@@ -1,6 +1,7 @@
-import { Monitor, Moon, Sun, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Monitor, Moon, Sun, AlertTriangle, ShieldAlert, LogOut } from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
 import { useLogoutAll, useDeleteAccount } from './hooks/use-security';
+import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -18,6 +19,7 @@ export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const logoutAllMutation = useLogoutAll();
   const deleteAccountMutation = useDeleteAccount();
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -53,6 +55,25 @@ export function SettingsPage() {
               onClick={() => setTheme('system')}
             >
               <Monitor className="h-4 w-4" /> Sistem
+            </Button>
+          </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold">Hesap</h3>
+            <p className="text-sm text-muted-foreground">Oturumunu yönet.</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+            <div>
+              <p className="font-bold text-[15px]">Oturumu Kapat</p>
+              <p className="text-sm text-muted-foreground">Sadece bu cihazdan çıkış yaparsın.</p>
+            </div>
+            <Button variant="outline" onClick={() => void logout()} className="gap-2 shrink-0">
+              <LogOut className="h-4 w-4" /> Çıkış Yap
             </Button>
           </div>
         </section>

@@ -22,8 +22,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[68px] sm:w-20 xl:w-64 shrink-0 flex-col items-center py-4 sm:py-6 xl:items-stretch xl:px-4">
-      {/* Logo */}
+    <aside className="hidden md:flex sticky top-0 h-[100dvh] w-20 xl:w-64 shrink-0 flex-col items-center py-6 xl:items-stretch xl:px-4">
       <div className="mb-6 flex items-center justify-center xl:justify-start xl:px-2 gap-3 font-bold text-xl tracking-tight text-foreground">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
           <Zap className="h-5 w-5 fill-current" />
@@ -77,7 +76,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className="h-12 w-12 shrink-0 gap-3 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive xl:h-10 xl:w-full xl:justify-start xl:rounded-lg"
-          onClick={() => logout()}
+          onClick={() => void logout()}
         >
           <LogOut className="h-5 w-5 shrink-0" />
           <span className="hidden xl:block">Çıkış Yap</span>
