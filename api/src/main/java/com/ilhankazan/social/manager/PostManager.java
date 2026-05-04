@@ -11,6 +11,7 @@ import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.PostCreatedEvent;
 import com.ilhankazan.social.mapper.PostMapper;
 import com.ilhankazan.social.service.AccountService;
+import com.ilhankazan.social.service.CloudinaryStorageService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +23,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,7 @@ public class PostManager {
     private final AccountService accountService;
     private final InteractionService interactionService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CloudinaryStorageService storageService;
 
     private Account getCurrentAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -156,5 +159,10 @@ public class PostManager {
         Account target = accountService.getAccount(username);
         Page<Post> posts = postService.getLikedPostsByAccount(target.getId(), PageRequest.of(page, size));
         return enrichPage(posts, current.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public String uploadPostImage(MultipartFile file) {
+        return storageService.uploadFile(file, "posts");
     }
 }
