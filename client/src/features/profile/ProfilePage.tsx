@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Loader2, CalendarDays, Mail } from 'lucide-react';
-
+import { Loader2, CalendarDays, Mail, Settings } from 'lucide-react';
 import { EditProfileDialog } from './components/EditProfileDialog';
 import { FollowListDialog } from './components/FollowListDialog';
 import { useProfile } from './hooks/use-profile';
@@ -66,6 +65,14 @@ export function ProfilePage() {
       <div className="h-32 sm:h-48 w-full bg-zinc-200 dark:bg-zinc-800 relative">
         {profile.coverImageUrl && (
           <img src={profile.coverImageUrl} alt="Cover" className="w-full h-full object-cover" />
+        )}
+
+        {isOwnProfile && (
+          <Link to="/settings" className="absolute top-4 right-4 z-10 md:hidden">
+            <Button variant="secondary" size="icon" className="rounded-full bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 hover:bg-background/80 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50">
+              <Settings className="h-5 w-5 text-foreground" />
+            </Button>
+          </Link>
         )}
       </div>
 

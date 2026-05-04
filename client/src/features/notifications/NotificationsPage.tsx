@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Loader2, CheckCheck } from 'lucide-react';
+import { Loader2, CheckCheck, Bell, BellOff } from 'lucide-react';
 import { useNotifications, useMarkAllAsRead } from './hooks/use-notifications';
 import { useNotificationStore } from '@/stores/notification-store';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { NotificationCard } from './components/NotificationCard';
+import { NotificationSkeleton } from '@/components/shared/NotificationSkeleton';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +18,7 @@ export function NotificationsPage() {
 
   useEffect(() => {
     if (isIntersecting && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -30,6 +32,42 @@ export function NotificationsPage() {
   const filteredNotifications = activeTab === 'unread'
     ? notifications.filter(n => n.readAt === null)
     : notifications;
+
+  let tabContent;
+  if (status === 'pending') {
+    tabContent = (
+      <div className="flex flex-col">
+        {[1, 2, 3, 4, 5, 6].map(i => <NotificationSkeleton key={i} />)}
+      </div>
+    );
+  } else if (status === 'error') {
+    tabContent = (
+      <EmptyState
+        icon={<BellOff className="h-12 w-12 text-destructive" />}
+        title="Yüklenemedi"
+        description="Bildirimler getirilirken bir sorun oluştu."
+      />
+    );
+  } else if (filteredNotifications.length === 0) {
+    tabContent = (
+      <EmptyState
+        icon={<Bell className="h-12 w-12" />}
+        title="Bildirim Yok"
+        description={activeTab === 'unread' ? 'Okunmamış bildiriminiz yok.' : 'Henüz bildiriminiz yok.'}
+      />
+    );
+  } else {
+    tabContent = (
+      <>
+        {filteredNotifications.map((notification) => (
+          <NotificationCard key={notification.id} notification={notification} />
+        ))}
+        <div ref={targetRef} className="flex h-16 items-center justify-center">
+          {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -47,7 +85,7 @@ export function NotificationsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start rounded-none border-b border-zinc-100 bg-transparent p-0 h-12 dark:border-zinc-800/50">
           <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
             Tümü
@@ -58,26 +96,7 @@ export function NotificationsPage() {
         </TabsList>
 
         <div className="flex flex-col">
-          {status === 'pending' ? (
-            <div className="flex h-32 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : status === 'error' ? (
-            <div className="p-4 text-center text-sm text-destructive">Bildirimler yüklenemedi.</div>
-          ) : filteredNotifications.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              {activeTab === 'unread' ? 'Okunmamış bildiriminiz yok.' : 'Henüz bildiriminiz yok.'}
-            </div>
-          ) : (
-            <>
-              {filteredNotifications.map((notification) => (
-                <NotificationCard key={notification.id} notification={notification} />
-              ))}
-              <div ref={targetRef} className="flex h-16 items-center justify-center">
-                {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-              </div>
-            </>
-          )}
+          {tabContent}
         </div>
       </Tabs>
     </div>

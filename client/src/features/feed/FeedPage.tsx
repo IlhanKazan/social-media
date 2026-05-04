@@ -7,32 +7,48 @@ import { CreatePost } from './components/CreatePost';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Loader2, MessageSquareOff, AlertCircle, Plus } from 'lucide-react';
+import { PostSkeleton } from '@/components/shared/PostSkeleton';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/ui/button';
 import type { PostResponse, PageResponse } from '@/types/api';
 import type { InfiniteData } from '@tanstack/react-query';
 
 interface FeedTabContentProps {
-  data: InfiniteData<PageResponse<PostResponse>>;
-  fetchNextPage: () => void;
-  hasNextPage: boolean;
-  isFetchingNextPage: boolean;
-  emptyMessage: string;
+  readonly data: InfiniteData<PageResponse<PostResponse>>;
+  readonly fetchNextPage: () => void;
+  readonly hasNextPage: boolean;
+  readonly isFetchingNextPage: boolean;
+  readonly emptyMessage: string;
 }
 
 function FeedTabContent({
-  data,
-  fetchNextPage,
-  hasNextPage,
-  isFetchingNextPage,
-  emptyMessage,
-}: FeedTabContentProps) {
+                          data,
+                          fetchNextPage,
+                          hasNextPage,
+                          isFetchingNextPage,
+                          emptyMessage,
+                        }: FeedTabContentProps) {
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
 
   useEffect(() => {
     if (isIntersecting && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const isEmpty = !hasNextPage && data.pages[0]?.content.length === 0;
+
+  if (isEmpty) {
+    return (
+      <EmptyState
+        icon={<MessageSquareOff className="h-12 w-12" />}
+        title="Burası çok sessiz"
+        description={emptyMessage}
+      />
+    );
+  }
 
   return (
     <>
@@ -46,11 +62,8 @@ function FeedTabContent({
 
       <div ref={targetRef} className="flex h-16 items-center justify-center mt-4">
         {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-        {!hasNextPage && data.pages[0] !== undefined && data.pages[0].content.length > 0 && (
+        {!hasNextPage && (data.pages[0]?.content.length ?? 0) > 0 && (
           <span className="text-sm text-muted-foreground">Tüm gönderileri gördün.</span>
-        )}
-        {!hasNextPage && data.pages[0] !== undefined && data.pages[0].content.length === 0 && (
-          <span className="text-sm text-muted-foreground">{emptyMessage}</span>
         )}
       </div>
     </>
@@ -58,11 +71,12 @@ function FeedTabContent({
 }
 
 interface FeedPageProps {
-  defaultTab?: 'following' | 'explore';
+  readonly defaultTab?: 'following' | 'explore';
 }
 
 export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
 
   const following = useFeed();
   const explore = useExploreFeed();
@@ -102,19 +116,25 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
   ) => {
     if (query.status === 'pending') {
       return (
-        <div className="flex h-32 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col">
+          {[1, 2, 3, 4, 5].map((i) => <PostSkeleton key={i} />)}
         </div>
       );
     }
 
     if (query.status === 'error') {
       return (
-        <div className="p-4 text-center text-sm text-destructive">
-          Akış yüklenirken bir hata oluştu. Lütfen tekrar deneyin.
-        </div>
+        <EmptyState
+          icon={<AlertCircle className="h-12 w-12 text-destructive" />}
+          title="Bir hata oluştu"
+          description="Akış yüklenirken bir sorunla karşılaştık. Lütfen sayfayı yenileyin."
+          actionLabel="Tekrar Dene"
+          onAction={() => query.refetch()}
+        />
       );
     }
+
+    if (!query.data) return null;
 
     return (
       <FeedTabContent
@@ -128,15 +148,35 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
   };
 
   return (
-    <div className="flex flex-col gap-0 pb-4">
-      <div className="px-4 py-3 border-b sticky top-0 bg-background/95 backdrop-blur z-10">
+    <div className="flex flex-col gap-0 pb-4 relative">
+      <div className="px-4 py-3 border-b sticky top-0 bg-background/95 backdrop-blur z-50">
         <h2 className="text-xl font-bold">Akış</h2>
       </div>
 
-      <CreatePost />
+      <div className="hidden md:block">
+        <CreatePost />
+      </div>
+
+      <div className="md:hidden fixed bottom-[4.5rem] right-4 z-40">
+        <Sheet open={isComposerOpen} onOpenChange={setIsComposerOpen}>
+          <SheetTrigger render={
+            <Button size="icon" className="h-[3.25rem] w-[3.25rem] rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Plus className="h-6 w-6" />
+            </Button>
+          } />
+          <SheetContent side="bottom" className="h-[85dvh] p-0 flex flex-col rounded-t-2xl sm:max-w-none w-full border-t border-zinc-200 dark:border-zinc-800" showCloseButton={true}>
+            <SheetHeader className="p-4 border-b text-left shrink-0">
+              <SheetTitle>Gönderi Oluştur</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto bg-background">
+              <CreatePost onSuccessCallback={() => setIsComposerOpen(false)} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
 
       <Tabs
-        defaultValue={activeTab}
+        value={activeTab}
         onValueChange={(value) => setActiveTab(value as string)}
         className="w-full"
       >
@@ -149,11 +189,11 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="following">
+        <TabsContent value="following" className="outline-none m-0">
           {renderTabBody(following, 'Henüz hiç gönderi yok. Birilerini takip etmeye başla!')}
         </TabsContent>
 
-        <TabsContent value="explore">
+        <TabsContent value="explore" className="outline-none m-0">
           {renderTabBody(explore, 'Henüz hiç gönderi yok.')}
         </TabsContent>
       </Tabs>

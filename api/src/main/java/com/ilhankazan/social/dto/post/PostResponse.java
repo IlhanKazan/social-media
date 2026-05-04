@@ -9,9 +9,10 @@ public record PostResponse(
     String imageUrl,
     PublicAccountResponse author,
     Long parentPostId,
+    String parentPostAuthorUsername,
     long likeCount,
     long dislikeCount,
-    long commentCount,
+    long replyCount,
     boolean likedByMe,
     boolean dislikedByMe,
     Instant createdAt

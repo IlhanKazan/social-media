@@ -25,7 +25,4 @@ public class Interaction extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private InteractionType type;
-
-    @Column(columnDefinition = "TEXT")
-    private String content;
 }

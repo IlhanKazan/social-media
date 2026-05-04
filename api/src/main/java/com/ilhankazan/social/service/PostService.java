@@ -12,6 +12,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
+import static java.util.stream.Collectors.toMap;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -113,5 +118,15 @@ public class PostService {
     @Transactional(readOnly = true)
     public Page<Post> getLikedPostsByAccount(Long accountId, Pageable pageable) {
         return postRepository.findLikedPostsByAccountId(accountId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Long> getReplyCounts(List<Long> postIds) {
+        if (postIds.isEmpty()) return java.util.Collections.emptyMap();
+        return postRepository.countRepliesForPosts(postIds).stream()
+            .collect(toMap(
+                PostRepository.PostCountRow::getPostId,
+                PostRepository.PostCountRow::getCount
+            ));
     }
 }

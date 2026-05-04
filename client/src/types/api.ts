@@ -85,28 +85,18 @@ export interface PostResponse {
   imageUrl: string | null;
   author: PublicAccountResponse;
   parentPostId: number | null;
+  parentPostAuthorUsername: string | null;
   likeCount: number;
   dislikeCount: number;
-  commentCount: number;
+  replyCount: number;
   likedByMe: boolean;
   dislikedByMe: boolean;
-  createdAt: string;  // ISO-8601 Instant
-}
-
-export interface CommentRequest {
-  content: string;
-}
-
-export interface CommentResponse {
-  id: number;
-  content: string;
-  author: PublicAccountResponse;
   createdAt: string;
 }
 
 // ─── Notification ──────────────────────────────────────────────
 
-export type NotificationType = 'LIKE' | 'COMMENT' | 'FOLLOW' | 'REPLY' | 'MENTION';
+export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION';
 
 export interface NotificationResponse {
   id: number;

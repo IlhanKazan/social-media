@@ -7,7 +7,10 @@ export function MessagingPage() {
   const { conversationId } = useParams();
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))] sm:h-screen w-full overflow-hidden">
+    <div className={cn(
+      "flex flex-1 h-full w-full overflow-hidden min-h-0",
+      !conversationId && "pb-14 md:pb-0"
+    )}>
       <div
         className={cn(
           "h-full w-full md:w-80 lg:w-96 shrink-0 md:block border-r border-zinc-100 dark:border-zinc-800/50",

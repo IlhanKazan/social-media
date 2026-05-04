@@ -19,7 +19,13 @@ const createPostSchema = z.object({
 
 type CreatePostInput = z.infer<typeof createPostSchema>;
 
-export function CreatePost() {
+interface CreatePostProps {
+  readonly parentPostId?: number;
+  readonly onSuccessCallback?: () => void;
+  readonly placeholder?: string;
+}
+
+export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Neler oluyor?" }: CreatePostProps) {
   const account = useAuthStore((state) => state.account);
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,24 +60,31 @@ export function CreatePost() {
 
   const createPostMutation = useMutation({
     mutationFn: async (data: CreatePostInput) => {
-      const res = await api.post<PostResponse>('/posts', data);
+      const payload = { ...data, parentPostId };
+      const res = await api.post<PostResponse>('/posts', payload);
       return res.data;
     },
     onSuccess: () => {
       reset();
-      handleRemoveImage(); // Formu ve resmi sıfırla
+      handleRemoveImage();
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['explore'] });
-      toast.success('Gönderi paylaşıldı!');
+
+      if (parentPostId) {
+        queryClient.invalidateQueries({ queryKey: ['post', parentPostId] });
+        queryClient.invalidateQueries({ queryKey: ['post', parentPostId, 'replies'] });
+      }
+
+      toast.success(parentPostId ? 'Yanıt gönderildi!' : 'Gönderi paylaşıldı!');
+      if (onSuccessCallback) onSuccessCallback();
     },
     onError: () => {
-      toast.error('Gönderi paylaşılamadı. Lütfen tekrar dene.');
+      toast.error('Paylaşılamadı. Lütfen tekrar dene.');
     }
   });
 
   const onSubmit = async (data: CreatePostInput) => {
     let uploadedUrl = undefined;
-
     if (selectedFile) {
       try {
         uploadedUrl = await uploadImageMutation.mutateAsync(selectedFile);
@@ -79,14 +92,12 @@ export function CreatePost() {
         return;
       }
     }
-
     createPostMutation.mutate({ ...data, imageUrl: uploadedUrl });
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // 5MB frontend kontrolü
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Dosya 5MB'dan büyük olamaz.");
         return;
@@ -114,7 +125,7 @@ export function CreatePost() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-full pt-0.5">
         <Textarea
-          placeholder="Neler oluyor?"
+          placeholder={placeholder}
           className="resize-none border-none shadow-none focus-visible:ring-0 px-3 py-2 text-[16px] min-h-[52px] bg-transparent text-foreground placeholder:text-muted-foreground/70 overflow-hidden"
           aria-invalid={!!errors.content}
           {...register('content')}
@@ -135,7 +146,6 @@ export function CreatePost() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-
             {isUploading && (
               <div className="absolute inset-0 bg-background/50 rounded-2xl flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -146,13 +156,7 @@ export function CreatePost() {
 
         <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800/50">
           <div className="flex items-center">
-            <input
-              type="file"
-              accept="image/jpeg, image/png, image/webp, image/gif"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleImageSelect}
-            />
+            <input type="file" accept="image/jpeg, image/png, image/webp, image/gif" className="hidden" ref={fileInputRef} onChange={handleImageSelect} />
             <Button
               type="button"
               variant="ghost"

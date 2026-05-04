@@ -1,5 +1,6 @@
 import { Outlet, useMatch, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { BottomNav } from './BottomNav';
 import { WebSocketProvider } from '@/hooks/use-websocket';
 import { useEffect } from "react";
 import { useNotificationStore } from "@/stores/notification-store.ts";
@@ -17,19 +18,25 @@ function LayoutContent() {
 
   const isMessagesPage = location.pathname.startsWith('/messages');
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-7xl justify-center">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-7xl justify-center">
       <Sidebar />
 
       <main className={cn(
-        "flex min-h-screen w-full min-w-0 flex-col border-x border-zinc-100 dark:border-zinc-800/50",
+        "flex w-full min-w-0 flex-col border-x border-zinc-100 dark:border-zinc-800/50",
+        isMessagesPage ? "h-[100dvh] overflow-hidden" : "min-h-[100dvh]",
+        !isMessagesPage && "pb-14 md:pb-0",
         isMessagesPage ? "max-w-[600px] lg:max-w-[920px]" : "max-w-[600px]"
       )}>
         <Outlet />
       </main>
 
       <aside className={cn(
-        "sticky top-0 h-screen w-80 shrink-0 flex-col py-3 px-4 gap-4",
+        "sticky top-0 h-[100dvh] w-80 shrink-0 flex-col py-3 px-4 gap-4",
         isMessagesPage ? "hidden" : "hidden lg:flex"
       )}>
         <RightSidebarSearch />
@@ -41,6 +48,8 @@ function LayoutContent() {
           </p>
         </div>
       </aside>
+
+      <BottomNav />
     </div>
   );
 }
@@ -51,7 +60,7 @@ export function AppLayout() {
 
   useEffect(() => {
     if (account) {
-      fetchUnread();
+      void fetchUnread();
     }
   }, [fetchUnread, account?.id]);
 
