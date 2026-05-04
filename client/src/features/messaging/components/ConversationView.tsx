@@ -126,10 +126,11 @@ export function ConversationView() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-1.5">
-        {data?.pages.map((page) =>
-          page.content.map((msg) => {
+        {data?.pages.map((page, pageIndex) =>
+          page.content.map((msg, msgIndex) => {
             const isMine = msg.sender.id === account?.id;
-            const showDetails = selectedMessageId === msg.id;
+            const isLatestMessage = pageIndex === 0 && msgIndex === 0;
+            const showDetails = selectedMessageId === msg.id || (isLatestMessage && isMine && !!msg.readAt);
 
             return (
               <div key={msg.id} className={cn("flex w-full flex-col", isMine ? "items-end" : "items-start")}>
