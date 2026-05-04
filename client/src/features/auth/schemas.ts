@@ -7,9 +7,14 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const registerSchema = z.object({
-  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, 'Only alphanumeric characters and underscores allowed'),
-  email: z.string().email('Invalid email address').max(254),
-  password: z.string().min(6, 'Password must be at least 6 characters').max(72),
+  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, 'Sadece harf, rakam ve alt çizgi'),
+  email: z.string().email('Geçerli bir e-posta girin').max(254),
   displayName: z.string().max(50).optional(),
+  password: z.string().min(6, 'Şifre en az 6 karakter olmalı').max(72),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Şifreler eşleşmiyor",
+  path: ["confirmPassword"],
 });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
