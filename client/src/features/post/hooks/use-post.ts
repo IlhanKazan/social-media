@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { PostResponse } from '@/types/api';
+import type { PageResponse, PostResponse } from '@/types/api';
 
 export function usePost(id: number) {
   return useQuery({
@@ -10,5 +10,20 @@ export function usePost(id: number) {
       return data;
     },
     enabled: !!id,
+  });
+}
+
+export function usePostReplies(postId: number) {
+  return useInfiniteQuery<PageResponse<PostResponse>>({
+    queryKey: ['post', postId, 'replies'],
+    queryFn: async ({ pageParam = 0 }) => {
+      const { data } = await api.get<PageResponse<PostResponse>>(`/posts/${postId}/replies`, {
+        params: { page: pageParam, size: 20 },
+      });
+      return data;
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
+    enabled: !!postId,
   });
 }

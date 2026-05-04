@@ -60,35 +60,6 @@ public class InteractionService {
     }
 
     @Transactional
-    public Interaction addComment(Account account, Post post, String content) {
-        Interaction comment = new Interaction();
-        comment.setAccount(account);
-        comment.setPost(post);
-        comment.setType(InteractionType.COMMENT);
-        comment.setContent(content);
-        return interactionRepository.save(comment);
-    }
-
-    @Transactional
-    public void deleteComment(Account account, boolean isAdmin, Long commentId, Long postId) {
-        Interaction comment = interactionRepository.findById(commentId)
-            .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
-
-        if (!comment.getPost().getId().equals(postId)) {
-            throw new EntityNotFoundException("Comment not found in this post");
-        }
-        if (comment.getType() != InteractionType.COMMENT) {
-            throw new EntityNotFoundException("Interaction is not a comment");
-        }
-        if (!isAdmin && !comment.getAccount().getId().equals(account.getId())) {
-            throw new AccessDeniedException("You can only delete your own comments");
-        }
-
-        comment.softDelete();
-        interactionRepository.save(comment);
-    }
-
-    @Transactional
     public void softDeleteUserInteractions(Long accountId) {
         interactionRepository.softDeleteByAccountId(accountId);
     }
@@ -96,11 +67,6 @@ public class InteractionService {
     @Transactional
     public void softDeletePostInteractions(Long postId) {
         interactionRepository.softDeleteByPostId(postId);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Interaction> getComments(Long postId, Pageable pageable) {
-        return interactionRepository.findCommentsByPostId(postId, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -112,7 +78,7 @@ public class InteractionService {
         Map<Long, Map<InteractionType, Long>> grouped = new HashMap<>();
         for (CountRow row : rows) {
             grouped.computeIfAbsent(row.getPostId(), k -> new EnumMap<>(InteractionType.class))
-                   .put(row.getType(), row.getCount());
+                .put(row.getType(), row.getCount());
         }
 
         Map<Long, InteractionCounts> result = new HashMap<>();
@@ -120,8 +86,7 @@ public class InteractionService {
             Map<InteractionType, Long> c = grouped.getOrDefault(postId, Collections.emptyMap());
             result.put(postId, new InteractionCounts(
                 c.getOrDefault(InteractionType.LIKE, 0L),
-                c.getOrDefault(InteractionType.DISLIKE, 0L),
-                c.getOrDefault(InteractionType.COMMENT, 0L)
+                c.getOrDefault(InteractionType.DISLIKE, 0L)
             ));
         }
         return result;

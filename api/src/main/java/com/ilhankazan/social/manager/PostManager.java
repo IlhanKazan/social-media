@@ -14,7 +14,6 @@ import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.CloudinaryStorageService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.PostService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -55,21 +54,25 @@ public class PostManager {
             .getOrDefault(post.getId(), InteractionCounts.EMPTY);
         UserInteractions ui = interactionService.getUserInteractionsForPosts(ids, currentUserId)
             .getOrDefault(post.getId(), UserInteractions.EMPTY);
-        return postMapper.toResponse(post, counts, ui);
+        long replyCount = postService.getReplyCounts(ids).getOrDefault(post.getId(), 0L);
+
+        return postMapper.toResponse(post, counts, ui, replyCount);
     }
 
     private PageResponse<PostResponse> enrichPage(Page<Post> posts, Long currentUserId) {
         if (posts.isEmpty()) {
-            return PageResponse.of(posts.map(p -> postMapper.toResponse(p, InteractionCounts.EMPTY, UserInteractions.EMPTY)));
+            return PageResponse.of(posts.map(p -> postMapper.toResponse(p, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L)));
         }
         List<Long> postIds = posts.stream().map(Post::getId).toList();
         Map<Long, InteractionCounts> countsMap = interactionService.getCountsForPosts(postIds);
         Map<Long, UserInteractions> userMap = interactionService.getUserInteractionsForPosts(postIds, currentUserId);
+        Map<Long, Long> replyCountsMap = postService.getReplyCounts(postIds);
 
         return PageResponse.of(posts.map(post -> postMapper.toResponse(
             post,
             countsMap.getOrDefault(post.getId(), InteractionCounts.EMPTY),
-            userMap.getOrDefault(post.getId(), UserInteractions.EMPTY)
+            userMap.getOrDefault(post.getId(), UserInteractions.EMPTY),
+            replyCountsMap.getOrDefault(post.getId(), 0L)
         )));
     }
 
@@ -77,7 +80,8 @@ public class PostManager {
     public PostResponse create(CreatePostRequest request) {
         Account current = getCurrentAccount();
         Post post = postService.create(current.getId(), request.content(), request.imageUrl(), request.parentPostId());
-        PostResponse response = postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY);
+
+        PostResponse response = postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L);
         eventPublisher.publishEvent(new PostCreatedEvent(response));
         return response;
     }

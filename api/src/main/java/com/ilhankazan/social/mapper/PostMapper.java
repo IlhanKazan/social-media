@@ -12,10 +12,11 @@ public interface PostMapper {
 
     @Mapping(target = "author", source = "post.account", qualifiedByName = "noFollow")
     @Mapping(target = "parentPostId", source = "post.parentPost.id")
+    @Mapping(target = "parentPostAuthorUsername", source = "post.parentPost.account.username")
     @Mapping(target = "likeCount", source = "counts.likes")
     @Mapping(target = "dislikeCount", source = "counts.dislikes")
-    @Mapping(target = "commentCount", source = "counts.comments")
+    @Mapping(target = "replyCount", source = "replyCount")
     @Mapping(target = "likedByMe", source = "userInteractions.liked")
     @Mapping(target = "dislikedByMe", source = "userInteractions.disliked")
-    PostResponse toResponse(Post post, InteractionCounts counts, UserInteractions userInteractions);
+    PostResponse toResponse(Post post, InteractionCounts counts, UserInteractions userInteractions, long replyCount);
 }

@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
@@ -29,6 +31,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.deletedAt = CURRENT_TIMESTAMP WHERE p.account.id = :accountId AND p.deletedAt IS NULL")
     void softDeleteByAccountId(@Param("accountId") Long accountId);
+
+    interface PostCountRow {
+        Long getPostId();
+        Long getCount();
+    }
+
+    @Query("SELECT p.parentPost.id AS postId, COUNT(p) AS count FROM Post p WHERE p.parentPost.id IN :postIds AND p.deletedAt IS NULL GROUP BY p.parentPost.id")
+    List<PostCountRow> countRepliesForPosts(@Param("postIds") List<Long> postIds);
 
     @Modifying
     @Query("UPDATE Post p SET p.deletedAt = CURRENT_TIMESTAMP WHERE p.parentPost.id = :parentPostId AND p.deletedAt IS NULL")
