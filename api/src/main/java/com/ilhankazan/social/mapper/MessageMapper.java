@@ -9,5 +9,6 @@ import org.mapstruct.Mapping;
 public interface MessageMapper {
 
     @Mapping(target = "sender", source = "sender", qualifiedByName = "noFollow")
+    @Mapping(target = "conversationId", source = "conversation.id")
     MessageResponse toResponse(Message message);
 }
