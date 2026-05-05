@@ -46,7 +46,7 @@ public class AccountManager {
         return accountMapper.toMyResponse(account);
     }
 
-    @Cacheable(value = "publicProfilesByUsername", key = "#targetUsername + '-' + #root.target.currentUsername()")
+    @Cacheable(value = "publicProfilesByUsername", key = "#targetUsername + '-' + @auth.user()")
     public PublicAccountResponse getPublicProfile(String targetUsername) {
         Account targetAccount = accountService.getAccount(targetUsername);
         Long currentUserId = getCurrentAccountId();
@@ -110,7 +110,7 @@ public class AccountManager {
         return account.getCoverImageUrl();
     }
 
-    @Cacheable(value = "suggestions", key = "#root.target.currentUsername()")
+    @Cacheable(value = "suggestions", key = "@auth.user()")
     public List<PublicAccountResponse> getSuggestions(int limit) {
         Long currentUserId = getCurrentAccountId();
         List<Account> suggestions = accountService.getSuggestions(currentUserId, Math.min(limit, 10));

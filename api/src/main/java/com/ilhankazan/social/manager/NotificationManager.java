@@ -42,19 +42,19 @@ public class NotificationManager {
         return PageResponse.of(notifications.map(this::toResponse));
     }
 
-    @Cacheable(value = "unreadNotificationCount", key = "#root.target.currentUsername()")
+    @Cacheable(value = "unreadNotificationCount", key = "@auth.user()")
     @Transactional(readOnly = true)
     public int getUnreadCount() {
         return notificationService.countUnread(getCurrentAccountId());
     }
 
-    @CacheEvict(value = "unreadNotificationCount", key = "#root.target.currentUsername()")
+    @CacheEvict(value = "unreadNotificationCount", key = "@auth.user()")
     @Transactional
     public void markAsRead(Long notificationId) {
         notificationService.markRead(notificationId, getCurrentAccountId());
     }
 
-    @CacheEvict(value = "unreadNotificationCount", key = "#root.target.currentUsername()")
+    @CacheEvict(value = "unreadNotificationCount", key = "@auth.user()")
     @Transactional
     public void markAllAsRead() {
         notificationService.markAllRead(getCurrentAccountId());

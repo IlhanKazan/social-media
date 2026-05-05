@@ -35,7 +35,7 @@ public class FollowManager {
         return accountService.getAccount(username).getId();
     }
 
-    @CacheEvict(value = "suggestions", key = "#root.target.currentUsername()")
+    @CacheEvict(value = "suggestions", key = "@auth.user()")
     @Transactional
     public void follow(Long targetId) {
         Long currentId = getCurrentAccountId();
@@ -56,7 +56,7 @@ public class FollowManager {
         eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId));
     }
 
-    @CacheEvict(value = "suggestions", key = "#root.target.currentUsername()")
+    @CacheEvict(value = "suggestions", key = "@auth.user()")
     public void unfollow(Long targetId) {
         followService.unfollow(getCurrentAccountId(), targetId);
     }
