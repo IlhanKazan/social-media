@@ -40,8 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/logout-all").authenticated()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 // TODO [29.04.2026 01:12]: Buradaki permitler proda cikmadan kontrol edilecek !
-                .requestMatchers("/ws/**").permitAll()
-                .requestMatchers("/test.html").permitAll()
+                .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated()
@@ -54,7 +53,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(corsProps.allowedOrigins() != null ? corsProps.allowedOrigins() : List.of("*"));
+        configuration.setAllowedOrigins(corsProps.allowedOrigins() != null ? corsProps.allowedOrigins() : List.of());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"));
         configuration.setExposedHeaders(List.of("X-Request-Id"));

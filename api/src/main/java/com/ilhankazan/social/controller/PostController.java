@@ -5,6 +5,7 @@ import com.ilhankazan.social.dto.post.CreatePostRequest;
 import com.ilhankazan.social.dto.post.PostResponse;
 import com.ilhankazan.social.dto.post.UpdatePostRequest;
 import com.ilhankazan.social.manager.PostManager;
+import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +34,7 @@ public class PostController {
     @Operation(summary = "Create a new post", description = "Creates a post or reply if parentPostId is provided.")
     @ApiResponse(responseCode = "201", description = "Post successfully created")
     @ApiResponse(responseCode = "400", description = "Validation error")
+    @RateLimit(capacity = 30, minutes = 5)
     @PostMapping
     public ResponseEntity<PostResponse> create(@Valid @RequestBody CreatePostRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(postManager.create(request));
@@ -117,6 +119,7 @@ public class PostController {
 
     @Operation(summary = "Upload post image", description = "Uploads an image before creating a post. Returns the secure URL.")
     @ApiResponse(responseCode = "200", description = "Image successfully uploaded")
+    @RateLimit(capacity = 10, minutes = 60)
     @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         String url = postManager.uploadPostImage(file);

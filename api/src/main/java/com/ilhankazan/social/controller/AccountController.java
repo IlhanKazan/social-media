@@ -4,6 +4,7 @@ import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.manager.AccountManager;
+import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,6 +53,7 @@ public class AccountController {
     @Operation(summary = "Update avatar", description = "Uploads and updates the user's profile image.")
     @ApiResponse(responseCode = "200", description = "Avatar successfully updated")
     @ApiResponse(responseCode = "400", description = "Invalid file type or size")
+    @RateLimit(capacity = 10, minutes = 60)
     @PostMapping("/me/avatar")
     public ResponseEntity<String> updateAvatar(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(accountManager.updateAvatar(file));
@@ -60,6 +62,7 @@ public class AccountController {
     @Operation(summary = "Update cover image", description = "Uploads and updates the user's cover image.")
     @ApiResponse(responseCode = "200", description = "Cover image successfully updated")
     @ApiResponse(responseCode = "400", description = "Invalid file type or size")
+    @RateLimit(capacity = 10, minutes = 60)
     @PostMapping("/me/cover")
     public ResponseEntity<String> updateCover(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(accountManager.updateCover(file));

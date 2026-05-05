@@ -8,6 +8,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -26,16 +28,22 @@ public class RateLimitAspect {
     @Around("@annotation(rateLimit)")
     public Object enforceRateLimit(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // Render gibi load balancer arkasındaki gerçek IP'yi almak için
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getRemoteAddr();
+        String keyPrefix;
+        if (auth != null && auth.isAuthenticated() && !auth.getPrincipal().equals("anonymousUser")) {
+            keyPrefix = "user:" + auth.getName();
         } else {
-            ip = ip.split(",")[0].trim(); // Birden fazla proxy varsa ilk IP gerçek olandır
+            String ip = request.getHeader("X-Forwarded-For");
+            if (ip == null || ip.isEmpty()) {
+                ip = request.getRemoteAddr();
+            } else {
+                ip = ip.split(",")[0].trim();
+            }
+            keyPrefix = "ip:" + ip;
         }
 
-        String key = ip + "-" + joinPoint.getSignature().getName();
+        String key = keyPrefix + "-" + joinPoint.getSignature().getName();
 
         Bucket bucket = cache.computeIfAbsent(key, k -> {
             Bandwidth limit = Bandwidth.classic(

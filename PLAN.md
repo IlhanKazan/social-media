@@ -21,7 +21,7 @@ close the missing-DTO-fields gap surfaced during integration. Nothing here is
 new product surface; all of it is existing code that drifted from the
 contract.
 
-### [ ] 5.6.1 Drop `InteractionType.COMMENT` from Java
+### [x] 5.6.1 Drop `InteractionType.COMMENT` from Java
 
 V6 already removed `COMMENT` from the DB CHECK constraint and dropped the
 `content` column. The Java enum `InteractionType` still has `COMMENT` in it
@@ -40,7 +40,7 @@ posts with `parent_post_id != NULL`.
 
 **Acceptance:** `grep -rn "InteractionType.COMMENT\|type = 'COMMENT'" api/src` returns nothing. Existing tests pass; no path produces an `Interaction` row with the old `COMMENT` type.
 
-### [ ] 5.6.2 Add `isEdited` to `PostResponse`
+### [x] 5.6.2 Add `isEdited` to `PostResponse`
 
 `PostResponse` is missing the edited-flag the frontend wants for the "Edited" badge.
 
@@ -50,7 +50,7 @@ posts with `parent_post_id != NULL`.
 
 **Acceptance:** Editing a post (PATCH `/posts/{id}`) → next fetch returns `isEdited: true`. New posts return `isEdited: false`.
 
-### [ ] 5.6.3 Add `lastMessageContent` to `ConversationResponse`
+### [x] 5.6.3 Add `lastMessageContent` to `ConversationResponse`
 
 The conversations list currently shows only timestamp + unread count; the frontend can't render a "last message preview" without a second round-trip per row.
 
@@ -61,7 +61,7 @@ The conversations list currently shows only timestamp + unread count; the fronte
 
 **Acceptance:** Conversations list shows the last message preview without a second fetch; pagination of 20 conversations triggers ≤ 3 queries (verified via SQL log).
 
-### [ ] 5.6.4 Reply notifications routed via `PostCreatedEvent`
+### [x] 5.6.4 Reply notifications routed via `PostCreatedEvent`
 
 V6 changed comments from interactions to posts, so `InteractionCreatedEvent` no longer fires for comments. Replies now flow through `PostCreatedEvent`. The notification listener must be updated:
 
@@ -72,7 +72,7 @@ V6 changed comments from interactions to posts, so `InteractionCreatedEvent` no 
 
 **Acceptance:** Reply to someone else's post → recipient gets a notification with `type=REPLY` and a working WebSocket push. Reply to your own post → no notification.
 
-### [ ] 5.6.5 `GET /api/v1/accounts/suggestions`
+### [x] 5.6.5 `GET /api/v1/accounts/suggestions`
 
 The "Who to follow" right rail in the frontend is currently static. This adds a real recommendation endpoint, intentionally simple for now.
 
@@ -97,7 +97,7 @@ The "Who to follow" right rail in the frontend is currently static. This adds a 
 
 **Acceptance:** Endpoint returns up to 5 non-followed accounts; first call after a follow either filters the just-followed account out or invalidates the suggestions query.
 
-### [ ] 5.6.6 Rate-limiting expansion
+### [x] 5.6.6 Rate-limiting expansion
 
 `@RateLimit` only annotates `/auth/register` and `/auth/login` today. Several other endpoints are abuse-friendly without it:
 
@@ -111,7 +111,7 @@ The "Who to follow" right rail in the frontend is currently static. This adds a 
 
 **Acceptance:** Burst tests confirm the new limits. A logged-in user under NAT can post freely while another logged-in user on the same IP also posts freely (separate buckets). Anonymous IPs share a single bucket.
 
-### [ ] 5.6.7 SecurityConfig + WebSocket CORS lockdown
+### [x] 5.6.7 SecurityConfig + WebSocket CORS lockdown
 
 Two production-blocking holes were found while auditing `SecurityConfig` and `WebSocketConfig`. Fix in this phase, before Phase 28's hardening pass touches anything else.
 
@@ -124,7 +124,7 @@ Two production-blocking holes were found while auditing `SecurityConfig` and `We
 
 **Acceptance:** `curl -H "Origin: https://evil.com" https://api.../ws/info` returns CORS-rejection headers; same call from the configured frontend origin succeeds. `/test.html` returns 404.
 
-### [ ] 5.6.8 Frontend Axios `baseURL` bug
+### [x] 5.6.8 Frontend Axios `baseURL` bug
 
 `client/src/lib/api.ts` reads `import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'`. The fallback includes `/api/v1`, but Render config sets `VITE_API_URL=https://social-api.onrender.com` — i.e. **without** the `/api/v1` suffix. In production, `axios.post('/auth/login', ...)` becomes `https://social-api.onrender.com/auth/login`, which is 404.
 
@@ -139,7 +139,7 @@ Two production-blocking holes were found while auditing `SecurityConfig` and `We
 
 **Acceptance:** `npm run build` against prod env returns a working app on Render; login flow works end-to-end on the deployed URL.
 
-### [ ] 5.6.9 `application-prod.yml` hardening
+### [x] 5.6.9 `application-prod.yml` hardening
 
 Currently `application-prod.yml` is two log-level lines. It needs to be the source of truth for production overrides; right now production silently inherits dev defaults for several properties.
 
@@ -187,7 +187,7 @@ app:
 
 **Acceptance:** Boot in `prod` profile without `FRONTEND_ORIGIN` set → app fails or logs a loud warning. `/swagger-ui.html` returns 404 in prod.
 
-### [ ] 5.6.10 Fail-fast on weak JWT secret in prod
+### [x] 5.6.10 Fail-fast on weak JWT secret in prod
 
 `AppProperties.JwtProperties.secret` defaults to `dev-secret-must-be-at-least-32-bytes-long-please-change`. If `JWT_SECRET` is unset on Render, the app boots with that public default and signs production tokens with a known key. This is the single highest-impact issue in the codebase.
 
@@ -200,7 +200,7 @@ app:
 
 **Acceptance:** `SPRING_PROFILES_ACTIVE=prod ./mvnw spring-boot:run` without `JWT_SECRET` → process exits with a clear error message naming the missing var.
 
-### [ ] 5.6.11 Constrain Jackson + multipart in prod
+### [x] 5.6.11 Constrain Jackson + multipart in prod
 
 Two small but real attack-surface tightenings:
 
