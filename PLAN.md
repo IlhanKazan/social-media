@@ -563,7 +563,7 @@ Builds on Phase 21. Token-based reset with strict TTL, single-use, hashed
 storage, and consistent rate limiting on both the request and the consume
 endpoint.
 
-### [ ] 22.1 Reset-token table + entity
+### [x] 22.1 Reset-token table + entity
 
 - Migration `V<n>__password_reset_tokens.sql`:
   ```sql
@@ -582,7 +582,7 @@ endpoint.
   ```
 - `entity/PasswordResetToken`: plain `@Entity`, no BaseEntity.
 
-### [ ] 22.2 Backend endpoints
+### [x] 22.2 Backend endpoints
 
 - `POST /api/v1/auth/password-reset/request` — body `{ email }`. Always returns 204 (no leak of whether email exists). Rate limit: 3 / hour / IP. If the email exists:
   1. Invalidate any active reset tokens for that account (`UPDATE ... SET used_at = NOW() WHERE used_at IS NULL` — only one live reset link per account).
@@ -599,7 +599,7 @@ endpoint.
 - DTOs: `PasswordResetRequest(@Email String email)`, `PasswordResetConfirmRequest(String token, @Size(min=8,max=72) String newPassword)`.
 - Cleanup: existing refresh-token cleanup job extended to also delete reset tokens older than 7 days past expiry.
 
-### [ ] 22.3 Frontend pages
+### [x] 22.3 Frontend pages
 
 - Public route `/forgot-password` (under `<AuthLayout>`). Single email input + submit. After submit show a generic success message ("If an account exists for that email, a reset link has been sent.").
 - Public route `/reset-password` reads `?token=` from URL. Two password inputs (new + confirm). On submit, call confirm endpoint. On success → redirect to `/login` with a sonner toast "Password updated, please log in".
