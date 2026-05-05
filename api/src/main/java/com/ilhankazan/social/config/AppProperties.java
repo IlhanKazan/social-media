@@ -23,4 +23,15 @@ public class AppProperties {
             String apiKey,
             String apiSecret
     ) {}
+
+    @ConfigurationProperties(prefix = "app.email")
+    public record EmailProperties(
+        boolean enabled,
+        String provider,
+        String fromAddress,
+        String fromName,
+        String resendApiKey,
+        int dailyCap,
+        int monthlyCap
+    ) {}
 }
