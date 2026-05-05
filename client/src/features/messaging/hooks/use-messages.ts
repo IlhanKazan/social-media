@@ -1,19 +1,23 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { PageResponse, MessageResponse } from '@/types/api';
+import type { CursorPageResponse, MessageResponse } from '@/types/api';
 
-export function useMessages(conversationId: number) {
-  return useInfiniteQuery<PageResponse<MessageResponse>>({
+export function useMessages(conversationId: number | undefined) {
+  return useInfiniteQuery({
     queryKey: ['messages', conversationId],
-    queryFn: async ({ pageParam = 0 }) => {
-      const { data } = await api.get<PageResponse<MessageResponse>>(`/conversations/${conversationId}/messages`, {
-        params: { page: pageParam, size: 50 },
-      });
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams({ size: '20' });
+      if (pageParam) params.append('before', pageParam.toString());
+
+      const { data } = await api.get<CursorPageResponse<MessageResponse>>(
+        `/conversations/${conversationId}/messages/cursor?${params.toString()}`
+      );
       return data;
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor : undefined,
+    initialPageParam: undefined as number | undefined,
     enabled: !!conversationId,
+    staleTime: 1000 * 60 * 5,
   });
 }
 

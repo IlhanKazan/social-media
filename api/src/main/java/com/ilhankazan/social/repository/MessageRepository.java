@@ -33,4 +33,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT COUNT(m) FROM Message m WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.readAt IS NULL")
     int countUnreadMessages(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+
+    @Query("""
+        SELECT m FROM Message m
+        WHERE m.conversation.id = :conversationId
+          AND (:before IS NULL OR m.id < :before)
+        ORDER BY m.id DESC
+    """)
+    List<Message> findThreadPage(@Param("conversationId") Long conversationId,
+                                 @Param("before") Long before,
+                                 Pageable pageable);
 }

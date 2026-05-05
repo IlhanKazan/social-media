@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final CloudinaryStorageService storageService;
 
+    @Cacheable(value = "accountsByUsername", key = "#username")
     @Transactional(readOnly = true)
     public Account getAccount(String username) {
         return accountRepository.findByUsername(username)
@@ -42,6 +45,7 @@ public class AccountService {
         return accountRepository.findSuggestions(currentUserId, limit);
     }
 
+    @CacheEvict(value = "accountsByUsername", key = "#username")
     @Transactional
     public Account updateProfile(String username, String displayName, String bio) {
         Account account = getAccount(username);
@@ -60,6 +64,7 @@ public class AccountService {
         accountRepository.save(account);
     }
 
+    @CacheEvict(value = "accountsByUsername", key = "#username")
     @Transactional
     public Account updateAvatar(String username, MultipartFile file) {
         Account account = getAccount(username);
@@ -68,6 +73,7 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    @CacheEvict(value = "accountsByUsername", key = "#username")
     @Transactional
     public Account updateCover(String username, MultipartFile file) {
         Account account = getAccount(username);

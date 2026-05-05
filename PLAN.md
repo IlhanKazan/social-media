@@ -365,7 +365,7 @@ This phase ships three orthogonal backend improvements that PLAN-1 deferred:
 
 Each is an independent task; they can land in any order.
 
-### [ ] 20.1 Caffeine in-process cache
+### [x] 20.1 Caffeine in-process cache
 
 Render free tier is single-instance, so Caffeine is sufficient — no Redis. If
 we ever scale horizontally, every cached read must be re-evaluated; the
@@ -394,7 +394,7 @@ spring-cache abstraction makes this swap trivial.
 
 **Acceptance:** Repeated `GET /accounts/{username}` within a second triggers exactly one DB query (verified via SQL log). Profile update invalidates the cache and the next GET re-queries.
 
-### [ ] 20.2 Cursor pagination for `/conversations/{id}/messages`
+### [x] 20.2 Cursor pagination for `/conversations/{id}/messages`
 
 Offset pagination with concurrent inserts produces duplicates and gaps when
 new messages arrive while the user scrolls. Cursor avoids both.
@@ -419,7 +419,7 @@ new messages arrive while the user scrolls. Cursor avoids both.
 
 **Acceptance:** Send 50 messages while a user scrolls back through history; no duplicates, no gaps. Loading 5 pages of 20 messages issues 5 SQL queries with monotonically decreasing `id` cursors.
 
-### [ ] 20.3 Audit log
+### [x] 20.3 Audit log
 
 Append-only table for security-relevant events. Used by admins (Phase 26) for
 incident review. Distinct from `LoginHistory` (Phase 5.5.5) which is just

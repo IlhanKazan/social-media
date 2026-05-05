@@ -8,10 +8,7 @@ import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.event.LoginSuccessEvent;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.security.JwtTokenProvider;
-import com.ilhankazan.social.service.AccountService;
-import com.ilhankazan.social.service.AuthService;
-import com.ilhankazan.social.service.RefreshTokenService;
-import com.ilhankazan.social.service.TokenBlacklistService;
+import com.ilhankazan.social.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +31,7 @@ public class AuthManager {
     private final AppProperties.JwtProperties jwtProps;
     private final ApplicationEventPublisher eventPublisher;
     private final AccountService accountService;
+    private final AuditLogService auditLogService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -77,6 +75,7 @@ public class AuthManager {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountService.getAccount(username);
         refreshTokenService.revokeAllForAccount(account.getId());
+        auditLogService.record("LOGOUT_ALL", "ACCOUNT", account.getId(), null);
     }
 
     private AuthResponse buildInitialAuthResponse(Account account, String ipAddress, String userAgent) {

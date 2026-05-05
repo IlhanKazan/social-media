@@ -1,5 +1,6 @@
 package com.ilhankazan.social.controller;
 
+import com.ilhankazan.social.dto.common.CursorPageResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.message.ConversationResponse;
 import com.ilhankazan.social.dto.message.MessageResponse;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class MessageController {
 
     private final MessageManager messageManager;
+    private static final Logger log = LoggerFactory.getLogger(MessageController.class);
 
     @Operation(summary = "Get conversations", description = "Returns the current user's conversations sorted by latest message.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved conversations")
@@ -41,15 +45,23 @@ public class MessageController {
         return ResponseEntity.ok(messageManager.getOrCreateConversation(accountId));
     }
 
-    @Operation(summary = "Get messages", description = "Returns a paginated list of messages in a conversation, newest first.")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved messages")
-    @ApiResponse(responseCode = "403", description = "Access denied (not a participant)")
-    @ApiResponse(responseCode = "404", description = "Conversation not found")
+    @Operation(summary = "Get messages (Cursor)", description = "Returns messages using cursor-based pagination.")
+    @GetMapping("/{id}/messages/cursor")
+    public ResponseEntity<CursorPageResponse<MessageResponse>> getMessagesCursor(
+        @PathVariable Long id,
+        @RequestParam(required = false) Long before,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(messageManager.getMessagesCursor(id, before, size));
+    }
+
+    @Deprecated(forRemoval = true)
+    @Operation(summary = "Get messages (Offset) - Deprecated", description = "Use the /cursor endpoint instead.")
     @GetMapping("/{id}/messages")
     public ResponseEntity<PageResponse<MessageResponse>> getMessages(
         @PathVariable Long id,
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        log.warn("Deprecated offset-based message pagination used for conversation {}", id);
         return ResponseEntity.ok(messageManager.getMessages(id, page, size));
     }
 

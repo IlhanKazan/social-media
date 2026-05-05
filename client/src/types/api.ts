@@ -154,3 +154,9 @@ export interface ErrorResponse {
   path: string;
   fieldErrors: Record<string, string> | null;
 }
+
+export interface CursorPageResponse<T> {
+  content: T[];
+  nextCursor: number | null;
+  hasMore: boolean;
+}
