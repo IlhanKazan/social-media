@@ -5,20 +5,22 @@ import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.entity.EmailVerificationToken;
 import com.ilhankazan.social.mapper.AccountMapper;
-import com.ilhankazan.social.service.AccountService;
-import com.ilhankazan.social.service.FollowService;
-import com.ilhankazan.social.service.InteractionService;
-import com.ilhankazan.social.service.PostService;
+import com.ilhankazan.social.service.*;
+import com.ilhankazan.social.service.email.EmailMessage;
+import com.ilhankazan.social.service.email.EmailService;
+import com.ilhankazan.social.service.email.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +34,10 @@ public class AccountManager {
     private final AccountMapper accountMapper;
     private final InteractionService interactionService;
     private final PostService postService;
+    private final EmailVerificationService emailVerificationService;
+    private final EmailService emailService;
+    private final AuditLogService auditLogService;
+    private final Environment env;
 
     private String currentUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -127,6 +133,39 @@ public class AccountManager {
             followingMap.getOrDefault(account.getId(), 0L),
             false
         )).toList();
+    }
+
+    @Transactional
+    public void sendVerificationEmail() {
+        Account account = accountService.getAccount(currentUsername());
+        if (account.isEmailVerified()) return;
+
+        String plainToken = emailVerificationService.createVerificationToken(account);
+
+        String frontendOrigin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
+        String verifyLink = frontendOrigin + "/verify-email?token=" + plainToken;
+
+        emailService.enqueue(new EmailMessage(
+            account.getEmail(),
+            "E-posta Doğrulama",
+            "EMAIL_VERIFICATION",
+            Map.of("verifyLink", verifyLink)
+        ));
+    }
+
+    @CacheEvict(value = {"accountsByUsername", "publicProfilesByUsername"}, allEntries = true)
+    @Transactional
+    public void verifyEmail(String plainToken) {
+        EmailVerificationToken token = emailVerificationService.validateAndConsumeToken(plainToken);
+        Account account = token.getAccount();
+
+        if (!account.isEmailVerified()) {
+            account.setEmailVerified(true);
+            account.setEmailVerifiedAt(Instant.now());
+            accountService.saveRaw(account);
+
+            auditLogService.record("EMAIL_VERIFIED", "ACCOUNT", account.getId(), null);
+        }
     }
 
 }

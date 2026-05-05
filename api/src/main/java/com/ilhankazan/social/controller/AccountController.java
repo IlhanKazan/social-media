@@ -3,6 +3,7 @@ package com.ilhankazan.social.controller;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
+import com.ilhankazan.social.dto.auth.VerifyEmailRequest;
 import com.ilhankazan.social.manager.AccountManager;
 import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,4 +83,13 @@ public class AccountController {
         @RequestParam(defaultValue = "5") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(10) int limit) {
         return ResponseEntity.ok(accountManager.getSuggestions(limit));
     }
+
+    @Operation(summary = "Send verification email", description = "Generates an email verification token and sends the email.")
+    @PostMapping("/me/email/send-verification")
+    @RateLimit(capacity = 3, minutes = 60)
+    public ResponseEntity<Void> sendVerificationEmail() {
+        accountManager.sendVerificationEmail();
+        return ResponseEntity.noContent().build();
+    }
+
 }
