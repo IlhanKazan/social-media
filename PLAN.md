@@ -473,7 +473,7 @@ admin alerts) build on this.
 The outbox + throttler must keep us comfortably under these. Mock data
 seeders never send mail. Bot accounts (Phase 27) never receive mail.
 
-### [ ] 21.1 Resend SDK + config
+### [x] 21.1 Resend SDK + config
 
 - Add dependency: `com.resend:resend-java:4.x` (verify latest stable on Maven Central before pinning).
 - `app.email.*` config block:
@@ -491,7 +491,7 @@ seeders never send mail. Bot accounts (Phase 27) never receive mail.
 - `EmailProperties` `@ConfigurationProperties` record.
 - `config/ResendConfig.java`: `@Bean Resend resend()` — builds with the API key. Skip bean creation if `app.email.enabled = false` (so local dev doesn't need a key).
 
-### [ ] 21.2 Email outbox table + entity
+### [x] 21.2 Email outbox table + entity
 
 Resend's per-second rate-limit and per-day cap mean we cannot send mail
 inline from request threads. Persist intent → flush asynchronously.
@@ -523,7 +523,7 @@ inline from request threads. Persist intent → flush asynchronously.
   - `List<EmailOutbox> findTop10ByStatusOrderByCreatedAtAsc(EmailStatus status)` — for the flusher.
   - `long countByStatusAndSentAtAfter(EmailStatus s, Instant since)` — used for the cap checks.
 
-### [ ] 21.3 Email service + templating
+### [x] 21.3 Email service + templating
 
 - `service/EmailService` (interface + `ResendEmailService impl`):
   - `enqueue(EmailMessage msg)` — inserts a row into outbox with `status=PENDING`. Returns the row id. **Always** the public entry point — no caller bypasses the outbox.
@@ -532,7 +532,7 @@ inline from request threads. Persist intent → flush asynchronously.
 - `WelcomeEmailTemplate`, `PasswordResetEmailTemplate`, `EmailVerificationTemplate`, `AdminAlertEmailTemplate` — the four needed across the next phases. Each is a small class implementing `EmailTemplate` with the placeholder map. Subject + html + text variants per template.
 - All emails include a footer with: app name, "you're receiving this because…", and (where applicable) an unsubscribe note. Welcome and admin-alert emails ship without an unsubscribe link by design (transactional).
 
-### [ ] 21.4 Outbox flusher + caps
+### [x] 21.4 Outbox flusher + caps
 
 - `scheduler/EmailOutboxFlusher` `@Scheduled(fixedDelay = 5000)` (every 5s).
   Locking: a Postgres advisory lock keyed on a constant (`SELECT pg_try_advisory_lock(7421)`) — only one instance flushes at a time. (Belt-and-braces; we're single-instance today, but cheap insurance.)
@@ -547,7 +547,7 @@ inline from request threads. Persist intent → flush asynchronously.
 
 **Acceptance:** Enqueueing 200 emails in a burst sends them at ≤ 1/sec, hits the daily cap at 90, and queues the rest until tomorrow. Killing the API mid-flush and restarting does not double-send any mail (Resend's idempotency key on the request prevents duplicates; pass `IDEMPOTENCY_KEY = outbox_row_id` in the API call).
 
-### [ ] 21.5 Welcome email (first hookup)
+### [x] 21.5 Welcome email (first hookup)
 
 - In `AuthManager.register(...)`, after the new account is persisted and the auth response is built, **enqueue** a welcome email. The transaction commits first (outbox row writes use the same transaction; if the user creation rolls back, the welcome email never enqueues). Then a `@TransactionalEventListener(AFTER_COMMIT)` on `UserRegisteredEvent` is the cleaner mechanism — wire it through that listener.
 - Template: short and plain. App name, the user's display name, a "what next" line ("post your first thought" linked to `/`).
