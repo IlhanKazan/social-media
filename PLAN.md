@@ -242,7 +242,7 @@ Manual: register → log in → see `/` → refresh page → still logged in →
 
 ## Phase 18 — DevOps
 
-### [ ] 18.1 docker-compose.yml
+### [x] 18.1 docker-compose.yml
 ```yaml
 services:
   postgres:
@@ -277,7 +277,7 @@ volumes:
   postgres_data:
 ```
 
-### [ ] 18.2 api/Dockerfile (multi-stage, optimized)
+### [x] 18.2 api/Dockerfile (multi-stage, optimized)
 ```dockerfile
 # Build
 FROM maven:3.9-eclipse-temurin-21 AS build
@@ -350,7 +350,7 @@ databases:
 - Job `api`: setup-java@v4 (temurin 21), cache `~/.m2`, `cd api && ./mvnw -B verify`
 - Job `client`: setup-node@v4 (20), cache npm, `cd client && npm ci && npm run typecheck && npm run lint && npm run build`
 
-### [ ] 18.5 .env.example finalized
+### [x] 18.5 .env.example finalized
 List every required env var with description.
 
 ---
