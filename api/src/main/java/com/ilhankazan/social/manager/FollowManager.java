@@ -9,6 +9,7 @@ import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.FollowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ public class FollowManager {
         return accountService.getAccount(username).getId();
     }
 
+    @CacheEvict(value = "suggestions", key = "#root.target.currentUsername()")
     @Transactional
     public void follow(Long targetId) {
         Long currentId = getCurrentAccountId();
@@ -54,6 +56,7 @@ public class FollowManager {
         eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId));
     }
 
+    @CacheEvict(value = "suggestions", key = "#root.target.currentUsername()")
     public void unfollow(Long targetId) {
         followService.unfollow(getCurrentAccountId(), targetId);
     }

@@ -46,4 +46,9 @@ public class MessageService {
     public int countUnread(Long conversationId, Long userId) {
         return messageRepository.countUnreadMessages(conversationId, userId);
     }
+
+    @Transactional(readOnly = true)
+    public List<Message> findThreadPage(Long conversationId, Long before, int size) {
+        return messageRepository.findThreadPage(conversationId, before, org.springframework.data.domain.PageRequest.of(0, size));
+    }
 }

@@ -1,5 +1,6 @@
 package com.ilhankazan.social.manager;
 
+import com.ilhankazan.social.dto.common.CursorPageResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.message.ConversationResponse;
 import com.ilhankazan.social.dto.message.MessageResponse;
@@ -156,6 +157,25 @@ public class MessageManager {
             lastMessageContent,
             conversation.getLastMessageAt(),
             unreadCount
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public CursorPageResponse<MessageResponse> getMessagesCursor(Long conversationId, Long before, int size) {
+        Account current = getCurrentAccount();
+        Conversation conversation = conversationService.getById(conversationId);
+        verifyParticipant(conversation, current.getId());
+
+        List<Message> messages = messageService.findThreadPage(conversationId, before, size + 1);
+        boolean hasMore = messages.size() > size;
+
+        List<Message> content = hasMore ? messages.subList(0, size) : messages;
+        Long nextCursor = content.isEmpty() ? null : content.getLast().getId();
+
+        return new CursorPageResponse<>(
+            content.stream().map(messageMapper::toResponse).toList(),
+            nextCursor,
+            hasMore
         );
     }
 }

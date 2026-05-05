@@ -11,6 +11,8 @@ import com.ilhankazan.social.service.FollowService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class AccountManager {
         return accountMapper.toMyResponse(account);
     }
 
+    @Cacheable(value = "publicProfilesByUsername", key = "#targetUsername + '-' + #root.target.currentUsername()")
     public PublicAccountResponse getPublicProfile(String targetUsername) {
         Account targetAccount = accountService.getAccount(targetUsername);
         Long currentUserId = getCurrentAccountId();
@@ -88,6 +91,7 @@ public class AccountManager {
         accountService.softDeleteAccount(account);
     }
 
+    @CacheEvict(value = {"publicProfilesByUsername", "suggestions"}, allEntries = true)
     @Transactional
     public MyAccountResponse updateProfile(UpdateProfileRequest request) {
         Account account = accountService.updateProfile(currentUsername(), request.displayName(), request.bio());
@@ -106,6 +110,7 @@ public class AccountManager {
         return account.getCoverImageUrl();
     }
 
+    @Cacheable(value = "suggestions", key = "#root.target.currentUsername()")
     public List<PublicAccountResponse> getSuggestions(int limit) {
         Long currentUserId = getCurrentAccountId();
         List<Account> suggestions = accountService.getSuggestions(currentUserId, Math.min(limit, 10));

@@ -7,6 +7,8 @@ import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,16 +42,19 @@ public class NotificationManager {
         return PageResponse.of(notifications.map(this::toResponse));
     }
 
+    @Cacheable(value = "unreadNotificationCount", key = "#root.target.currentUsername()")
     @Transactional(readOnly = true)
     public int getUnreadCount() {
         return notificationService.countUnread(getCurrentAccountId());
     }
 
+    @CacheEvict(value = "unreadNotificationCount", key = "#root.target.currentUsername()")
     @Transactional
     public void markAsRead(Long notificationId) {
         notificationService.markRead(notificationId, getCurrentAccountId());
     }
 
+    @CacheEvict(value = "unreadNotificationCount", key = "#root.target.currentUsername()")
     @Transactional
     public void markAllAsRead() {
         notificationService.markAllRead(getCurrentAccountId());

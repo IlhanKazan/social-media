@@ -6,6 +6,7 @@ import com.ilhankazan.social.entity.NotificationType;
 import com.ilhankazan.social.repository.AccountRepository;
 import com.ilhankazan.social.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,6 +25,7 @@ public class NotificationService {
     private final AccountRepository accountRepository;
 
     // AFTER_COMMIT'ten çağrıldığı için yeni bir transaction açmak ZORUNDA.
+    @CacheEvict(value = "unreadNotificationCount", key = "#result != null ? #result.recipient.username : 'null'")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Notification create(Long recipientId, Long actorId, NotificationType type, Long referenceId) {
         if (recipientId.equals(actorId)) {

@@ -28,6 +28,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AppProperties.JwtProperties jwtProps;
+    private final AuditLogService auditLogService;
 
     public record RefreshResult(String accessToken, String refreshToken, Account account) {}
 
@@ -74,6 +75,9 @@ public class RefreshTokenService {
             refreshTokenRepository.revokeFamily(existing.getFamilyId());
             reuseLogger.warn("Refresh token reuse detected! account_id={} family_id={} ip_address={} user_agent={} presented_at={}",
                 existing.getAccount().getId(), existing.getFamilyId(), ipAddress, userAgent, Instant.now());
+
+            auditLogService.record("TOKEN_REUSE_DETECTED", "ACCOUNT", existing.getAccount().getId(), java.util.Map.of("family_id", existing.getFamilyId()));
+
             throw new TokenReuseDetectedException("Token reuse detected. All sessions for this device have been revoked.");
         }
 

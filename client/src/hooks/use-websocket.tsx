@@ -16,18 +16,16 @@ const WebSocketContext = createContext<WebSocketContextType | null>(null);
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const clientRef = useRef<Client | null>(null);
-  const token = useAuthStore((state) => state.token);
 
-  const origin = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
-  const baseUrl = `${origin}/ws`;
+  const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     if (!token) return;
 
     const client = new Client({
       webSocketFactory: () => {
-        const wsUrl = baseUrl.replace('/api/v1', '/ws');
-        return new SockJS(wsUrl);
+        const origin = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+        return new SockJS(`${origin}/ws`);
       },
       connectHeaders: {
         Authorization: `Bearer ${token}`,
@@ -44,9 +42,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         client.subscribe('/user/queue/notifications', (message) => {
           if (message.body) {
             const notification = JSON.parse(message.body);
-
             useNotificationStore.getState().incrementUnread();
-
             toast(notification.title || 'Yeni Bildirim', {
               description: notification.message,
             });
