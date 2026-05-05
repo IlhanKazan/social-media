@@ -68,7 +68,7 @@ export function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>Şifre</Label>
-            <Link to="#" className="text-xs font-medium text-primary hover:underline">Şifremi unuttum?</Link>
+            <Link to="/forgot-password" className="text-xs font-medium text-primary hover:underline">Şifremi unuttum?</Link>
           </div>
           <Input
             id="password"

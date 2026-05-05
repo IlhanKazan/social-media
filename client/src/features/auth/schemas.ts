@@ -18,3 +18,17 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Geçerli bir e-posta adresi giriniz.'),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  newPassword: z.string().min(8, 'Şifre en az 8 karakter olmalıdır.').max(72),
+  confirmPassword: z.string()
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Şifreler eşleşmiyor.",
+  path: ["confirmPassword"],
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
