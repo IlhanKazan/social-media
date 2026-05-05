@@ -4,6 +4,7 @@ import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.follow.FollowStatusResponse;
 import com.ilhankazan.social.manager.FollowManager;
+import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,7 @@ public class FollowController {
     @ApiResponse(responseCode = "204", description = "Successfully followed")
     @ApiResponse(responseCode = "400", description = "Cannot follow yourself")
     @ApiResponse(responseCode = "404", description = "Target user not found")
+    @RateLimit(capacity = 60, minutes = 5)
     @PostMapping("/{accountId}")
     public ResponseEntity<Void> follow(@PathVariable Long accountId) {
         followManager.follow(accountId);

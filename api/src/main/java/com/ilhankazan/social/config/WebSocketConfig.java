@@ -1,6 +1,7 @@
 package com.ilhankazan.social.config;
 
 import com.ilhankazan.social.security.WebSocketAuthInterceptor;
+import com.ilhankazan.social.security.WebSocketRateLimitInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -15,6 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketAuthInterceptor webSocketAuthInterceptor;
+    private final WebSocketRateLimitInterceptor webSocketRateLimitInterceptor;
     private final AppProperties.CorsProperties corsProps;
 
     @Override
@@ -29,13 +31,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-            //.setAllowedOrigins(corsProps.allowedOrigins().toArray(new String[0]))
-            .setAllowedOriginPatterns("*")
+            .setAllowedOrigins(corsProps.allowedOrigins().toArray(new String[0]))
             .withSockJS();
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketAuthInterceptor);
+        registration.interceptors(webSocketAuthInterceptor, webSocketRateLimitInterceptor);
     }
 }

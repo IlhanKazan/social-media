@@ -18,12 +18,14 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const clientRef = useRef<Client | null>(null);
   const token = useAuthStore((state) => state.token);
 
+  const origin = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+  const baseUrl = `${origin}/ws`;
+
   useEffect(() => {
     if (!token) return;
 
     const client = new Client({
       webSocketFactory: () => {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
         const wsUrl = baseUrl.replace('/api/v1', '/ws');
         return new SockJS(wsUrl);
       },
