@@ -15,10 +15,8 @@ export function useMessagingWebSocket(activeConversationId?: number) {
 
     const msgSub = subscribe('/user/queue/messages', (message) => {
       const newMsg: MessageResponse = JSON.parse(message.body);
-      console.log("GELEN MESAJ OBJESİ:", newMsg);
       const isMine = newMsg.sender.id === account.id;
       const convId = Number(newMsg.conversationId);
-      console.log("HESAPLANAN CONV_ID:", convId);
 
       if (!isMine && convId === activeConversationId) {
         api.put(`/conversations/${convId}/read`).catch(() => {});
@@ -27,7 +25,6 @@ export function useMessagingWebSocket(activeConversationId?: number) {
       queryClient.setQueryData<InfiniteData<PageResponse<MessageResponse>>>(
         ['messages', convId],
         (old) => {
-          console.log("STOMP'TAN MESAJ GELDİ:", newMsg.content);
 
           if (!old || !old.pages || old.pages.length === 0) return old;
 

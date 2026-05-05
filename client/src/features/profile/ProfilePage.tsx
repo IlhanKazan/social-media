@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Loader2, CalendarDays, Mail, Settings } from 'lucide-react';
+import { Loader2, CalendarDays, Mail, Settings, BadgeCheck } from 'lucide-react';
 import { EditProfileDialog } from './components/EditProfileDialog';
 import { FollowListDialog } from './components/FollowListDialog';
 import { useProfile } from './hooks/use-profile';
@@ -111,7 +111,12 @@ export function ProfilePage() {
         </div>
 
         <div className="mt-3">
-          <h1 className="text-xl font-bold truncate">{profile.displayName || profile.username}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-xl font-bold truncate">{profile.displayName || profile.username}</h1>
+            {profile.emailVerified && (
+              <BadgeCheck className="h-5 w-5 text-blue-500 shrink-0" />
+            )}
+          </div>
           <p className="text-muted-foreground text-sm truncate">@{profile.username}</p>
         </div>
 

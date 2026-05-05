@@ -46,8 +46,7 @@ export function EditProfileDialog() {
       return res.data;
     },
     onSuccess: (data) => {
-      // Zustand store'u doğrudan güncelliyoruz
-      useAuthStore.setState({ account: { ...account!, displayName: data.displayName } });
+      useAuthStore.setState({ account: { ...account!, displayName: data.displayName ?? account!.displayName } });
       queryClient.invalidateQueries({ queryKey: ['profile', account?.username] });
       toast.success('Profil güncellendi');
       setIsOpen(false);
@@ -83,7 +82,6 @@ export function EditProfileDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {/* asChild yerine Base UI standardı olan render prop'u kullanıldı */}
       <DialogTrigger render={<Button variant="outline" className="rounded-full font-bold" />}>
         Profili Düzenle
       </DialogTrigger>
@@ -94,7 +92,6 @@ export function EditProfileDialog() {
         </DialogHeader>
 
         <div className="relative">
-          {/* Cover Upload */}
           <div className="h-32 sm:h-40 w-full bg-zinc-200 dark:bg-zinc-800 relative flex items-center justify-center group">
             <input type="file" ref={coverInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'cover')} />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -104,7 +101,6 @@ export function EditProfileDialog() {
             </div>
           </div>
 
-          {/* Avatar Upload */}
           <div className="absolute -bottom-12 left-4">
             <div className="relative group">
               <Avatar className="h-24 w-24 rounded-full border-4 border-background bg-background">

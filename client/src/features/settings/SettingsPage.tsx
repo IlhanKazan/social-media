@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun, AlertTriangle, ShieldAlert, LogOut } from 'lucide-react';
+import { Monitor, Moon, Sun, AlertTriangle, ShieldAlert, LogOut, MailCheck, Loader2, BadgeCheck } from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
 import { useLogoutAll, useDeleteAccount } from './hooks/use-security';
 import { useAuthStore } from '@/stores/auth-store';
@@ -14,12 +14,46 @@ import {
   DialogTrigger,
   DialogClose
 } from '@/components/ui/dialog';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
+import type { MyAccountResponse } from '@/types/api';
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const logoutAllMutation = useLogoutAll();
   const deleteAccountMutation = useDeleteAccount();
   const logout = useAuthStore((state) => state.logout);
+
+  const { data: account, isLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const { data } = await api.get<MyAccountResponse>('/accounts/me');
+      return data;
+    },
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: async () => {
+      await api.post('/accounts/me/email/send-verification');
+    },
+    onSuccess: () => {
+      toast.success('Doğrulama e-postası gönderildi', {
+        description: 'Lütfen gelen kutunuzu kontrol edin.'
+      });
+    },
+    onError: (error: any) => {
+      if (error.response?.status === 429) {
+        toast.error('Çok fazla istek attınız', {
+          description: 'Lütfen daha sonra tekrar deneyin.'
+        });
+      } else {
+        toast.error('Bir hata oluştu', {
+          description: 'Doğrulama e-postası gönderilemedi.'
+        });
+      }
+    }
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -63,7 +97,50 @@ export function SettingsPage() {
 
         <section className="space-y-4">
           <div className="mb-4">
-            <h3 className="text-lg font-bold">Hesap</h3>
+            <h3 className="text-lg font-bold">Hesap Doğrulama</h3>
+            <p className="text-sm text-muted-foreground">E-posta adresini onayla ve mavi tik rozetini al.</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-card">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[15px]">E-posta Durumu</span>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                ) : account?.emailVerified ? (
+                  <BadgeCheck className="h-5 w-5 text-blue-500" />
+                ) : (
+                  <ShieldAlert className="h-4 w-4 text-amber-500" />
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {isLoading
+                  ? 'Kontrol ediliyor...'
+                  : account?.emailVerified
+                    ? 'Hesabınız doğrulandı. Mavi tik rozetine sahipsiniz.'
+                    : 'E-posta adresiniz henüz doğrulanmadı.'}
+              </p>
+            </div>
+
+            {!isLoading && !account?.emailVerified && (
+              <Button
+                variant="outline"
+                onClick={() => verifyMutation.mutate()}
+                disabled={verifyMutation.isPending}
+                className="shrink-0 gap-2"
+              >
+                {verifyMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MailCheck className="h-4 w-4" />}
+                Doğrulama Gönder
+              </Button>
+            )}
+          </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold">Oturum</h3>
             <p className="text-sm text-muted-foreground">Oturumunu yönet.</p>
           </div>
 

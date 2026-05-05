@@ -23,6 +23,7 @@ export interface AccountSummary {
   displayName: string;
   profileImageUrl: string | null;
   role: string;
+  emailVerified: boolean;
 }
 
 export interface AuthResponse {
@@ -39,25 +40,27 @@ export interface MyAccountResponse {
   id: number;
   username: string;
   email: string;
-  phone: string | null;
-  displayName: string;
-  bio: string | null;
-  profileImageUrl: string | null;
-  coverImageUrl: string | null;
+  phone?: string;
+  displayName?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  coverImageUrl?: string;
   role: string;
-  createdAt: string;  // ISO-8601 Instant
+  emailVerified: boolean;
+  joinedAt: string;
 }
 
 export interface PublicAccountResponse {
   id: number;
   username: string;
-  displayName: string;
-  bio: string | null;
-  profileImageUrl: string | null;
-  coverImageUrl: string | null;
+  displayName?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  coverImageUrl?: string;
   followerCount: number;
   followingCount: number;
   isFollowing: boolean;
+  emailVerified: boolean;
   joinedAt: string;
 }
 
