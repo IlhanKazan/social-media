@@ -1,5 +1,6 @@
 package com.ilhankazan.social.task;
 
+import com.ilhankazan.social.repository.PasswordResetTokenRepository;
 import com.ilhankazan.social.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -15,13 +16,19 @@ import java.time.temporal.ChronoUnit;
 @RequiredArgsConstructor
 public class RefreshTokenCleanupTask {
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenCleanupTask.class);
+
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Scheduled(cron = "0 0 3 * * *") // Her gün gece 03:00'te çalışır
     @Transactional
     public void cleanupExpiredTokens() {
         Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
-        int deleted = refreshTokenRepository.deleteByExpiresAtBefore(cutoff);
-        log.info("Cleaned up {} expired refresh tokens older than {}", deleted, cutoff);
+
+        int deletedRefresh = refreshTokenRepository.deleteByExpiresAtBefore(cutoff);
+        log.info("Cleaned up {} expired refresh tokens older than {}", deletedRefresh, cutoff);
+
+        int deletedReset = passwordResetTokenRepository.deleteByExpiresAtBefore(cutoff);
+        log.info("Cleaned up {} expired password reset tokens older than {}", deletedReset, cutoff);
     }
 }
