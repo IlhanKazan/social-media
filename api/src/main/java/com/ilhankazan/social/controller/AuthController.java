@@ -1,6 +1,7 @@
 package com.ilhankazan.social.controller;
 
 import com.ilhankazan.social.dto.auth.*;
+import com.ilhankazan.social.manager.AccountManager;
 import com.ilhankazan.social.manager.AuthManager;
 import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthManager authManager;
+    private final AccountManager accountManager;
 
     @Operation(summary = "Register a new user", description = "Creates a new account and returns auth tokens.")
     @ApiResponse(responseCode = "201", description = "User successfully registered")
@@ -93,6 +95,16 @@ public class AuthController {
     @RateLimit(capacity = 5, minutes = 60)
     public ResponseEntity<Void> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
         authManager.confirmPasswordReset(request.token(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Verify email", description = "Verifies the email using the provided token. Publicly accessible.")
+    @ApiResponse(responseCode = "204", description = "Email successfully verified")
+    @ApiResponse(responseCode = "400", description = "Invalid or expired token")
+    @PostMapping("/verify-email")
+    @RateLimit(capacity = 5, minutes = 60)
+    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        accountManager.verifyEmail(request.token());
         return ResponseEntity.noContent().build();
     }
 }

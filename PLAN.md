@@ -618,7 +618,7 @@ verify their email later from Settings. Verified accounts get a small badge
 verification status today, but the column is in place if we want to gate
 admin actions or rate limits later.
 
-### [ ] 23.1 Schema additions
+### [x] 23.1 Schema additions
 
 - Migration `V<n>__email_verification.sql`:
   ```sql
@@ -641,14 +641,14 @@ admin actions or rate limits later.
 - Update `Account` entity: `Boolean emailVerified`, `Instant emailVerifiedAt`.
 - Update `MyAccountResponse` and `PublicAccountResponse` to expose `emailVerified` (the public response only — never the verifiedAt timestamp).
 
-### [ ] 23.2 Backend endpoints
+### [x] 23.2 Backend endpoints
 
 - `POST /api/v1/accounts/me/email/send-verification` — auth-required. Rate limit: 3 / hour / user. Skipped if `emailVerified == true`. Generates token, enqueues an email like password reset.
 - `POST /api/v1/accounts/me/email/verify` — body `{ token }`. Rate limit: 5 / hour / IP. Verifies token, flips `email_verified = true`, sets `email_verified_at`, marks token used. Audit log `EMAIL_VERIFIED`.
 - DTOs as needed.
 - Token TTL: 24 hours (longer than reset because the link goes to a real human inbox without urgency).
 
-### [ ] 23.3 Frontend integration
+### [x] 23.3 Frontend integration
 
 - Settings page: "Email verification" section. If unverified, show a button "Send verification email". Disabled with a countdown if rate-limited (response 429 includes Retry-After, optional). After click, show "Check your inbox" state.
 - Public `/verify-email?token=` route — calls the verify endpoint, shows success or error.

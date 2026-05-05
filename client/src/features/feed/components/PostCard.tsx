@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight } from 'lucide-react';
+import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EditPostDialog } from '@/features/post/components/EditPostDialog';
@@ -148,7 +148,11 @@ export function PostCard({ post }: PostCardProps) {
           )}
 
           <div className="flex flex-row items-start gap-3">
-            <Link to={`/u/${post.author.username}`} className="shrink-0 z-10" onClick={(e) => e.stopPropagation()}>
+            <Link
+              to={`/u/${post.author.username}`}
+              className="shrink-0 z-10 outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+              onClick={(e) => e.stopPropagation()}
+            >
               <Avatar className="h-10 w-10 transition-opacity hover:opacity-80">
                 <AvatarImage src={post.author.profileImageUrl || undefined} />
                 <AvatarFallback>{post.author.username.substring(0, 2).toUpperCase()}</AvatarFallback>
@@ -156,36 +160,72 @@ export function PostCard({ post }: PostCardProps) {
             </Link>
 
             <div className="flex flex-col min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 truncate z-10">
-                  <Link to={`/u/${post.author.username}`} className="font-bold hover:underline truncate text-[15px]" onClick={(e) => e.stopPropagation()}>
+
+              <div className="flex items-start justify-between gap-2 w-full">
+
+                <div className="flex items-center gap-1.5 min-w-0 flex-1 z-10">
+                  <Link
+                    to={`/u/${post.author.username}`}
+                    className="font-bold hover:underline truncate text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {post.author.displayName || post.author.username}
                   </Link>
-                  <span className="text-muted-foreground text-[15px] truncate">@{post.author.username}</span>
+
+                  {post.author.emailVerified && (
+                    <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
+                  )}
+
+                  <Link
+                    to={`/u/${post.author.username}`}
+                    className="text-muted-foreground text-[15px] truncate hover:underline outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    @{post.author.username}
+                  </Link>
+
                   <span className="text-muted-foreground text-sm shrink-0">·</span>
-                  <span className="text-muted-foreground text-[15px] shrink-0 hover:underline">
+                  <span className="text-muted-foreground text-[15px] shrink-0 whitespace-nowrap">
                     {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: tr })}
                   </span>
                 </div>
 
                 {isMine && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger render={
-                      <Button variant="ghost" size="icon-sm" className="h-8 w-8 shrink-0 z-10 text-muted-foreground rounded-full hover:bg-primary/10 hover:text-primary -mt-1 -mr-2 transition-colors" />
-                    }>
-                      <MoreHorizontal className="h-5 w-5" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem className="cursor-pointer" onClick={() => setIsEditOpen(true)}>
-                        <Edit2 className="mr-2 h-4 w-4" />
-                        <span>Düzenle</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>{deleteMutation.isPending ? 'Siliniyor...' : 'Sil'}</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="shrink-0 z-20" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={
+                        <Button variant="ghost" size="icon-sm" className="h-8 w-8 text-muted-foreground rounded-full hover:bg-primary/10 hover:text-primary -mt-1 transition-colors" />
+                      }>
+                        <MoreHorizontal className="h-5 w-5" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
+
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsEditOpen(true);
+                          }}
+                        >
+                          <Edit2 className="mr-2 h-4 w-4" />
+                          <span>Düzenle</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteMutation.mutate();
+                          }}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>{deleteMutation.isPending ? 'Siliniyor...' : 'Sil'}</span>
+                        </DropdownMenuItem>
+
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 )}
               </div>
 

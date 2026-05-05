@@ -13,6 +13,7 @@ import {SearchPage} from "@/features/search/SearchPage.tsx";
 import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
 import {ForgotPasswordPage} from "@/features/auth/ForgotPasswordPage.tsx";
 import {ResetPasswordPage} from "@/features/auth/ResetPasswordPage.tsx";
+import {VerifyEmailPage} from "@/features/auth/VerifyEmailPage.tsx";
 
 const NotFound = () => <div className="p-8 text-center"><h1 className="text-2xl font-bold">404 Not Found</h1></div>;
 
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: '/register', element: <RegisterPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'verify-email', element: <VerifyEmailPage /> },
     ],
   },
   {

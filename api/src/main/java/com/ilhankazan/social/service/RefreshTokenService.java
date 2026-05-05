@@ -6,6 +6,7 @@ import com.ilhankazan.social.entity.RefreshToken;
 import com.ilhankazan.social.exception.TokenReuseDetectedException;
 import com.ilhankazan.social.repository.RefreshTokenRepository;
 import com.ilhankazan.social.security.JwtTokenProvider;
+import com.ilhankazan.social.util.TokenGenerator;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,26 +33,10 @@ public class RefreshTokenService {
 
     public record RefreshResult(String accessToken, String refreshToken, Account account) {}
 
-    private String hashToken(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder(2 * hash.length);
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found", e);
-        }
-    }
-
     @Transactional
     public String issue(Account account, UUID familyId, String userAgent, String ipAddress) {
         String plainToken = jwtTokenProvider.generateRefreshToken(account.getUsername());
-        String hash = hashToken(plainToken);
+        String hash = TokenGenerator.hashToken(plainToken);
 
         RefreshToken r = new RefreshToken();
         r.setAccount(account);
@@ -67,7 +52,7 @@ public class RefreshTokenService {
 
     @Transactional
     public RefreshResult rotate(String presentedToken, String userAgent, String ipAddress) {
-        String hash = hashToken(presentedToken);
+        String hash = TokenGenerator.hashToken(presentedToken);
         RefreshToken existing = refreshTokenRepository.findByTokenHash(hash)
             .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
 
@@ -88,7 +73,7 @@ public class RefreshTokenService {
         existing.setRevokedAt(Instant.now());
 
         String newPlainToken = jwtTokenProvider.generateRefreshToken(existing.getAccount().getUsername());
-        String newHash = hashToken(newPlainToken);
+        String newHash = TokenGenerator.hashToken(newPlainToken);
 
         existing.setReplacedBy(newHash);
         refreshTokenRepository.save(existing);
@@ -112,7 +97,7 @@ public class RefreshTokenService {
 
     @Transactional
     public void revokeFamilyByToken(String plainToken) {
-        String hash = hashToken(plainToken);
+        String hash = TokenGenerator.hashToken(plainToken);
         refreshTokenRepository.findByTokenHash(hash)
             .ifPresent(rt -> refreshTokenRepository.revokeFamily(rt.getFamilyId()));
     }

@@ -30,9 +30,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
-      debug: (str) => {
-        if (import.meta.env.DEV) console.log('[STOMP]', str);
-      },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

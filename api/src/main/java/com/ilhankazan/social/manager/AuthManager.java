@@ -50,6 +50,7 @@ public class AuthManager {
     private final EmailService emailService;
     private final Environment env;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetService passwordResetService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -111,45 +112,10 @@ public class AuthManager {
         );
     }
 
-    private String hashToken(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder(2 * hash.length);
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found", e);
-        }
-    }
-
-    private String generateSecureToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[32]; // 256-bit
-        random.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
     @Transactional
     public void requestPasswordReset(String email, String ipAddress) {
         accountService.findByEmail(email).ifPresent(account -> {
-            passwordResetTokenRepository.invalidateActiveTokensForAccount(account.getId());
-
-            String plainToken = generateSecureToken();
-            String tokenHash = hashToken(plainToken);
-
-            PasswordResetToken resetToken = PasswordResetToken.builder()
-                .account(account)
-                .tokenHash(tokenHash)
-                .expiresAt(Instant.now().plus(30, java.time.temporal.ChronoUnit.MINUTES))
-                .requestedIp(ipAddress)
-                .build();
-
-            passwordResetTokenRepository.save(resetToken);
+            String plainToken = passwordResetService.createResetToken(account, ipAddress);
 
             String frontendOrigin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
             String resetLink = frontendOrigin + "/reset-password?token=" + plainToken;
@@ -165,25 +131,10 @@ public class AuthManager {
 
     @Transactional
     public void confirmPasswordReset(String plainToken, String newPassword) {
-        String tokenHash = hashToken(plainToken);
+        Account account = passwordResetService.validateAndConsumeToken(plainToken);
 
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHash)
-            .orElseThrow(() -> new IllegalArgumentException("Geçersiz veya süresi dolmuş token."));
-
-        if (resetToken.getUsedAt() != null) {
-            throw new IllegalArgumentException("Bu token zaten kullanılmış.");
-        }
-
-        if (resetToken.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Bu tokenin süresi dolmuş.");
-        }
-
-        Account account = resetToken.getAccount();
         account.setPassword(passwordEncoder.encode(newPassword));
         accountService.saveRaw(account);
-
-        resetToken.setUsedAt(Instant.now());
-        passwordResetTokenRepository.save(resetToken);
 
         refreshTokenService.revokeAllForAccount(account.getId());
         auditLogService.record("PASSWORD_RESET", "ACCOUNT", account.getId(), null);

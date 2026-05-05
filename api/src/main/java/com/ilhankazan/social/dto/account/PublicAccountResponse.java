@@ -12,5 +12,6 @@ public record PublicAccountResponse(
     long followerCount,
     long followingCount,
     boolean isFollowing,
+    boolean emailVerified,
     Instant joinedAt
 ) {}
