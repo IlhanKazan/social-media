@@ -15,5 +15,6 @@ public record PostResponse(
     long replyCount,
     boolean likedByMe,
     boolean dislikedByMe,
+    boolean isEdited,
     Instant createdAt
 ) {}

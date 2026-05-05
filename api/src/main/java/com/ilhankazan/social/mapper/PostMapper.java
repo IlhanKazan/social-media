@@ -18,5 +18,6 @@ public interface PostMapper {
     @Mapping(target = "replyCount", source = "replyCount")
     @Mapping(target = "likedByMe", source = "userInteractions.liked")
     @Mapping(target = "dislikedByMe", source = "userInteractions.disliked")
+    @Mapping(target = "isEdited", expression = "java(post.getUpdatedAt() != null && post.getUpdatedAt().isAfter(post.getCreatedAt().plusSeconds(1)))")
     PostResponse toResponse(Post post, InteractionCounts counts, UserInteractions userInteractions, long replyCount);
 }

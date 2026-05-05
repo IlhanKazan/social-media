@@ -6,6 +6,7 @@ import java.time.Instant;
 public record ConversationResponse(
     Long id,
     PublicAccountResponse otherParticipant,
+    String lastMessageContent,
     Instant lastMessageAt,
     int unreadCount
 ) {}

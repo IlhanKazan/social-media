@@ -22,6 +22,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class MessageManager {
@@ -45,6 +49,12 @@ public class MessageManager {
         }
     }
 
+    private String abbreviate(String str, int maxWidth) {
+        if (str == null) return null;
+        if (str.length() <= maxWidth) return str;
+        return str.substring(0, maxWidth - 3) + "...";
+    }
+
     @Transactional
     public ConversationResponse getOrCreateConversation(Long targetAccountId) {
         Account current = getCurrentAccount();
@@ -55,7 +65,7 @@ public class MessageManager {
         }
 
         Conversation conversation = conversationService.getOrCreate(current, target);
-        return toConversationResponse(conversation, current.getId());
+        return toConversationResponse(conversation, current.getId(), null);
     }
 
     @Transactional
@@ -69,7 +79,6 @@ public class MessageManager {
 
         MessageResponse response = messageMapper.toResponse(message);
 
-        // GÜNCELLEME: DTO'yu ve her iki tarafın username'ini gönderiyoruz
         eventPublisher.publishEvent(new MessageCreatedEvent(
             response,
             conversation.getParticipantA().getUsername(),
@@ -86,7 +95,21 @@ public class MessageManager {
             current.getId(), PageRequest.of(page, size)
         );
 
-        return PageResponse.of(conversations.map(c -> toConversationResponse(c, current.getId())));
+        if (conversations.isEmpty()) {
+            return PageResponse.of(conversations.map(c -> toConversationResponse(c, current.getId(), null)));
+        }
+
+        List<Long> conversationIds = conversations.stream().map(Conversation::getId).toList();
+        List<Message> latestMessages = messageService.findLatestMessagesForConversations(conversationIds);
+        Map<Long, String> latestMessageMap = latestMessages.stream()
+            .collect(Collectors.toMap(
+                m -> m.getConversation().getId(),
+                m -> abbreviate(m.getContent(), 80)
+            ));
+
+        return PageResponse.of(conversations.map(c ->
+            toConversationResponse(c, current.getId(), latestMessageMap.get(c.getId()))
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +132,6 @@ public class MessageManager {
 
         messageService.markAsRead(conversationId, current.getId());
 
-        // GUNCELLEME: Okundu bilgisini STOMP ile diğer tarafa iletmek için fırlat
         Account otherParticipant = conversation.getParticipantA().getId().equals(current.getId())
             ? conversation.getParticipantB()
             : conversation.getParticipantA();
@@ -121,7 +143,7 @@ public class MessageManager {
         ));
     }
 
-    private ConversationResponse toConversationResponse(Conversation conversation, Long currentAccountId) {
+    private ConversationResponse toConversationResponse(Conversation conversation, Long currentAccountId, String lastMessageContent) {
         Account otherParticipant = conversation.getParticipantA().getId().equals(currentAccountId)
             ? conversation.getParticipantB()
             : conversation.getParticipantA();
@@ -131,6 +153,7 @@ public class MessageManager {
         return new ConversationResponse(
             conversation.getId(),
             accountMapper.toPublicResponseNoFollow(otherParticipant),
+            lastMessageContent,
             conversation.getLastMessageAt(),
             unreadCount
         );

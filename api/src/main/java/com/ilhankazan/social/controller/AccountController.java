@@ -14,6 +14,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
@@ -69,5 +71,12 @@ public class AccountController {
     public ResponseEntity<Void> deleteAccount() {
         accountManager.deleteAccount();
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get account suggestions", description = "Returns popular accounts the current user does not follow.")
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<PublicAccountResponse>> getSuggestions(
+        @RequestParam(defaultValue = "5") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(10) int limit) {
+        return ResponseEntity.ok(accountManager.getSuggestions(limit));
     }
 }

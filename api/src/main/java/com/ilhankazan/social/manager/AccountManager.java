@@ -105,4 +105,23 @@ public class AccountManager {
         Account account = accountService.updateCover(currentUsername(), file);
         return account.getCoverImageUrl();
     }
+
+    public List<PublicAccountResponse> getSuggestions(int limit) {
+        Long currentUserId = getCurrentAccountId();
+        List<Account> suggestions = accountService.getSuggestions(currentUserId, Math.min(limit, 10));
+
+        if (suggestions.isEmpty()) return List.of();
+
+        List<Long> accountIds = suggestions.stream().map(Account::getId).toList();
+        Map<Long, Long> followersMap = followService.getFollowerCounts(accountIds);
+        Map<Long, Long> followingMap = followService.getFollowingCounts(accountIds);
+
+        return suggestions.stream().map(account -> accountMapper.toPublicResponse(
+            account,
+            followersMap.getOrDefault(account.getId(), 0L),
+            followingMap.getOrDefault(account.getId(), 0L),
+            false
+        )).toList();
+    }
+
 }
