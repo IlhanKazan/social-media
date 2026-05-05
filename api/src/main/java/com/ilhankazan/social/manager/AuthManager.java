@@ -6,6 +6,7 @@ import com.ilhankazan.social.dto.auth.LoginRequest;
 import com.ilhankazan.social.dto.auth.RegisterRequest;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.event.LoginSuccessEvent;
+import com.ilhankazan.social.event.UserRegisteredEvent;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.security.JwtTokenProvider;
 import com.ilhankazan.social.service.*;
@@ -41,6 +42,7 @@ public class AuthManager {
             request.password(),
             request.displayName()
         );
+        eventPublisher.publishEvent(new UserRegisteredEvent(account));
         return buildInitialAuthResponse(account, null, null);
     }
 
