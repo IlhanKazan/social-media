@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,12 @@ public class MessageService {
     @Transactional(readOnly = true)
     public Page<Message> findByConversationId(Long conversationId, Pageable pageable) {
         return messageRepository.findByConversationId(conversationId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Message> findLatestMessagesForConversations(List<Long> conversationIds) {
+        if (conversationIds.isEmpty()) return List.of();
+        return messageRepository.findLatestMessagesForConversations(conversationIds);
     }
 
     @Transactional

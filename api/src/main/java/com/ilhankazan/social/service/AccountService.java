@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,11 @@ public class AccountService {
         return accountRepository
             .findByUsernameContainingIgnoreCaseOrDisplayNameContainingIgnoreCase(
                 query, query, PageRequest.of(page, size));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Account> getSuggestions(Long currentUserId, int limit) {
+        return accountRepository.findSuggestions(currentUserId, limit);
     }
 
     @Transactional

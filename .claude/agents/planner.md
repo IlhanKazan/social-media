@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Use when starting work on a new task, or when the user asks "what's next", "plan the next step", or wants a task broken down into concrete file-level work. The planner reads PLAN.md, picks the next unblocked task respecting phase order, and produces an actionable breakdown — it does NOT write code itself.
+description: Use when starting work on a new task, or when the user asks "what's next", "plan the next step", or wants a task broken down into concrete file-level work. The planner reads ARCHIVE_PLAN.md, picks the next unblocked task respecting phase order, and produces an actionable breakdown — it does NOT write code itself.
 tools: Read, Grep, Glob
 ---
 

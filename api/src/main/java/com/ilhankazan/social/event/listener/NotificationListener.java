@@ -55,21 +55,16 @@ public class NotificationListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleInteractionCreated(InteractionCreatedEvent event) {
-        if ("LIKE".equals(event.type()) || "COMMENT".equals(event.type())) {
+        if ("LIKE".equals(event.type())) {
             Post post = postService.getById(event.postId());
-            NotificationType notifType = "LIKE".equals(event.type()) ? NotificationType.LIKE : NotificationType.COMMENT;
 
             Notification notification = notificationService.create(
                 post.getAccount().getId(),
                 event.actorId(),
-                notifType,
+                NotificationType.LIKE,
                 post.getId()
             );
             pushToWebSocket(notification);
-
-            if (notifType == NotificationType.COMMENT && event.content() != null) {
-                handleMentions(event.content(), event.actorId(), post.getId());
-            }
         }
     }
 

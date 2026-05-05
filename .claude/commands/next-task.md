@@ -1,5 +1,5 @@
 ---
-description: Run the full workflow for the next PLAN.md task — plan, implement, verify, review, commit.
+description: Run the full workflow for the next ARCHIVE_PLAN.md task — plan, implement, verify, review, commit.
 ---
 
 Execute the standard workflow for the next unblocked task in PLAN.md:

@@ -13,1088 +13,202 @@ with modern conventions.
 
 ---
 
-## Phase 0 — Project Initialization
+## Phase 5.6 — Post-V6 Retrofit + DTO Contract Fixes
 
-### [x] 0.1 Init monorepo
-- `git init` at repo root
-- Root `.gitignore`: `target/`, `node_modules/`, `dist/`, `build/`, `.idea/`, `.vscode/`, `.env`, `*.log`, `.DS_Store`, `out/`
-- Root `.gitattributes`: `* text=auto eol=lf`
-- Root `.editorconfig` for consistent indentation across editors
-- Root `README.md` skeleton (filled in Phase 18)
-- Place this kit's `CLAUDE.md`, `PLAN.md`, `.claude/` at repo root
+This phase mirrors the spirit of 5.5 — consolidate small but real
+inconsistencies introduced after V6 (`refactor_comments_to_posts`) shipped, and
+close the missing-DTO-fields gap surfaced during integration. Nothing here is
+new product surface; all of it is existing code that drifted from the
+contract.
 
-**Acceptance:** `git status` clean, structure matches CLAUDE.md "Repository Layout".
+### [ ] 5.6.1 Drop `InteractionType.COMMENT` from Java
 
-### [x] 0.2 Init backend project
-- Bootstrap from start.spring.io equivalent: Spring Boot 3.4.x, Java 21, Maven.
-- Place under `api/`. Package root `com.ilhankazan.social` (rename if you change the repo name).
-- Initial dependencies in `pom.xml`:
-  - `spring-boot-starter-web`
-  - `spring-boot-starter-data-jpa`
-  - `spring-boot-starter-security`
-  - `spring-boot-starter-validation`
-  - `spring-boot-starter-actuator`
-  - `spring-boot-starter-websocket`
-  - `org.postgresql:postgresql` (runtime)
-  - `org.flywaydb:flyway-core`
-  - `org.flywaydb:flyway-database-postgresql`
-  - `io.jsonwebtoken:jjwt-api:0.12.6`
-  - `io.jsonwebtoken:jjwt-impl:0.12.6` (runtime)
-  - `io.jsonwebtoken:jjwt-jackson:0.12.6` (runtime)
-  - `org.mapstruct:mapstruct:1.6.2`
-  - `org.mapstruct:mapstruct-processor:1.6.2`
-  - `org.projectlombok:lombok` (provided)
-  - `com.cloudinary:cloudinary-http44:1.39.0`
-  - `com.bucket4j:bucket4j-core:8.10.1`
-  - `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0`
-  - `net.logstash.logback:logstash-logback-encoder:8.0` (runtime)
-  - `org.springframework.boot:spring-boot-starter-test` (test)
-  - `org.springframework.security:spring-security-test` (test)
-  - `org.testcontainers:postgresql:1.20.4` (test)
-- Maven properties: `<java.version>21</java.version>`, `<maven.compiler.release>21</maven.compiler.release>`
-- Annotation processor paths configured for Lombok + MapStruct
-- Verify: `cd api && ./mvnw -v` shows Java 21, `./mvnw clean compile` succeeds with empty `src/`
+V6 already removed `COMMENT` from the DB CHECK constraint and dropped the
+`content` column. The Java enum `InteractionType` still has `COMMENT` in it
+(see `entity/InteractionType.java`), and `InteractionRepository` still has a
+`findCommentsByPostId` JPQL referencing the old type. Comments now live as
+posts with `parent_post_id != NULL`.
 
-**Acceptance:** Empty Spring Boot app boots and exits cleanly with `./mvnw spring-boot:run` (will fail on missing DB — expected).
+- Remove `COMMENT` constant from `InteractionType` enum.
+- Remove all JPQL / repository methods filtering on `InteractionType.COMMENT`.
+- Audit `InteractionService` and `InteractionManager` — any remaining
+  `if (type == COMMENT)` branches must go.
+- `NotificationListener` (Phase 7.2) used to fire for `InteractionCreatedEvent`
+  with `type=COMMENT`; this path is now driven by `PostCreatedEvent` when the
+  new post has a non-null `parentPostId`. Re-route the COMMENT/REPLY
+  notification fan-out accordingly. See Phase 5.6.4.
 
-### [x] 0.3 Init frontend project
-- `cd .. && npm create vite@latest client -- --template react-ts`
-- `cd client`, configure:
-  - Path alias `@/` → `src/` in `vite.config.ts` and `tsconfig.json`
-  - `tsconfig.json` strict + `noUncheckedIndexedAccess: true`
-  - ESLint + Prettier (use `eslint-plugin-react-hooks`, `@typescript-eslint`)
-  - Add scripts: `typecheck`, `lint`, `format`, `test` (vitest)
-- Install Tailwind v4: `npm install tailwindcss @tailwindcss/vite`
-- Wire Tailwind via Vite plugin (no `tailwind.config.js` for v4 — CSS-first config in `src/index.css` using `@import "tailwindcss";` and `@theme {}` block)
-- Install shadcn/ui CLI: `npx shadcn@latest init` — choose Tailwind v4, default style, no RSC, paths `@/components`, `@/lib/utils`
-- Install runtime deps: `react-router-dom`, `@tanstack/react-query`, `zustand`, `axios`, `react-hook-form`, `zod`, `@hookform/resolvers`, `@stomp/stompjs`, `sockjs-client`, `lucide-react`, `date-fns`
-- Install dev deps: `@types/sockjs-client`, `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`
+**Acceptance:** `grep -rn "InteractionType.COMMENT\|type = 'COMMENT'" api/src` returns nothing. Existing tests pass; no path produces an `Interaction` row with the old `COMMENT` type.
 
-**Acceptance:** `npm run dev` opens a working Vite page; `npm run typecheck` passes; shadcn folder structure exists.
+### [ ] 5.6.2 Add `isEdited` to `PostResponse`
 
-### [x] 0.4 Configure root tooling
-- Root `package.json` with workspace scripts (no actual workspaces — just convenience):
-  ```json
-  {
-    "scripts": {
-      "api:dev": "cd api && ./mvnw spring-boot:run",
-      "client:dev": "cd client && npm run dev",
-      "lint:client": "cd client && npm run lint"
-    }
-  }
+`PostResponse` is missing the edited-flag the frontend wants for the "Edited" badge.
+
+- Add `boolean isEdited` to `PostResponse` (record). Computation lives in `PostMapper`: `isEdited = post.getUpdatedAt() != null && post.getUpdatedAt().isAfter(post.getCreatedAt().plusSeconds(1))`. The `+1s` tolerance avoids false positives from clock skew between the create-trigger and the audit listener.
+- Mirror the field in `client/src/types/api.ts` (`PostResponse`).
+- Wire a small "Edited" caption in `PostCard` (greyed text, no tooltip needed yet).
+
+**Acceptance:** Editing a post (PATCH `/posts/{id}`) → next fetch returns `isEdited: true`. New posts return `isEdited: false`.
+
+### [ ] 5.6.3 Add `lastMessageContent` to `ConversationResponse`
+
+The conversations list currently shows only timestamp + unread count; the frontend can't render a "last message preview" without a second round-trip per row.
+
+- Add `String lastMessageContent` to `ConversationResponse` (record). Truncate at 80 chars server-side (`StringUtils.abbreviate`).
+- Update `ConversationMapper` to populate it. Fetch strategy: extend the existing JPQL in `ConversationRepository.findByParticipantId` to also project the latest message's content via a correlated subquery, OR use a `@PostLoad`-equivalent batch fetch in the manager (single query for all conversation IDs in the page, map back). Pick whichever keeps `≤ 3 SQL queries per page` (Phase 5.5.3 rule).
+- If the latest message is from the OTHER participant and unread, the frontend can show it bolded — that's a UI concern, server still just returns the raw content.
+- Mirror in `types/api.ts` and update the conversations sidebar in `features/messaging/`.
+
+**Acceptance:** Conversations list shows the last message preview without a second fetch; pagination of 20 conversations triggers ≤ 3 queries (verified via SQL log).
+
+### [ ] 5.6.4 Reply notifications routed via `PostCreatedEvent`
+
+V6 changed comments from interactions to posts, so `InteractionCreatedEvent` no longer fires for comments. Replies now flow through `PostCreatedEvent`. The notification listener must be updated:
+
+- In `event/NotificationListener` (or wherever `PostCreatedEvent` is consumed for notifications), branch on `parentPostId`:
+  - `parentPostId == null` → no notification (top-level posts only fan out via the feed broadcaster).
+  - `parentPostId != null` → fetch the parent's author. If parent author != reply author, create a `Notification(type=REPLY, recipient=parentAuthor, actor=replyAuthor, referenceId=newPostId)`. Push via WebSocket to `/user/{parentAuthorUsername}/queue/notifications`.
+- The `NotificationType.COMMENT` enum value is now redundant. Either keep it as an alias for `REPLY` for migration friendliness, OR drop it and produce a follow-up V<n> migration that rewrites existing rows. Decision: **keep as alias for one release**, then remove in a later phase (lower-risk for already-issued notification rows).
+
+**Acceptance:** Reply to someone else's post → recipient gets a notification with `type=REPLY` and a working WebSocket push. Reply to your own post → no notification.
+
+### [ ] 5.6.5 `GET /api/v1/accounts/suggestions`
+
+The "Who to follow" right rail in the frontend is currently static. This adds a real recommendation endpoint, intentionally simple for now.
+
+- Endpoint: `GET /api/v1/accounts/suggestions?limit=5` (default 5, max 10).
+- Algorithm v1 — purely SQL, no ML:
+  ```sql
+  SELECT a.* FROM accounts a
+  WHERE a.deleted_at IS NULL
+    AND a.id != :currentUserId
+    AND a.id NOT IN (
+        SELECT f.following_id FROM follows f WHERE f.follower_id = :currentUserId
+    )
+  ORDER BY (
+      SELECT COUNT(*) FROM follows f2 WHERE f2.following_id = a.id
+  ) DESC, a.created_at DESC
+  LIMIT :limit
   ```
-- `.env.example` at root with all required env vars (filled as we add them)
-- `docker-compose.yml` with postgres only for now (api added in Phase 17)
+  i.e. "popular accounts the current user does not yet follow". Self-excluded.
+- Returns `List<PublicAccountResponse>`. `isFollowing` is always `false` by definition — keep the field anyway for client uniformity.
+- Add a partial index to speed up the count subquery (already covered by `idx_follows_following`).
+- Frontend: replace the static panel with a `useQuery({ queryKey: ['suggestions'], staleTime: 5 * 60 * 1000 })` (5-min stale). Each row has a one-click "Follow" button using the existing follow mutation; on success the row dims and is replaced with the next suggestion.
 
-**Acceptance:** `docker compose up -d postgres` starts a working Postgres container.
+**Acceptance:** Endpoint returns up to 5 non-followed accounts; first call after a follow either filters the just-followed account out or invalidates the suggestions query.
 
----
+### [ ] 5.6.6 Rate-limiting expansion
 
-## Phase 1 — Backend Foundation
+`@RateLimit` only annotates `/auth/register` and `/auth/login` today. Several other endpoints are abuse-friendly without it:
 
-### [x] 1.1 Application configuration
+- `POST /api/v1/posts` — 30 posts / 5 minutes per IP.
+- `POST /api/v1/posts/{postId}/interactions/comments` (now: posting a reply, i.e. `POST /api/v1/posts` with `parentPostId`) — same bucket as above (the controller path is the rate boundary, not a separate counter).
+- `POST /api/v1/accounts/me/avatar`, `POST /api/v1/accounts/me/cover`, `POST /api/v1/posts/upload-image` — 10 uploads / hour per IP. Cloudinary free-tier abuse protection.
+- `POST /api/v1/follow/{accountId}` — 60 follow actions / 5 minutes per IP. Slows mass-follow bots.
+- `@MessageMapping("/dm.send")` — 30 messages / minute per authenticated user (not IP — see note below). Implemented as a small interceptor on the inbound channel; the existing `RateLimitAspect` is HTTP-only.
 
-- `application.yml` (default, common config)
-- `application-local.yml` (dev profile — verbose logs, dev DB)
-- `application-prod.yml` (prod profile — INFO logs, env-only secrets)
-- All secrets via `${ENV_VAR:default}` syntax
-- Enable Java 21 virtual threads: `spring.threads.virtual.enabled: true`
-- Enable Actuator endpoints: `health`, `info`, `metrics`
+**Note on key:** Auth endpoints rate-limit by IP because the user isn't authenticated yet. For all other endpoints prefer user-id when available (falling back to IP if anonymous), so that a shared NAT (campus, cafe Wi-Fi) doesn't punish all users at once. Extend `RateLimitAspect` to read `SecurityContextHolder` first and fall through to IP.
+
+**Acceptance:** Burst tests confirm the new limits. A logged-in user under NAT can post freely while another logged-in user on the same IP also posts freely (separate buckets). Anonymous IPs share a single bucket.
+
+### [ ] 5.6.7 SecurityConfig + WebSocket CORS lockdown
+
+Two production-blocking holes were found while auditing `SecurityConfig` and `WebSocketConfig`. Fix in this phase, before Phase 28's hardening pass touches anything else.
+
+- **`/test.html`** is `permitAll`'d in `SecurityConfig`. The file lives under `api/src/main/resources/static/test.html` (a hand-rolled WebSocket dev tester). Two changes:
+  1. Move it out of `static/` so Spring no longer serves it. Recommended: `api/src/dev-tools/ws-test.html`, kept in repo for local use, never bundled.
+  2. Remove the `requestMatchers("/test.html").permitAll()` line.
+- **`/ws/**` is `permitAll`** in the SecurityConfig HTTP chain. This is correct for the SockJS handshake (CONNECT auth happens in `WebSocketAuthInterceptor`), but the path matcher is too broad — it matches `/wsanything`. Replace with the precise paths the SockJS client uses: `/ws`, `/ws/**` (for sub-paths during fallback transport negotiation), and explicitly nothing else. Keep `permitAll` here, but add a comment explaining that auth is enforced by `WebSocketAuthInterceptor` at the STOMP layer.
+- **`WebSocketConfig.registerStompEndpoints`** uses `setAllowedOriginPatterns("*")`. This is the WebSocket equivalent of `Access-Control-Allow-Origin: *` with credentials — exactly the combination that's a CORS exploit. Replace with `setAllowedOrigins(corsProps.allowedOrigins().toArray(new String[0]))`. The commented-out line in the current file is the right one; uncomment it and delete the `*` pattern.
+- **`CorsConfigurationSource` fallback** in `SecurityConfig`: `corsProps.allowedOrigins() != null ? corsProps.allowedOrigins() : List.of("*")`. The fallback `*` combined with `setAllowCredentials(true)` is a runtime exploit if config ever degrades. Replace fallback with `List.of()` (block-by-default) and fail-fast at startup if the property is missing in `prod` profile. See 5.6.10.
+
+**Acceptance:** `curl -H "Origin: https://evil.com" https://api.../ws/info` returns CORS-rejection headers; same call from the configured frontend origin succeeds. `/test.html` returns 404.
+
+### [ ] 5.6.8 Frontend Axios `baseURL` bug
+
+`client/src/lib/api.ts` reads `import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'`. The fallback includes `/api/v1`, but Render config sets `VITE_API_URL=https://social-api.onrender.com` — i.e. **without** the `/api/v1` suffix. In production, `axios.post('/auth/login', ...)` becomes `https://social-api.onrender.com/auth/login`, which is 404.
+
+- Decide one canonical form. Recommended: `VITE_API_URL` is the **origin** (no path), and the client appends `/api/v1`:
+  ```ts
+  const origin = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+  export const api = axios.create({ baseURL: `${origin}/api/v1`, timeout: 10000 });
+  ```
+- Update `.env.example` to document this convention.
+- Update `lib/ws.ts` similarly: `new SockJS(\`${origin}/ws\`)`.
+- Update `render.yaml` only if needed (current value is already an origin, so no change).
+
+**Acceptance:** `npm run build` against prod env returns a working app on Render; login flow works end-to-end on the deployed URL.
+
+### [ ] 5.6.9 `application-prod.yml` hardening
+
+Currently `application-prod.yml` is two log-level lines. It needs to be the source of truth for production overrides; right now production silently inherits dev defaults for several properties.
 
 ```yaml
+logging:
+  level:
+    root: WARN
+    com.ilhankazan.social: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
 spring:
-  application:
-    name: social-api
-  datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/social}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
   jpa:
-    hibernate:
-      ddl-auto: validate
-    open-in-view: false
     properties:
       hibernate:
-        jdbc:
-          time_zone: UTC
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-  threads:
-    virtual:
-      enabled: true
+        # Disable verbose statistics in prod
+        generate_statistics: false
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
 
 server:
-  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+    include-exception: false
+  forward-headers-strategy: native    # Trust X-Forwarded-* from Render's proxy
 
 app:
-  jwt:
-    secret: ${JWT_SECRET:dev-secret-must-be-at-least-32-bytes-long-please-change}
-    access-ttl-ms: ${JWT_ACCESS_TTL_MS:900000}        # 15 min
-    refresh-ttl-ms: ${JWT_REFRESH_TTL_MS:2592000000}  # 30 days
   cors:
     allowed-origins:
-      - http://localhost:5173
-      - https://${RENDER_FRONTEND_HOST:localhost}
-  cloudinary:
-    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
-    api-key: ${CLOUDINARY_API_KEY:}
-    api-secret: ${CLOUDINARY_API_SECRET:}
+      - ${FRONTEND_ORIGIN:https://invalid-must-be-set}    # fail-loud sentinel
 ```
 
-`@ConfigurationProperties` classes for `app.jwt`, `app.cors`, `app.cloudinary` (records).
+- Disable Swagger UI + OpenAPI JSON in prod. Either drop the `permitAll` or gate the springdoc starter behind a profile-conditional bean. For portfolio purposes, keeping a read-only OpenAPI JSON behind basic auth is fine but **the default for this PR is OFF** — flip it back on later if needed.
+- `forward-headers-strategy: native` is required so `X-Forwarded-Proto` and `X-Forwarded-For` from Render's edge are trusted (otherwise rate-limit-by-IP keys to the load balancer's IP, not the real client).
+- The CORS sentinel default ensures a missing `FRONTEND_ORIGIN` env var doesn't silently fall back to `*`.
 
-**Acceptance:** App starts in `local` profile, hits `/actuator/health` returns `UP`.
+**Acceptance:** Boot in `prod` profile without `FRONTEND_ORIGIN` set → app fails or logs a loud warning. `/swagger-ui.html` returns 404 in prod.
 
-### [x] 1.2 Flyway V1 — clean modern schema
+### [ ] 5.6.10 Fail-fast on weak JWT secret in prod
 
-Create `api/src/main/resources/db/migration/V1__init_schema.sql`:
+`AppProperties.JwtProperties.secret` defaults to `dev-secret-must-be-at-least-32-bytes-long-please-change`. If `JWT_SECRET` is unset on Render, the app boots with that public default and signs production tokens with a known key. This is the single highest-impact issue in the codebase.
 
-```sql
-CREATE EXTENSION IF NOT EXISTS citext;
+- Add a `@PostConstruct` validator on `JwtProperties` (or a separate `@Component` `EnvironmentSanityCheck` that runs on `ApplicationReadyEvent`) that:
+  1. Reads `spring.profiles.active` (or the `Environment` directly).
+  2. If `prod` is active AND the secret equals the dev default OR is `< 32 bytes` → throw, fail startup.
+  3. Same check for `app.cloudinary.api-secret` being blank in prod.
+- Test profile keeps its own value (`application-test.yml` already does).
+- Same pattern can later cover Resend API key, OpenAI API key, Gemini API key (Phases 21, 25, 27).
 
--- Auto-update trigger function (used by every mutable table)
-CREATE OR REPLACE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+**Acceptance:** `SPRING_PROFILES_ACTIVE=prod ./mvnw spring-boot:run` without `JWT_SECRET` → process exits with a clear error message naming the missing var.
 
--- ROLES
-CREATE TABLE roles (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(20) NOT NULL UNIQUE
-);
+### [ ] 5.6.11 Constrain Jackson + multipart in prod
 
-INSERT INTO roles (name) VALUES ('ROLE_ADMIN'), ('ROLE_USER');
+Two small but real attack-surface tightenings:
 
--- ACCOUNTS
-CREATE TABLE accounts (
-    id BIGSERIAL PRIMARY KEY,
-    username CITEXT NOT NULL UNIQUE,
-    email CITEXT NOT NULL UNIQUE,
-    phone VARCHAR(20) UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    display_name VARCHAR(50),
-    bio VARCHAR(160),
-    profile_image_url VARCHAR(500),
-    cover_image_url VARCHAR(500),
-    role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
-);
+- Multipart limits: `application.yml` already sets `max-file-size: 5MB`. Add `max-request-size: 5MB` (already present) and crucially `spring.servlet.multipart.file-size-threshold: 1MB` so files between 1–5 MB hit disk instead of memory.
+- Cap request body size for non-multipart endpoints. Spring doesn't expose this directly; add a `OncePerRequestFilter` that rejects any non-multipart request whose `Content-Length` exceeds 64 KB. This protects post/comment endpoints from accidental massive bodies (the `@Size(max=500)` on content is server-side validation, but we want to reject before deserialization).
+- `fail-on-unknown-properties: true` is already on. Confirm + don't regress.
 
-CREATE INDEX idx_accounts_active ON accounts(id) WHERE deleted_at IS NULL;
-CREATE TRIGGER trg_accounts_updated_at BEFORE UPDATE ON accounts
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
--- POSTS
-CREATE TABLE posts (
-    id BIGSERIAL PRIMARY KEY,
-    account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    content VARCHAR(500) NOT NULL,
-    image_url VARCHAR(500),
-    parent_post_id BIGINT REFERENCES posts(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
-);
-
-CREATE INDEX idx_posts_feed ON posts(created_at DESC) WHERE deleted_at IS NULL;
-CREATE INDEX idx_posts_by_account ON posts(account_id, created_at DESC) WHERE deleted_at IS NULL;
-CREATE INDEX idx_posts_replies ON posts(parent_post_id, created_at DESC)
-    WHERE parent_post_id IS NOT NULL AND deleted_at IS NULL;
-
-CREATE TRIGGER trg_posts_updated_at BEFORE UPDATE ON posts
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
--- INTERACTIONS (likes, dislikes, comments unified)
-CREATE TABLE interactions (
-    id BIGSERIAL PRIMARY KEY,
-    account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('LIKE', 'DISLIKE', 'COMMENT')),
-    content TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ,
-    CONSTRAINT chk_comment_has_content CHECK (
-        (type IN ('LIKE', 'DISLIKE') AND content IS NULL) OR
-        (type = 'COMMENT' AND content IS NOT NULL AND length(content) > 0)
-    )
-);
-
-CREATE UNIQUE INDEX uq_one_reaction_per_user_post
-    ON interactions(account_id, post_id, type)
-    WHERE type IN ('LIKE', 'DISLIKE') AND deleted_at IS NULL;
-
-CREATE INDEX idx_interactions_post ON interactions(post_id, type)
-    WHERE deleted_at IS NULL;
-
--- FOLLOWS
-CREATE TABLE follows (
-    id BIGSERIAL PRIMARY KEY,
-    follower_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    following_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(follower_id, following_id),
-    CHECK (follower_id != following_id)
-);
-
-CREATE INDEX idx_follows_follower ON follows(follower_id);
-CREATE INDEX idx_follows_following ON follows(following_id);
-
--- NOTIFICATIONS
-CREATE TABLE notifications (
-    id BIGSERIAL PRIMARY KEY,
-    recipient_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    actor_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('LIKE', 'COMMENT', 'FOLLOW', 'REPLY', 'MENTION')),
-    reference_id BIGINT,
-    read_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_notifications_unread ON notifications(recipient_id, created_at DESC)
-    WHERE read_at IS NULL;
-CREATE INDEX idx_notifications_all ON notifications(recipient_id, created_at DESC);
-
--- CONVERSATIONS (canonical participant order: a < b)
-CREATE TABLE conversations (
-    id BIGSERIAL PRIMARY KEY,
-    participant_a_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    participant_b_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    last_message_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(participant_a_id, participant_b_id),
-    CHECK (participant_a_id < participant_b_id)
-);
-
-CREATE INDEX idx_conversations_participant_a ON conversations(participant_a_id, last_message_at DESC NULLS LAST);
-CREATE INDEX idx_conversations_participant_b ON conversations(participant_b_id, last_message_at DESC NULLS LAST);
-
--- MESSAGES
-CREATE TABLE messages (
-    id BIGSERIAL PRIMARY KEY,
-    conversation_id BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    sender_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    content TEXT NOT NULL CHECK (length(content) > 0 AND length(content) <= 4000),
-    read_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_messages_thread ON messages(conversation_id, created_at DESC);
-CREATE INDEX idx_messages_unread ON messages(conversation_id, sender_id) WHERE read_at IS NULL;
-```
-
-Optional: `V2__seed_dev_data.sql` for the local profile only — set `flyway.locations` per profile to include this only in `local`.
-
-**Acceptance:** Clean DB → `./mvnw spring-boot:run` boots, `flyway_schema_history` shows V1 applied, all tables exist with expected indexes.
-
-### [x] 1.3 BaseEntity + auditing setup
-
-- `entity/BaseEntity.java` (abstract `@MappedSuperclass`):
-  - `@Id @GeneratedValue(strategy = IDENTITY) Long id`
-  - `@CreatedDate Instant createdAt`
-  - `@LastModifiedDate Instant updatedAt`
-  - `Instant deletedAt` (soft delete marker)
-  - `isActive()` helper returning `deletedAt == null`
-- Enable Spring Data JPA auditing: `@EnableJpaAuditing` on the application class.
-- Annotate base with `@EntityListeners(AuditingEntityListener.class)`.
-
-**Acceptance:** A test entity persisted via repository has `createdAt`/`updatedAt` populated automatically.
-
-### [x] 1.4 Pagination wrapper
-
-`dto/common/PageResponse.java` (record):
-```java
-public record PageResponse<T>(
-    List<T> content,
-    int page,
-    int size,
-    long totalElements,
-    int totalPages,
-    boolean last
-) {
-    public static <T> PageResponse<T> of(Page<T> page) {
-        return new PageResponse<>(
-            page.getContent(), page.getNumber(), page.getSize(),
-            page.getTotalElements(), page.getTotalPages(), page.isLast()
-        );
-    }
-}
-```
-
-Every list endpoint returns this — never raw `Page<T>`.
-
-**Acceptance:** Unit test confirms mapping from a `PageImpl`.
-
-### [x] 1.5 Global exception handler
-
-`exception/GlobalExceptionHandler.java` annotated with `@RestControllerAdvice`. Handlers for:
-- `EntityNotFoundException` → 404
-- `MethodArgumentNotValidException` → 400 with structured field errors
-- `ConstraintViolationException` → 400
-- `AccessDeniedException` → 403
-- `BadCredentialsException`, `AuthenticationException` → 401
-- `DataIntegrityViolationException` → 409 (with sanitized message)
-- `Exception` (catch-all) → 500
-
-Standard error shape (`record ErrorResponse(...)`):
-```java
-public record ErrorResponse(
-    String code,
-    String message,
-    Instant timestamp,
-    String path,
-    Map<String, String> fieldErrors  // null unless validation
-) {}
-```
-
-**Acceptance:** Validation failures return structured 400; missing entity returns 404; no stack traces leak.
-
-### [x] 1.6 Security configuration (jjwt 0.12.x)
-
-- `security/JwtTokenProvider.java`:
-  - Holds `SecretKey` derived via `Keys.hmacShaKeyFor(secret.getBytes(UTF_8))`
-  - `generateAccessToken(String username, List<String> roles)` returns String
-  - `generateRefreshToken(String username)` returns String
-  - `validateToken(String token)` returns `Claims` or throws
-  - Uses `Jwts.builder()`...`signWith(key, Jwts.SIG.HS256).compact()` for issuance
-  - Uses `Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload()` for parsing
-
-- `security/JwtAuthenticationFilter.java` extends `OncePerRequestFilter`:
-  - Reads `Authorization: Bearer <token>` header
-  - Validates, extracts username, loads `UserDetails`, sets `SecurityContext`
-  - Skips public paths (auth endpoints, swagger, actuator/health)
-
-- `config/SecurityConfig.java`:
-  - `SecurityFilterChain` bean, stateless
-  - CORS via custom `CorsConfigurationSource` reading from `app.cors.allowed-origins`
-  - CSRF disabled (stateless JWT API)
-  - Public paths: `POST /api/v1/auth/**`, `GET /v3/api-docs/**`, `GET /swagger-ui/**`, `GET /actuator/health`
-  - All other paths require authentication
-  - Method-level `@PreAuthorize` enabled via `@EnableMethodSecurity`
-  - `BCryptPasswordEncoder` bean (strength 10)
-  - JWT filter inserted before `UsernamePasswordAuthenticationFilter`
-
-**Acceptance:** Login returns valid token; protected endpoints work with `Authorization: Bearer ...`; expired token returns 401.
-
-### [x] 1.7 OpenAPI configuration
-
-`config/OpenApiConfig.java`:
-- Bean `OpenAPI` with title, version, description, contact
-- Bearer auth security scheme registered
-- Group definition for `/api/v1/**`
-
-Tag every controller in later phases with `@Tag(name = "...")` and every method with `@Operation(...)`.
-
-**Acceptance:** `/swagger-ui.html` renders, "Authorize" button works, calling a protected endpoint via Swagger after auth succeeds.
-
-### [x] 1.8 Structured logging
-
-`logback-spring.xml`:
-- Console appender with JSON encoder (`logstash-logback-encoder`) when profile is `prod`
-- Pretty pattern when profile is `local`
-- MDC support for request ID (filter to populate)
-- Custom `RequestIdFilter` adding a request ID to MDC + response header
-
-**Acceptance:** Local logs are human-readable; prod logs are JSON with `request_id`, `level`, `logger`, `message`, `thread`.
-
----
-
-## Phase 2 — Auth + Account Domain
-
-### [x] 2.1 Role + Account entities
-
-- `entity/Role.java` (immutable reference data, just `id`, `name`).
-- `entity/Account.java` extends `BaseEntity`:
-  - `username` (CITEXT, unique), `email` (CITEXT, unique), `phone` (nullable, unique), `password`, `displayName`, `bio`, `profileImageUrl`, `coverImageUrl`
-  - `@ManyToOne(fetch = LAZY) @JoinColumn(name = "role_id") Role role`
-  - `@SQLRestriction("deleted_at IS NULL")`
-- `repository/AccountRepository`: `findByUsername`, `findByEmail`, `existsByUsername`, `existsByEmail`.
-- `repository/RoleRepository`: `findByName`.
-
-### [x] 2.2 Auth DTOs + service
-
-DTOs (records under `dto/auth/`):
-- `RegisterRequest(username, email, password, phone)` with validation
-- `LoginRequest(usernameOrEmail, password)`
-- `AuthResponse(accessToken, refreshToken, accountId, username, displayName)`
-- `RefreshRequest(refreshToken)`
-
-`service/AuthService`:
-- `register(RegisterRequest)` — uniqueness checks, BCrypt hash, default role ROLE_USER, returns `AuthResponse`
-- `login(LoginRequest)` — `AuthenticationManager` for credential check, returns `AuthResponse`
-- `refresh(String refreshToken)` — validates refresh token, issues new access token
-
-Manager layer (`manager/AuthManager`) wraps service for transaction + auth context.
-
-> **Note:** This phase ships a stateless refresh-token flow. Persistence, rotation, and reuse-detection are added in **Phase 5.5** before WebSocket work begins. Frontend interceptors (Phase 10.4) and auth store (Phase 10.5) must be written against the **rotated** contract — see Phase 5.5 for the wire format.
-
-### [x] 2.3 Auth controller
-
-`controller/AuthController` at `/api/v1/auth`:
-```
-POST /register
-POST /login
-POST /refresh
-POST /logout         # blacklists access token via in-memory Caffeine cache (done in 5.5.4)
-```
-
-Apply Bucket4j rate limiting (Phase 9.1) to login + register later.
-
-> **Note:** A `POST /logout-all` endpoint (revoke all sessions on all devices) is added in Phase 5.5 alongside refresh-token persistence. The current `logout` endpoint only invalidates the current access token; the refresh token of the device that called it is also revoked once Phase 5.5 lands.
-
-**Acceptance:** Register a new user → log in with returned credentials → use access token to call a protected endpoint (e.g., `GET /api/v1/accounts/me`).
-
-### [x] 2.4 Account read endpoints
-
-`controller/AccountController` at `/api/v1/accounts`:
-```
-GET /me                               # current user full profile
-GET /{username}                       # public profile (no email/phone)
-GET /search?q=&page=&size=            # username/displayName ILIKE search
-```
-
-DTOs:
-- `MyAccountResponse` — full profile including email, phone, role
-- `PublicAccountResponse` — username, displayName, bio, images, follower/following counts, isFollowing (when caller authenticated)
-
-`AccountMapper` (MapStruct) handles entity → DTO.
-
-### [x] 2.5 Account update + image upload
-
-```
-PATCH /api/v1/accounts/me              # partial update: displayName, bio
-POST  /api/v1/accounts/me/avatar       # multipart, returns new profileImageUrl
-POST  /api/v1/accounts/me/cover        # multipart, returns new coverImageUrl
-DELETE /api/v1/accounts/me             # soft-delete current user
-```
-
-Cloudinary integration deferred to Phase 5 — for now stub to throw `UnsupportedOperationException` on the upload endpoints, complete them in 5.
-
-**Acceptance:** PATCH updates the profile; GET reflects changes; soft-deleted account is no longer returned by lookups.
-
----
-
-## Phase 3 — Posts + Interactions
-
-### [x] 3.1 Post entity + repository
-
-- `entity/Post.java` extends `BaseEntity`:
-  - `@ManyToOne(LAZY) Account account`
-  - `String content`, `String imageUrl`
-  - `@ManyToOne(LAZY) Post parentPost` (nullable, self-FK)
-  - `@SQLRestriction("deleted_at IS NULL")`
-- `repository/PostRepository`:
-  - `Page<Post> findByAccountId(Long accountId, Pageable)` — profile feed
-  - Custom JPQL: `findFollowingFeed(Long userId, Pageable)` — posts from followed users + own
-  - Custom JPQL: `findReplies(Long parentPostId, Pageable)`
-
-### [x] 3.2 Post service + manager
-
-- `service/PostService` — business logic
-- `manager/PostManager` — orchestration with auth context + transactions + event publishing
-- Methods: `create`, `update` (only own), `softDelete` (only own or admin), `getById`, `getProfileFeed`, `getFollowingFeed`, `getExploreFeed`, `getReplies`
-
-### [x] 3.3 Post controller
-
-`/api/v1/posts`:
-```
-POST   /                               # create
-GET    /{id}                           # single (404 if soft-deleted)
-PATCH  /{id}                           # update (own only)
-DELETE /{id}                           # soft delete (own or admin)
-GET    /feed?page=&size=               # follow-based feed for current user
-GET    /explore?page=&size=            # global feed
-GET    /by-user/{username}?page=&size= # profile feed
-GET    /{id}/replies?page=&size=       # replies to a post
-```
-
-DTOs:
-- `CreatePostRequest(content, imageUrl, parentPostId)`
-- `UpdatePostRequest(content, imageUrl)`
-- `PostResponse(id, content, imageUrl, author: PublicAccountResponse, parentPostId, likeCount, dislikeCount, commentCount, likedByMe, dislikedByMe, createdAt)`
-
-Counts come from a single query that joins interactions (one batched query per page, not N+1).
-
-**Acceptance:** Full CRUD round-trip; counts on response match what's in DB; cannot delete someone else's post.
-
-### [x] 3.4 Interaction (like/dislike/comment)
-
-- `entity/Interaction.java`: `account`, `post`, `type` (enum: LIKE, DISLIKE, COMMENT), `content` (only for COMMENT)
-- Enum `InteractionType` matches DB CHECK constraint values exactly
-- `repository/InteractionRepository`: `findByPostIdAndType`, `existsByAccountIdAndPostIdAndType`, `findCommentsByPostId(Pageable)`
-- Service handles toggling: liking an already-liked post unlikes (soft-delete the row); switching from like to dislike soft-deletes the like and creates the dislike
-
-Endpoints `/api/v1/posts/{postId}/interactions`:
-```
-POST   /like            # toggle like
-POST   /dislike         # toggle dislike
-POST   /comments        # create comment { content }
-GET    /comments?page=&size=
-DELETE /comments/{id}   # soft delete (own or admin)
-```
-
-DTOs:
-- `CommentResponse(id, content, author, createdAt)`
-- `InteractionResponse(liked, disliked, likeCount, dislikeCount)` — returned by toggle endpoints
-
-**Acceptance:** Liking the same post twice is idempotent (still ends with one like); switching to dislike removes the like; comments paginate correctly.
-
-### [x] 3.5 Profile Extended Feeds (Replies & Likes)
-- Update `repository/PostRepository` with custom JPQL queries to fetch a user's replies (`parentPost IS NOT NULL`) and liked posts (join with `Interaction` where type is `LIKE`).
-- Update `service/PostService` and `manager/PostManager` to implement `getProfileReplies` and `getProfileLikes`, ensuring proper interaction count enrichment.
-- Expose endpoints in `controller/PostController`: `GET /by-user/{username}/replies` and `GET /by-user/{username}/likes` with pagination.
-
-**Acceptance:** `GET /by-user/{username}/likes` returns the user's liked posts. `GET /by-user/{username}/replies` returns only the user's reply posts.
----
-
-## Phase 4 — Follow System
-
-### [x] 4.1 Follow entity + repository
-
-- `entity/Follow.java`: `Account follower`, `Account following`, `createdAt` (no soft delete — unfollow is hard delete since the relation is just a boolean state)
-- `repository/FollowRepository`:
-  - `existsByFollowerIdAndFollowingId`
-  - `deleteByFollowerIdAndFollowingId`
-  - `Page<Account> findFollowingByFollowerId(Long, Pageable)` — joined query
-  - `Page<Account> findFollowersByFollowingId(Long, Pageable)`
-  - `countByFollowerId`, `countByFollowingId`
-
-### [x] 4.2 Follow service + manager
-
-- Validates: cannot follow self, target must exist
-- `follow(Long targetId)`, `unfollow(Long targetId)`, `getFollowers(Long, Pageable)`, `getFollowing(Long, Pageable)`, `isFollowing(Long currentUserId, Long targetId)`
-
-### [x] 4.3 Follow controller
-
-`/api/v1/follow`:
-```
-POST   /{accountId}                            # follow
-DELETE /{accountId}                            # unfollow
-GET    /followers/{accountId}?page=&size=
-GET    /following/{accountId}?page=&size=
-GET    /is-following/{accountId}               # for current user
-```
-
-`PublicAccountResponse` already exposes `isFollowing` for the current user — that's the single-account version. List endpoints return that DTO too.
-
-**Acceptance:** Follow → counts increment → appears in following list → posts from followed user appear in feed.
-
-### [x] 4.4 Follow-based feed JPQL
-
-Add to `PostRepository`:
-```java
-@Query("""
-    SELECT p FROM Post p
-    WHERE (p.account.id = :userId
-           OR p.account.id IN (
-               SELECT f.following.id FROM Follow f WHERE f.follower.id = :userId
-           ))
-    ORDER BY p.createdAt DESC
-""")
-Page<Post> findFollowingFeed(@Param("userId") Long userId, Pageable pageable);
-```
-
-**Acceptance:** Following a user → next page refresh shows their newest post first.
-
----
-
-## Phase 5 — Cloudinary Image Upload
-
-### [x] 5.1 Cloudinary integration
-
-- `config/CloudinaryConfig.java` — bean wiring from `app.cloudinary.*`
-- `service/ImageUploadService`:
-  - `uploadProfileImage(MultipartFile, Long accountId)` → URL, folder `social/profile/`
-  - `uploadCoverImage(MultipartFile, Long accountId)` → URL, folder `social/cover/`
-  - `uploadPostImage(MultipartFile, Long accountId)` → URL, folder `social/posts/`
-- Validation: ≤5MB, content-type starts with `image/`, allowed types: jpeg, png, webp, gif
-
-### [x] 5.2 Wire upload endpoints
-
-Replace stubs in `2.5`:
-- `POST /api/v1/accounts/me/avatar` → uploads, updates `profileImageUrl`, returns full account
-- `POST /api/v1/accounts/me/cover` → same for cover
-- `POST /api/v1/posts/upload-image` (separate from post creation) → returns `{ url }`. Client attaches URL to next `POST /posts` body.
-
-**Acceptance:** Upload from Postman/cURL with auth token returns Cloudinary URL; profile reflects the new image.
-
----
-
-## Phase 5.5 — Auth Hardening + Architectural Refinements
-
-This phase consolidates retrofit work performed against the Phase 1–5 baseline
-and ships a production-grade refresh-token flow before any WebSocket code is
-written. WebSocket auth (Phase 6.2) reuses the same `JwtTokenProvider`, so the
-token lifecycle must be sound first.
-
-### [x] 5.5.1 Service-layer DTO leak cleanup
-
-Enforce the rule that `service` returns entities (or primitive values), and
-only `manager` performs DTO mapping. Audited and fixed across:
-- `AccountService`, `AuthService`, `InteractionService` no longer construct
-  response DTOs.
-- All `*Mapper` (MapStruct) calls live in the manager layer.
-- `ImageUploadService` returns a plain URL string; the calling manager
-  decides what wrapper DTO to produce.
-
-**Acceptance (verified):** `grep -r "Response" api/src/main/java/.../service/` returns no DTO references except parameter types passed through.
-
-### [x] 5.5.2 Soft-delete cascade
-
-`Account.softDelete()` cascades to all the user's posts and interactions
-(set `deleted_at = NOW()` for each via batched repository update). `Post.softDelete()` cascades to its replies (recursive: `parent_post_id = id` chain) and to all interactions on it. Hard deletes still forbidden for user content.
-
-**Acceptance (verified):** Soft-deleting an account → user's posts disappear from feeds, comments by that user disappear from threads, no orphan rows visible from any read endpoint.
-
-### [x] 5.5.3 N+1 elimination on hot paths
-
-- Followers / following list queries: bulk-fetch the `isFollowing` flag
-  for the current viewer in a single `findAllByFollowerIdAndFollowingIdIn(...)` query, then map by ID.
-- Search results: same pattern — collect candidate account IDs, single bulk lookup, map back.
-- Post feed: counts (`like`, `dislike`, `comment`) joined in a single grouped query per page, never per-row.
-
-**Acceptance (verified):** Hibernate SQL log shows ≤ 3 queries per paginated list endpoint regardless of page size.
-
-### [x] 5.5.4 Stateless JWT blacklist (Caffeine)
-
-In-memory access-token blacklist using Caffeine, sized to expire entries at the token's natural expiry (TTI = `accessTtlMs`). On `/auth/logout`:
-- Extract `jti` (or token-hash if `jti` not yet set), put into blacklist with TTL = remaining lifetime.
-- `JwtAuthenticationFilter` checks blacklist before honoring a token.
-
-This is **per-instance**. Render free tier runs one instance, so this is fine
-for now. If we ever scale horizontally, swap Caffeine for a Postgres-backed
-blacklist table or Redis (decision deferred — note in ARCHITECTURE.md).
-
-**Acceptance (verified):** Logging out then reusing the same access token returns 401 within the same process.
-
-### [x] 5.5.5 Login history
-
-`entity/LoginHistory` (separate from BaseEntity — no soft delete, no
-updated_at): `account_id`, `ip_address INET`, `user_agent VARCHAR(500)`,
-`logged_in_at TIMESTAMPTZ`. Recorded by an `@Async` listener on a custom
-`LoginSucceededEvent` published from `AuthManager` after successful
-authentication. Audit-only, not user-facing yet (read endpoint can be added
-later if a "Recent activity" panel is wanted).
-
-Migration was added as the second post-V1 migration — confirm the version
-number when checking out (do **not** edit it).
-
-**Acceptance (verified):** Successful login produces one row in `login_history`; failure produces none.
-
-### [x] 5.5.6 Pagination safety
-
-All paginated controllers use `@Validated` at the class level and
-`@RequestParam @Max(50) int size` (and `@Min(0) int page`) on the size /
-page parameters. Defaults: `page=0`, `size=20`. Bypassed defaults via large
-`size` values are rejected with 400 by `GlobalExceptionHandler`.
-
-**Acceptance (verified):** `?size=10000` returns 400 with a structured field error.
-
----
-
-### [x] 5.5.7 Refresh-token persistence + rotation + reuse detection
-
-Replace the stateless refresh-token flow with a persisted, rotating, reuse-detecting design. This is the core of the phase.
-
-**Threat model addressed:**
-- Stolen refresh token (e.g., from compromised localStorage) must be detectable.
-- A revoked refresh token must never grant access.
-- A logout on one device must not invalidate sessions on the user's other devices, BUT the user must be able to invalidate all sessions explicitly ("log out everywhere").
-
-**Design:**
-- Each successful login creates a **token family** (UUID). All refresh tokens issued from the same login chain share that `family_id`.
-- On `/refresh`: the presented refresh token is consumed (marked `revoked_at`) and a **new** refresh token is issued in the same family. Access token is also reissued.
-- If a refresh token is presented that is already `revoked_at != NULL`, this is **reuse** — almost certainly token theft. Revoke the **entire family**, audit-log the event, and reject with 401.
-- Refresh tokens are stored as **SHA-256 hex hashes**, never plaintext. The wire token is the random secret; the DB has only the hash. Lookup by hash is constant-time and DB-poisoning doesn't leak bearer tokens.
-- The wire format remains JWT for backwards compatibility with the current `JwtTokenProvider`, but the JWT itself is treated as an opaque bearer (signature still validated as defense-in-depth, but DB row is the source of truth).
-
-**Files to add:**
-- `db/migration/V<n>__refresh_tokens.sql` — next sequential version. Schema:
-  ```sql
-  CREATE TABLE refresh_tokens (
-      id BIGSERIAL PRIMARY KEY,
-      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-      token_hash CHAR(64) NOT NULL UNIQUE,
-      family_id UUID NOT NULL,
-      issued_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      expires_at TIMESTAMPTZ NOT NULL,
-      revoked_at TIMESTAMPTZ,
-      replaced_by CHAR(64),
-      user_agent VARCHAR(500),
-      ip_address INET,
-      CONSTRAINT chk_replaced_by_only_when_revoked CHECK (
-          replaced_by IS NULL OR revoked_at IS NOT NULL
-      )
-  );
-
-  CREATE INDEX idx_refresh_tokens_account_active
-      ON refresh_tokens(account_id) WHERE revoked_at IS NULL;
-  CREATE INDEX idx_refresh_tokens_family ON refresh_tokens(family_id);
-  CREATE INDEX idx_refresh_tokens_cleanup ON refresh_tokens(expires_at);
-  ```
-  No `updated_at` and no `deleted_at` — this table is append + revoke only, never edited.
-
-- `entity/RefreshToken.java` — does **not** extend BaseEntity (different lifecycle). Plain `@Entity` with `id`, `accountId` (or `@ManyToOne Account`), `tokenHash`, `familyId UUID`, `issuedAt`, `expiresAt`, `revokedAt`, `replacedBy`, `userAgent`, `ipAddress`.
-- `repository/RefreshTokenRepository`:
-  - `Optional<RefreshToken> findByTokenHash(String hash)`
-  - `@Modifying @Query` bulk revoke by `familyId` (single UPDATE setting `revoked_at = NOW()` where `revoked_at IS NULL`).
-  - `@Modifying @Query` bulk revoke by `accountId` (for logout-all).
-  - `int deleteByExpiresAtBefore(Instant cutoff)` for the cleanup job.
-- `service/RefreshTokenService`:
-  - `issue(Account account, UUID familyId, String userAgent, String ipAddress)` — generates a 256-bit random secret, hashes it, persists row with `expires_at = NOW() + refreshTtl`, returns the **plaintext** wire token (only time it's ever seen in plaintext).
-  - `rotate(String presentedToken, String userAgent, String ipAddress)` — the heart of the flow. Hash it, look up. Three branches:
-    1. Not found → 401.
-    2. `revoked_at != NULL` → **reuse detected**. Revoke entire family. Log warn with `account_id` + `family_id` + presenting `ipAddress`. Throw `TokenReuseDetectedException` (mapped to 401 by GlobalExceptionHandler).
-    3. Active and not expired → revoke this row (`revoked_at = NOW()`, `replaced_by = newHash`), persist a new row with same `family_id`, return `(newAccessToken, newRefreshToken)`.
-  - `revokeFamily(UUID familyId)` — used by reuse detection and by logout (revokes the device's family).
-  - `revokeAllForAccount(Long accountId)` — used by `/auth/logout-all`.
-- `manager/AuthManager`:
-  - `login(...)` now: authenticate → start a new family (UUID) → issue access + refresh in that family, return `AuthResponse(accessToken, refreshToken, expiresIn, ...)`.
-  - `refresh(...)` now: delegate to `RefreshTokenService.rotate(...)`.
-  - `logout(currentAccessToken, currentRefreshToken)`: blacklist access token (existing 5.5.4 path) **and** revoke the refresh token's family.
-  - `logoutAll(accountId)`: revoke all refresh tokens for the account; access tokens still expire naturally (≤ 15 min).
-- `controller/AuthController`:
-  - Existing `POST /login`, `POST /refresh`, `POST /logout` — same paths, updated semantics.
-  - **New:** `POST /logout-all` — requires authenticated caller, no body.
-- Scheduled cleanup: `@EnableScheduling` (if not already), `@Scheduled(cron = "0 0 3 * * *")` daily at 03:00 UTC, deletes rows where `expires_at < NOW() - INTERVAL '7 days'`. Keeps revoked-but-not-expired rows around so reuse detection still works for the token's full validity window.
-
-**Wire contract (frontend implication — Phase 10.4 + 10.5):**
-- `POST /auth/login` response body: `{ accessToken, refreshToken, accessTokenExpiresIn, refreshTokenExpiresIn, account: {...} }`. Same shape for register.
-- `POST /auth/refresh` request: `{ refreshToken }`. Response: same shape as login (rotation: a **new** refresh token in the response — client must overwrite the stored one).
-- `POST /auth/logout` request: `{ refreshToken }` (so the server can revoke that specific family). Response: 204.
-- `POST /auth/logout-all` request: empty body, requires bearer auth. Response: 204.
-- Frontend interceptor (Phase 10.4) must be **race-safe**: concurrent 401s should share a single in-flight refresh promise (queue subsequent requests behind the first refresh). The current sketch in Phase 10.4 with a bare `isRefreshing` flag is insufficient — replace with a promise-queue pattern. Auth store (Phase 10.5) must overwrite **both** tokens on every successful refresh, not just the access token.
-
-**Hard rules:**
-- Plaintext refresh tokens NEVER persisted, NEVER logged. The hash is what lives in the DB and what shows up in any debug log.
-- `family_id` is generated server-side per login. The client never sees it.
-- Reuse detection logs MUST include `account_id`, `family_id`, presenting `ip_address`, `user_agent`, and `presented_at` so we can build an admin-side incident view later. Use a dedicated logger name (`security.auth.reuse`) so it can be routed separately in prod.
-- The `RefreshToken` entity does NOT use `@SQLRestriction` — we want to be able to query revoked rows for the reuse-detection check.
-- Migration version number is whatever the next free `V<n>` is (currently the third post-V1, after the login_history migration). Verify with `ls api/src/main/resources/db/migration/` before naming.
-- Don't reuse `BaseEntity` — its soft-delete + auditing semantics don't fit this table.
-
-**Test surface:**
-- Integration test: register → login (capture refresh token A) → refresh (token A is revoked, capture refresh token B) → attempt refresh with **token A again** → expect 401, expect token B's row to also be revoked, expect log line at WARN under `security.auth.reuse`.
-- Integration test: login on "device 1", login on "device 2" (separate families), logout on device 1 → device 2's refresh still works.
-- Integration test: `POST /logout-all` → both device 1 and device 2 refresh tokens are now revoked.
-- Unit test: cleanup job deletes only expired rows older than the grace window.
-
-**Acceptance:**
-- Stolen-token simulation (replay an old refresh token) revokes the family and forces re-login.
-- Frontend can keep a session alive indefinitely (within refresh TTL) without observable interruption — interceptor refreshes on 401 transparently, including when multiple concurrent requests hit 401 at the same time.
-- A user with active sessions on three browsers can hit `/logout-all` and be required to log in again on all three within one access-token lifetime (≤ 15 min) at worst, immediately if they retry an action that triggers the interceptor.
-
-**Out of scope for this task:**
-- Device naming / "active sessions" UI (deferred — could be a Phase 16 polish item).
-- TOTP / 2FA (separate future phase, not in current PLAN).
-- Sliding refresh window (the current model is fixed-expiry rotation; sliding would be a follow-up if user retention metrics demand it).
-
----
-
-## Phase 6 — WebSocket Foundation
-
-### [x] 6.1 WebSocket config
-
-`config/WebSocketConfig.java`:
-- `@EnableWebSocketMessageBroker`
-- Endpoint `/ws` with SockJS fallback
-- Simple in-memory broker on `/topic` (broadcast) and `/queue` (user-specific)
-- App prefix `/app`
-- User destination prefix `/user`
-- Allow handshake from `app.cors.allowed-origins`
-
-### [x] 6.2 WebSocket JWT authentication
-
-`security/WebSocketAuthInterceptor` implementing `ChannelInterceptor`:
-- On `CONNECT` frame, read `Authorization` STOMP header
-- Validate via existing `JwtTokenProvider`
-- Set `Principal` on accessor (so `convertAndSendToUser(username, ...)` works)
-- Reject with `ERROR` frame if invalid
-
-Register the interceptor in `WebSocketConfig.configureClientInboundChannel`.
-
-**Acceptance:** Connection without/invalid token rejected; valid token connects and can subscribe.
-
-### [x] 6.3 Domain event infrastructure
-
-- `event/PostCreatedEvent`, `event/InteractionCreatedEvent`, `event/FollowCreatedEvent`, `event/MessageCreatedEvent`
-- Publish via `ApplicationEventPublisher` from manager layer after persistence
-- Listeners use `@TransactionalEventListener(phase = AFTER_COMMIT)` so rolled-back transactions don't trigger broadcasts
-
-### [x] 6.4 Post broadcast
-
-`websocket/PostBroadcaster` listens to `PostCreatedEvent`:
-- Sends `PostResponse` to `/topic/feed`
-
-Frontend (Phase 13) filters: only display if from a followed account.
-
-**Acceptance:** Two browser tabs subscribed to `/topic/feed`; one creates a post; both receive the message.
-
----
-
-## Phase 7 — Notifications
-
-### [x] 7.1 Notification entity + repository
-
-- `entity/Notification.java`: `recipient`, `actor`, `type` (enum), `referenceId`, `readAt`, `createdAt` (no soft delete)
-- `repository/NotificationRepository`:
-  - `Page<Notification> findByRecipientIdAndReadAtIsNull(Long, Pageable)` — unread
-  - `Page<Notification> findByRecipientId(Long, Pageable)` — all
-  - `int countByRecipientIdAndReadAtIsNull(Long)`
-  - Bulk update: `@Modifying @Query` to set `readAt = NOW()` for all unread by recipient
-
-### [x] 7.2 Notification service + listeners
-
-- `service/NotificationService`:
-  - `create(recipientId, actorId, type, referenceId)` — skip if recipient == actor (no self-notify)
-  - `findUnread(userId, Pageable)`, `findAll(...)`, `countUnread(userId)`
-  - `markAllRead(userId)`, `markRead(notificationId, userId)` (auth check)
-
-- `event/NotificationListener`:
-  - `@TransactionalEventListener AFTER_COMMIT` on `InteractionCreatedEvent` (LIKE → notify post owner; COMMENT → notify post owner; nested COMMENT → also notify parent post owner)
-  - Same pattern for `FollowCreatedEvent` → notify followed user
-  - For each notification created, also push via WebSocket to `/user/{username}/queue/notifications`
-
-### [x] 7.3 Notification controller
-
-`/api/v1/notifications`:
-```
-GET  /?page=&size=&unread=true|false
-GET  /unread-count
-PUT  /{id}/read
-PUT  /read-all
-```
-
-**Acceptance:** Liking another user's post creates a notification → unread-count increments → WebSocket subscriber receives push → mark-as-read resets count.
-
----
-
-## Phase 8 — Direct Messages
-
-### [x] 8.1 Conversation + Message entities
-
-- `entity/Conversation.java`: `participantA`, `participantB` (canonical: a.id < b.id), `lastMessageAt`
-- `entity/Message.java`: `Conversation conversation`, `Account sender`, `String content`, `Instant readAt`
-- `repository/ConversationRepository`:
-  - `findByParticipants(Long aId, Long bId)` — canonical-ordered lookup
-  - `Page<Conversation> findByParticipantId(Long, Pageable)` — joined query, ordered by lastMessageAt DESC NULLS LAST
-- `repository/MessageRepository`:
-  - `Page<Message> findByConversationId(Long, Pageable)` — newest first
-  - Bulk read receipt update
-
-### [x] 8.2 Service + manager
-
-- `getOrCreateConversation(currentUserId, otherUserId)` — canonical ordering enforced before insert (smaller ID = participant_a)
-- `sendMessage(conversationId, senderId, content)` — auth check + persist + bump `lastMessageAt` + publish event
-- `listConversations(userId, Pageable)` — preview includes last message + unread count
-- `listMessages(conversationId, userId, Pageable)` — auth check (user must be participant)
-- `markRead(conversationId, userId)` — sets `readAt` on all messages from the OTHER participant
-
-### [x] 8.3 REST endpoints
-
-`/api/v1/conversations`:
-```
-GET  /                                  # current user's conversations
-POST /with/{accountId}                  # get-or-create
-GET  /{id}/messages?page=&size=
-PUT  /{id}/read                         # mark all unread (from other party) as read
-```
-
-### [x] 8.4 WebSocket message handling
-
-Client sends to `/app/dm.send` with `{ conversationId, content }`.
-
-`@MessageMapping("/dm.send")` handler:
-1. Auth check (sender must be participant — read from `Principal`).
-2. Persist message.
-3. Bump `lastMessageAt`.
-4. Push to `/user/{otherParticipant}/queue/messages` AND `/user/{sender}/queue/messages` (sync sender's other tabs).
-
-When recipient marks read, push `/user/{sender}/queue/read-receipts` with `{ conversationId, readAt }`.
-
-**Acceptance:** Two browsers, two users → real-time chat → read receipts update without refresh.
-
----
-
-## Phase 9 — Backend Polish
-
-### [x] 9.1 Rate limiting on auth endpoints
-- Bucket4j: 5 login attempts per minute per IP. Same for register.
-- Custom `@RateLimit` annotation + AOP aspect.
-
-### [x] 9.2 Search endpoints
-- `GET /api/v1/search/users?q=&page=&size=` — username/displayName ILIKE
-- `GET /api/v1/search/posts?q=&page=&size=` — content ILIKE
-- Combined: `GET /api/v1/search?q=` returns top-N of each
-
-### [x] 9.3 OpenAPI annotations
-- Every controller method gets `@Operation(summary, description)` + `@ApiResponse` for non-200 cases.
-- Tag controllers (`@Tag(name = "Posts")`).
-
-### [x] 9.4 Integration tests
-- `@SpringBootTest` with Testcontainers Postgres for happy-path tests on each major flow:
-  - Auth: register → login → use token
-  - Posts: create → fetch → like → comment → delete
-  - Follow: follow → check feed includes target's posts
-  - Notifications: trigger like → notification created
-  - DM: get-or-create → send message → mark read
-
----
-
-## Phase 10 — Frontend Foundation
-
-### [x] 10.1 Project structure
-```
-client/src/
-├── app/                      # router + provider tree + layouts
-│   ├── App.tsx
-│   ├── Providers.tsx         # QueryClient, theme, router
-│   └── layouts/
-│       ├── AppLayout.tsx     # authenticated shell
-│       └── AuthLayout.tsx    # public shell
-├── routes/
-│   ├── index.tsx             # router config
-│   └── RequireAuth.tsx
-├── features/
-│   ├── auth/
-│   ├── feed/
-│   ├── post/
-│   ├── profile/
-│   ├── follow/
-│   ├── notification/
-│   ├── messaging/
-│   └── search/
-├── components/
-│   ├── ui/                   # shadcn components
-│   └── shared/               # cross-feature components
-├── hooks/
-├── lib/
-│   ├── api.ts                # Axios instance
-│   ├── ws.ts                 # STOMP client factory
-│   ├── query-client.ts
-│   └── utils.ts              # cn(), formatters
-├── stores/
-│   └── auth-store.ts         # Zustand
-├── types/
-│   ├── api.ts                # backend DTOs mirrored
-│   └── domain.ts
-├── styles/
-│   └── globals.css           # Tailwind v4 + theme tokens
-└── main.tsx
-```
-
-### [x] 10.2 Tailwind v4 + shadcn theme
-
-`src/styles/globals.css`:
-```css
-@import "tailwindcss";
-
-@theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
-  --color-primary: hsl(240 5.9% 10%);
-  /* ...full shadcn token set... */
-}
-
-@theme dark {
-  --color-background: hsl(240 10% 3.9%);
-  /* ...dark variants... */
-}
-```
-
-Run `npx shadcn@latest init`. Choose:
-- Style: `new-york` (cleaner) or `default`
-- Base color: `zinc` or `slate`
-- CSS variables: yes
-- React Server Components: no (SPA)
-
-### [x] 10.3 Install initial shadcn components
-```bash
-npx shadcn@latest add button input label textarea avatar
-npx shadcn@latest add card dialog dropdown-menu sheet
-npx shadcn@latest add toast sonner skeleton scroll-area
-npx shadcn@latest add tabs separator badge tooltip
-npx shadcn@latest add form  # RHF integration
-```
-
-### [x] 10.4 Axios instance + interceptors
-
-`lib/api.ts`:
-```ts
-import axios from 'axios';
-import { useAuthStore } from '@/stores/auth-store';
-
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + '/api/v1',
-  timeout: 10000,
-});
-
-api.interceptors.request.use(config => {
-  const token = useAuthStore.getState().accessToken;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-let isRefreshing = false;
-api.interceptors.response.use(
-  r => r,
-  async error => {
-    const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
-      original._retry = true;
-      const refreshed = await useAuthStore.getState().tryRefresh();
-      if (refreshed) {
-        original.headers.Authorization = `Bearer ${useAuthStore.getState().accessToken}`;
-        return api(original);
-      }
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-```
-
-> **Note (see Phase 5.5.7):** The `isRefreshing` boolean shown above is a sketch — replace with a single-flight refresh promise. When a 401 hits while a refresh is already in flight, queue the failed request and retry it once the in-flight refresh resolves. Otherwise N concurrent 401s trigger N parallel `/auth/refresh` calls, only one of which succeeds (the first to land), and the others trigger reuse-detection on the server, killing the user's whole token family. This is the single most common implementation mistake for rotating refresh tokens.
-
-### [x] 10.5 Auth store (Zustand)
-
-`stores/auth-store.ts`:
-- State: `accessToken`, `refreshToken`, `user`, `isAuthenticated`
-- Actions: `login(response)`, `logout()`, `tryRefresh()`, `setUser(user)`
-- `persist` middleware (localStorage) — but ONLY persists the refreshToken + user, not the accessToken (which is short-lived)
-
-> **Note (see Phase 5.5.7):** Every successful `tryRefresh()` returns **both** a new access token AND a new refresh token (rotation). The store must overwrite both atomically — forgetting to overwrite `refreshToken` means the next refresh will present an already-revoked token and the server will revoke the entire family. `logout()` must call `POST /auth/logout` with the current refresh token in the body so the server can revoke that specific family; clearing local state without calling the server leaves the family alive in the DB until natural expiry.
-
-### [x] 10.6 Query client + Providers
-
-`lib/query-client.ts` — `QueryClient` with sane defaults (staleTime 30s, retry 1 on 4xx never, retry 3 on 5xx).
-
-`app/Providers.tsx` wraps children with: `QueryClientProvider`, `ReactQueryDevtools`, `BrowserRouter` or `RouterProvider`, theme/dark-mode provider, `<Toaster />` from sonner.
-
-### [x] 10.7 Routing skeleton
-
-`routes/index.tsx`:
-- Public: `/login`, `/register`
-- Authenticated (under `<RequireAuth>`):
-  - `/` → Feed
-  - `/explore` → Explore
-  - `/u/:username` → Profile
-  - `/notifications`
-  - `/messages` and `/messages/:conversationId`
-  - `/search`
-  - `/settings`
-- 404 catch-all
-
-`<RequireAuth>` reads from `useAuthStore`. Redirects to `/login` with `from` state if not authenticated.
-
-**Acceptance:** Empty pages render at all routes; protected routes redirect when not logged in.
+**Acceptance:** `curl -X POST /api/v1/posts -d @big.json` (65 KB body) returns 413 Payload Too Large. Normal requests unaffected.
 
 ---
 
@@ -1123,208 +237,6 @@ Show server validation errors inline (response includes `fieldErrors` object fro
 
 ### [ ] 11.3 Auth integration test
 Manual: register → log in → see `/` → refresh page → still logged in → click logout → back to `/login`.
-
----
-
-## Phase 12 — Frontend Layout + Core Pages
-
-### [x] 12.1 AppLayout
-
-- Sidebar (left): logo, nav items (Feed, Explore, Notifications, Messages, Profile, Settings, Logout), user mini-card at bottom
-- Main content (center)
-- Right rail (optional): trending / suggestions
-- Mobile: sidebar collapses to bottom nav
-
-### [x] 12.2 Feed page
-
-`features/feed/FeedPage.tsx`:
-- Tabs: "Following" (default) / "Explore"
-- Composer at top (CompactComposer expanding to full on focus)
-- Infinite scroll via `useInfiniteQuery({ queryKey: ['feed', tab], queryFn: ... })`
-- Each post = `<PostCard>`
-
-### [x] 12.3 PostCard
-
-- Avatar, displayName, @username, relative time (date-fns `formatDistanceToNow`)
-- Content + optional image
-- Actions row: reply (count), like (count), dislike (count), share/copy-link
-- Optimistic mutation on like/dislike with rollback
-- Click anywhere on card → navigate to `/post/:id` (post detail with replies)
-
-### [x] 12.4 Profile page `/u/:username`
-
-- Header: cover image, avatar overlapping cover bottom, displayName + @username, bio
-- Stat row: Posts | Following | Followers
-- Action: Follow/Unfollow button (or Edit Profile if own)
-- Tabs: Posts | Replies | Likes
-- Tab content: infinite list of relevant items
-
-### [x] 12.5 Edit profile dialog
-
-shadcn `<Dialog>` with form (RHF + Zod):
-- displayName, bio textarea
-- Avatar upload (file input → POST `/accounts/me/avatar` → preview)
-- Cover upload (same pattern)
-
-**Acceptance:** Full happy path — register → log in → post → see in feed → visit profile → edit profile → upload images.
-
----
-
-## Phase 13 — Frontend WebSocket
-
-### [x] 13.1 STOMP client
-
-`lib/ws.ts`:
-```ts
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
-
-export function createStompClient(token: string) {
-  return new Client({
-    webSocketFactory: () => new SockJS(`${import.meta.env.VITE_API_URL}/ws`),
-    connectHeaders: { Authorization: `Bearer ${token}` },
-    reconnectDelay: 5000,
-    debug: import.meta.env.DEV ? console.log : () => {},
-  });
-}
-```
-
-### [x] 13.2 useWebSocket hook
-
-Mounted ONCE at `AppLayout` level, not per page.
-- Connects on mount with token from `useAuthStore`.
-- Exposes via context: `subscribe(destination, handler)` returning unsubscribe fn.
-- Reconnects on token refresh.
-
-### [x] 13.3 Real-time feed updates
-
-In `FeedPage`:
-- Subscribe to `/topic/feed` on mount.
-- On message: if author is in following set or self → prepend to TanStack Query cache via `queryClient.setQueryData(['feed', 'following'], ...)`.
-- Otherwise ignore (or buffer for explore tab).
-
-Use `useEffect` cleanup to unsubscribe.
-
-### [x] 13.4 Real-time notifications
-
-Globally subscribe to `/user/queue/notifications`:
-- Increment unread count badge in sidebar.
-- Show sonner toast with action linking to the related entity.
-
----
-
-## Phase 14 — Frontend Notifications
-
-### [x] 14.1 NotificationDropdown
-- Bell icon in header → shadcn `<DropdownMenu>` or `<Popover>`
-- Unread count badge on bell
-- Top N unread, scroll to load more
-- Click item → mark read + navigate
-
-### [x] 14.2 NotificationsPage `/notifications`
-- Full list, paginated
-- Tabs: Unread / All
-- "Mark all read" button
-
----
-
-## Phase 15 — Frontend DM
-
-### [x] 15.1 ConversationsList `/messages`
-- Two-pane layout (collapses to single-pane on mobile)
-- Left: list of conversations with last message preview + unread badge
-- Right: empty state ("Select a conversation") or selected thread
-
-### [x] 15.2 ConversationView `/messages/:conversationId`
-- Header: other participant info
-- Scrollable message list (reverse-paginated, oldest at top)
-- Composer at bottom
-
-### [x] 15.3 Real-time message handling
-
-- Subscribe to `/user/queue/messages` globally.
-- On receive: if matches current open conversation → append + scroll to bottom + mark read; else → bump conversation in list + increment unread.
-- Sending: optimistic append (status "sending") via STOMP `/app/dm.send` → on echo update status to "sent".
-
-### [x] 15.4 Read receipts UI
-- Subscribe to `/user/queue/read-receipts`.
-- "Seen at HH:MM" caption under last sent message.
-
----
-
-## Phase 16 — Frontend Feature Completion & UX Polish
-
-This phase addresses the missing UI components, fixes type mismatches between the frontend and the OpenAPI specification, and polishes the overall user experience.
-
-### [x] 16.1 Type Sync & Interface Overhaul
-- Sync `src/types/api.ts` strictly with the Swagger API definitions.
-- **Critical Fix:** Update `MessageResponse` to use `sender: PublicAccountResponse` instead of `senderId: number`. Refactor `ConversationView` to map `msg.sender.id` to prevent runtime errors.
-- Add missing interfaces: `CommentRequest`, `CommentResponse`, and `CombinedSearchResponse`.
-  **Acceptance:** `npm run typecheck` passes without errors; DM view renders correctly without undefined `senderId` issues.
-
-### [x] 16.2 Post Detail & Comment System
-- Create `features/post/PostDetailPage.tsx` mapped to the `/post/:id` route.
-- Fetch the main post via `GET /api/v1/posts/{id}` (gracefully handle 404/Empty State).
-- Implement infinite scrolling for comments using `GET /api/v1/posts/{postId}/interactions/comments`.
-- Add a comment composer (similar to `CreatePost`) hitting `POST /api/v1/posts/{postId}/interactions/comments`.
-- Add delete action for comments (`DELETE /api/v1/posts/{postId}/interactions/comments/{commentId}`), restricted to the comment author or an admin.
-  **Acceptance:** Clicking the comment icon on a `PostCard` navigates to the post detail page, where users can view, add, and delete their own comments.
-
-### [x] 16.3 Post Management (Edit/Delete) & Cleanup
-- Remove the non-functional "Repost" (Repeat2) button from `PostCard.tsx`.
-- Add a shadcn `<DropdownMenu>` to the top-right of `PostCard`.
-- Wire up the "Delete" option to `DELETE /api/v1/posts/{id}` (visible only to the author).
-- Wire up the "Edit" option to `PATCH /api/v1/posts/{id}` via a shadcn `<Dialog>` modal (visible only to the author).
-- *Note: Post image uploading is deferred until a dedicated upload endpoint is added to the backend.*
-  **Acceptance:** Authors can edit or soft-delete their posts from the feed, with UI updating optimistically or via query invalidation.
-
-### [x] 16.4 Profile Enhancements & DM Initiation
-- Add a "Message" button next to the "Follow" button on `ProfilePage` (if viewing someone else's profile).
-- Wire the "Message" button to trigger `POST /api/v1/conversations/with/{accountId}` and immediately redirect to `/messages/:conversationId`.
-- Add interactive Follower/Following dialogs: Clicking the stats on the profile opens a `<Dialog>` listing users fetched via `GET /api/v1/follow/followers/{accountId}` and `GET /api/v1/follow/following/{accountId}`.
-  **Acceptance:** Users can seamlessly initiate a DM from a profile and view detailed follower/following lists.
-
-### [x] 16.5 Global Search Page
-- Create `features/search/SearchPage.tsx` mapped to the `/search` route.
-- Add a global search bar in the header or sidebar that routes to `/search?q=...`.
-- Fetch results via `GET /api/v1/search?q=` and display the `CombinedSearchResponse` using a tabbed interface (Tabs: "Users" | "Posts").
-  **Acceptance:** Searching a keyword returns relevant posts and accounts, displayed in distinct, toggleable tabs.
-
-### [x] 16.6 Typeahead Search & PostgreSQL Performance
-- Create a new Flyway migration (`V<n>__add_search_indexes.sql`) to enable `pg_trgm` and add GIN indexes to `accounts.username` and `accounts.display_name`.
-- Create a `useDebounce` hook (e.g., 300ms) to prevent backend spamming during keystrokes.
-- Add a global search input to the Sidebar/Header. Display a dropdown/popover fetching `GET /api/v1/search/users?q=...&size=5` as the user types.
-- Pressing Enter or clicking "See all results" navigates to the detailed `/search?q=...` page.
-
-### [x] 16.7 Settings & Security
-- Create `features/settings/SettingsPage.tsx` mapped to the `/settings` route.
-- Implement a Dark/Light mode toggle (saving preference to `localStorage` and updating the `html` class).
-- Add a "Log out everywhere" button triggering `POST /api/v1/auth/logout-all` (redirects to `/login`).
-- Add a "Delete Account" danger zone button triggering `DELETE /api/v1/accounts/me` with a strict confirmation dialog.
-  **Acceptance:** Users can toggle themes, revoke all active sessions across devices, and soft-delete their account successfully.
-
----
-
-## Phase 17 — Frontend Polish
-
-### [x] 17.1 Search page
-- Single search bar in header → routes to `/search?q=...`
-- Results: Users tab + Posts tab
-- Empty / loading / error states
-
-### [ ] 17.2 Skeletons + empty states
-Every list page uses shadcn `<Skeleton>` while loading. Empty state with friendly message + CTA.
-
-### [ ] 17.3 ErrorBoundary
-Root-level `<ErrorBoundary>` catches render errors → shows recovery UI with reload button.
-
-### [x] 17.4 Dark mode
-shadcn includes the `next-themes`-style toggle (or use a manual one with class on `<html>`). Persist to localStorage.
-
-### [~] 17.5 Mobile polish
-- Sidebar → bottom nav on `< md`
-- Composer modal-style on mobile
-- All pages tested on 375px width
 
 ---
 
@@ -1443,9 +355,760 @@ List every required env var with description.
 
 ---
 
-## Phase 19 — Launch
+## Phase 20 — Backend Polish II (Caching, Cursor Pagination, Audit Log)
 
-### [ ] 19.1 Root README.md
+This phase ships three orthogonal backend improvements that PLAN-1 deferred:
+- A small in-process cache for hot read endpoints (Caffeine).
+- Cursor-based pagination for message threads (replacing offset, which is
+  unsound for a write-heavy timeline).
+- An append-only audit log table for sensitive admin/auth actions.
+
+Each is an independent task; they can land in any order.
+
+### [ ] 20.1 Caffeine in-process cache
+
+Render free tier is single-instance, so Caffeine is sufficient — no Redis. If
+we ever scale horizontally, every cached read must be re-evaluated; the
+spring-cache abstraction makes this swap trivial.
+
+- Add dependency: `org.springframework.boot:spring-boot-starter-cache` and
+  `com.github.ben-manes.caffeine:caffeine` (already-managed by Spring Boot's
+  BOM, omit version).
+- `@EnableCaching` on the application class.
+- `config/CacheConfig.java`: `CaffeineCacheManager` with named caches:
+  - `accountsByUsername` — TTL 60s, max 1000 entries.
+  - `publicProfilesByUsername` — TTL 30s, max 1000 entries.
+  - `unreadNotificationCount` — TTL 5s, max 1000 entries (per-user counter).
+  - `suggestions` — TTL 5min, max 1000 entries (Phase 5.6.5).
+- Annotate read paths in the **service** layer:
+  - `AccountService.findByUsername(...)` → `@Cacheable("accountsByUsername")`.
+  - `AccountService.getPublicProfile(...)` → `@Cacheable("publicProfilesByUsername")`.
+  - `NotificationService.countUnread(...)` → `@Cacheable("unreadNotificationCount")`.
+- Annotate writes with `@CacheEvict` so updates invalidate. Profile updates
+  evict both `accountsByUsername` and `publicProfilesByUsername` keyed by
+  the username being updated. Mark-as-read evicts `unreadNotificationCount`
+  for that user.
+- **Hard rule:** never cache anything user-specific keyed only on a non-user
+  argument — always include the caller's user id in the key (or use a
+  separate cache name per caller-context).
+
+**Acceptance:** Repeated `GET /accounts/{username}` within a second triggers exactly one DB query (verified via SQL log). Profile update invalidates the cache and the next GET re-queries.
+
+### [ ] 20.2 Cursor pagination for `/conversations/{id}/messages`
+
+Offset pagination with concurrent inserts produces duplicates and gaps when
+new messages arrive while the user scrolls. Cursor avoids both.
+
+- Add a new endpoint variant: `GET /api/v1/conversations/{id}/messages?before=<messageId>&size=20` — returns up to `size` messages **older than** `before` (i.e. `id < before`), newest first. If `before` is omitted, returns the latest page.
+- Keep the offset-based endpoint working for one release (cross-stack rollout safety) but mark `@Deprecated` and log a warning when it's hit.
+- DTO: `CursorPageResponse<T>(List<T> content, Long nextCursor, boolean hasMore)`. `nextCursor` is the smallest `id` in the current page, or `null` if `!hasMore`.
+- Repository:
+  ```java
+  @Query("""
+      SELECT m FROM Message m
+      WHERE m.conversation.id = :conversationId
+        AND (:before IS NULL OR m.id < :before)
+      ORDER BY m.id DESC
+  """)
+  List<Message> findThreadPage(@Param("conversationId") Long conversationId,
+                                @Param("before") Long before,
+                                Pageable pageable);
+  ```
+  Use `Pageable.ofSize(size)` only for the limit — sort is in JPQL.
+- Frontend: switch `useInfiniteQuery` for messages to use `getNextPageParam: (last) => last.nextCursor`. The hook already uses `useInfiniteQuery`, so this is a per-page-shape change.
+
+**Acceptance:** Send 50 messages while a user scrolls back through history; no duplicates, no gaps. Loading 5 pages of 20 messages issues 5 SQL queries with monotonically decreasing `id` cursors.
+
+### [ ] 20.3 Audit log
+
+Append-only table for security-relevant events. Used by admins (Phase 26) for
+incident review. Distinct from `LoginHistory` (Phase 5.5.5) which is just
+successful-login telemetry.
+
+- Migration `V<n>__audit_log.sql`:
+  ```sql
+  CREATE TABLE audit_log (
+      id BIGSERIAL PRIMARY KEY,
+      actor_id BIGINT REFERENCES accounts(id) ON DELETE SET NULL,
+      actor_username CITEXT,                       -- denormalized for post-deletion forensics
+      action VARCHAR(64) NOT NULL,                 -- e.g. POST_REMOVED_BY_ADMIN, USER_BANNED, REGISTRATION_TOGGLED
+      target_type VARCHAR(32),                     -- e.g. POST, ACCOUNT, REPORT, SYSTEM
+      target_id BIGINT,
+      metadata JSONB,                              -- arbitrary structured context
+      ip_address INET,
+      user_agent VARCHAR(500),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+
+  CREATE INDEX idx_audit_log_actor ON audit_log(actor_id, created_at DESC);
+  CREATE INDEX idx_audit_log_target ON audit_log(target_type, target_id, created_at DESC);
+  CREATE INDEX idx_audit_log_action ON audit_log(action, created_at DESC);
+  ```
+- `entity/AuditLog`: plain `@Entity`, no BaseEntity (append-only, no `updated_at`, no soft delete).
+- `service/AuditLogService.record(action, targetType, targetId, metadata)` — reads actor + IP + UA from `RequestContextHolder`. Async (`@Async`) — never blocks the action it records.
+- Wire callers (initial set):
+  - Token reuse detected (Phase 5.5.7) → `TOKEN_REUSE_DETECTED`.
+  - Logout-all → `LOGOUT_ALL`.
+  - Admin actions (Phase 26): `POST_REMOVED_BY_ADMIN`, `USER_BANNED`, `USER_UNBANNED`, `REGISTRATION_TOGGLED`, `REPORT_RESOLVED`.
+  - Email-verification flag flipped → `EMAIL_VERIFIED`.
+- Retention: keep forever for now. A scheduled cleanup beyond 1 year can come later.
+
+**Acceptance:** Banning a user (Phase 26) creates an audit row with the correct actor, target, and metadata; the row is visible to admins via the admin endpoint added in 26.
+
+---
+
+## Phase 21 — Email Infrastructure (Resend)
+
+Resend is the email provider. This phase wires the SDK, builds an outbox
+that respects free-tier limits, and adds the first transactional template
+(welcome email). All subsequent email features (password reset, verification,
+admin alerts) build on this.
+
+**Free-tier budget (the hard ceiling):**
+- 3,000 emails / month
+- 100 emails / day
+- 1 verified domain
+- 5 requests / second to the API
+
+The outbox + throttler must keep us comfortably under these. Mock data
+seeders never send mail. Bot accounts (Phase 27) never receive mail.
+
+### [ ] 21.1 Resend SDK + config
+
+- Add dependency: `com.resend:resend-java:4.x` (verify latest stable on Maven Central before pinning).
+- `app.email.*` config block:
+  ```yaml
+  app:
+    email:
+      enabled: ${EMAIL_ENABLED:false}              # off in local + test by default
+      provider: resend                              # future-proof for SMTP fallback
+      from-address: ${EMAIL_FROM:noreply@yourdomain.com}
+      from-name: ${EMAIL_FROM_NAME:MicroBlog}
+      resend-api-key: ${RESEND_API_KEY:}
+      daily-cap: ${EMAIL_DAILY_CAP:90}              # 90 < Resend's 100 — hard floor
+      monthly-cap: ${EMAIL_MONTHLY_CAP:2800}        # 2800 < 3000 — hard floor
+  ```
+- `EmailProperties` `@ConfigurationProperties` record.
+- `config/ResendConfig.java`: `@Bean Resend resend()` — builds with the API key. Skip bean creation if `app.email.enabled = false` (so local dev doesn't need a key).
+
+### [ ] 21.2 Email outbox table + entity
+
+Resend's per-second rate-limit and per-day cap mean we cannot send mail
+inline from request threads. Persist intent → flush asynchronously.
+
+- Migration `V<n>__email_outbox.sql`:
+  ```sql
+  CREATE TABLE email_outbox (
+      id BIGSERIAL PRIMARY KEY,
+      to_address VARCHAR(254) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      body_html TEXT NOT NULL,
+      body_text TEXT,
+      template VARCHAR(64) NOT NULL,                -- e.g. WELCOME, PASSWORD_RESET, EMAIL_VERIFICATION
+      status VARCHAR(20) NOT NULL DEFAULT 'PENDING',-- PENDING, SENT, FAILED, SKIPPED
+      attempts INT NOT NULL DEFAULT 0,
+      last_error TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      sent_at TIMESTAMPTZ,
+      provider_message_id VARCHAR(255)
+  );
+
+  CREATE INDEX idx_email_outbox_pending ON email_outbox(created_at)
+      WHERE status = 'PENDING';
+  CREATE INDEX idx_email_outbox_sent_per_day ON email_outbox(sent_at)
+      WHERE status = 'SENT';
+  ```
+- `entity/EmailOutbox`: plain `@Entity`, no BaseEntity. `EmailStatus` enum.
+- `repository/EmailOutboxRepository`:
+  - `List<EmailOutbox> findTop10ByStatusOrderByCreatedAtAsc(EmailStatus status)` — for the flusher.
+  - `long countByStatusAndSentAtAfter(EmailStatus s, Instant since)` — used for the cap checks.
+
+### [ ] 21.3 Email service + templating
+
+- `service/EmailService` (interface + `ResendEmailService impl`):
+  - `enqueue(EmailMessage msg)` — inserts a row into outbox with `status=PENDING`. Returns the row id. **Always** the public entry point — no caller bypasses the outbox.
+  - `EmailMessage` is a record with `to`, `subject`, `template`, `templateParams (Map<String,Object>)`. Body HTML/text is rendered at enqueue time, not at send time, so the outbox row is fully self-contained.
+- Templates: a tiny in-Java template registry with `{{placeholder}}` substitution — no Thymeleaf dependency for now. Put templates in `src/main/resources/email-templates/<name>.html` and load on startup.
+- `WelcomeEmailTemplate`, `PasswordResetEmailTemplate`, `EmailVerificationTemplate`, `AdminAlertEmailTemplate` — the four needed across the next phases. Each is a small class implementing `EmailTemplate` with the placeholder map. Subject + html + text variants per template.
+- All emails include a footer with: app name, "you're receiving this because…", and (where applicable) an unsubscribe note. Welcome and admin-alert emails ship without an unsubscribe link by design (transactional).
+
+### [ ] 21.4 Outbox flusher + caps
+
+- `scheduler/EmailOutboxFlusher` `@Scheduled(fixedDelay = 5000)` (every 5s).
+  Locking: a Postgres advisory lock keyed on a constant (`SELECT pg_try_advisory_lock(7421)`) — only one instance flushes at a time. (Belt-and-braces; we're single-instance today, but cheap insurance.)
+- Each tick:
+  1. Check daily cap: `count(status=SENT AND sent_at > now() - 24h)` — if `>= dailyCap`, log warn and return without sending.
+  2. Check monthly cap: same against 30d. Same behavior.
+  3. Pull up to 10 PENDING rows.
+  4. For each row, call Resend. On 200 → mark SENT, store `provider_message_id`. On 429 → leave PENDING, increment attempts (so we back off via the next tick). On 4xx other than 429 → mark FAILED, store `last_error`. On 5xx / network → leave PENDING, increment attempts.
+  5. Throttle: max 4 sends per tick (≤ 1 send/sec — well below Resend's 5/sec).
+- A "skip" path: if `attempts >= 5`, mark `SKIPPED` so we don't burn the daily cap on a known-bad address.
+- Disable the scheduler entirely when `app.email.enabled=false`.
+
+**Acceptance:** Enqueueing 200 emails in a burst sends them at ≤ 1/sec, hits the daily cap at 90, and queues the rest until tomorrow. Killing the API mid-flush and restarting does not double-send any mail (Resend's idempotency key on the request prevents duplicates; pass `IDEMPOTENCY_KEY = outbox_row_id` in the API call).
+
+### [ ] 21.5 Welcome email (first hookup)
+
+- In `AuthManager.register(...)`, after the new account is persisted and the auth response is built, **enqueue** a welcome email. The transaction commits first (outbox row writes use the same transaction; if the user creation rolls back, the welcome email never enqueues). Then a `@TransactionalEventListener(AFTER_COMMIT)` on `UserRegisteredEvent` is the cleaner mechanism — wire it through that listener.
+- Template: short and plain. App name, the user's display name, a "what next" line ("post your first thought" linked to `/`).
+- No PII beyond the user's username + email is included.
+
+**Acceptance:** Register a new user → row appears in `email_outbox` → next flusher tick sends → user's inbox receives the welcome email within ~10 seconds. With `app.email.enabled=false` (default in local), the row is created but never sent.
+
+---
+
+## Phase 22 — Password Reset Flow
+
+Builds on Phase 21. Token-based reset with strict TTL, single-use, hashed
+storage, and consistent rate limiting on both the request and the consume
+endpoint.
+
+### [ ] 22.1 Reset-token table + entity
+
+- Migration `V<n>__password_reset_tokens.sql`:
+  ```sql
+  CREATE TABLE password_reset_tokens (
+      id BIGSERIAL PRIMARY KEY,
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      token_hash CHAR(64) NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ,
+      requested_ip INET,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+
+  CREATE INDEX idx_password_reset_tokens_account_active
+      ON password_reset_tokens(account_id) WHERE used_at IS NULL;
+  ```
+- `entity/PasswordResetToken`: plain `@Entity`, no BaseEntity.
+
+### [ ] 22.2 Backend endpoints
+
+- `POST /api/v1/auth/password-reset/request` — body `{ email }`. Always returns 204 (no leak of whether email exists). Rate limit: 3 / hour / IP. If the email exists:
+  1. Invalidate any active reset tokens for that account (`UPDATE ... SET used_at = NOW() WHERE used_at IS NULL` — only one live reset link per account).
+  2. Generate a 256-bit random secret. Store SHA-256 hash. Set `expires_at = NOW() + 30 minutes`.
+  3. Enqueue email with the plaintext token in the URL: `${FRONTEND_ORIGIN}/reset-password?token=<plaintext>`.
+- `POST /api/v1/auth/password-reset/confirm` — body `{ token, newPassword }`. Rate limit: 5 / hour / IP.
+  1. Hash incoming token, look up. If not found → 400.
+  2. If `used_at != NULL` → 400.
+  3. If `expires_at < NOW()` → 400.
+  4. Validate `newPassword` (same Zod rules as registration).
+  5. BCrypt-hash, update `accounts.password`. Set `used_at = NOW()` on the token. Inside same transaction, **revoke all refresh tokens for the account** (Phase 5.5.7's `revokeAllForAccount`) and add the current access token to the blacklist if presented (it usually won't be — the user is logged out).
+  6. Emit audit log entry `PASSWORD_RESET`.
+  7. Return 204.
+- DTOs: `PasswordResetRequest(@Email String email)`, `PasswordResetConfirmRequest(String token, @Size(min=8,max=72) String newPassword)`.
+- Cleanup: existing refresh-token cleanup job extended to also delete reset tokens older than 7 days past expiry.
+
+### [ ] 22.3 Frontend pages
+
+- Public route `/forgot-password` (under `<AuthLayout>`). Single email input + submit. After submit show a generic success message ("If an account exists for that email, a reset link has been sent.").
+- Public route `/reset-password` reads `?token=` from URL. Two password inputs (new + confirm). On submit, call confirm endpoint. On success → redirect to `/login` with a sonner toast "Password updated, please log in".
+- Wire both into `routes/index.tsx`.
+- Add a "Forgot password?" link on the login form.
+
+**Acceptance:** End-to-end happy path: user clicks "forgot password" → receives email → clicks link → enters new password → can log in with the new password. Old refresh tokens are dead. Requesting a reset for a nonexistent email returns 204 with no observable side effect (no row, no mail).
+
+---
+
+## Phase 23 — Email Verification + Verified Badge
+
+**Decision:** opt-in. Users can sign up and use the app immediately. They can
+verify their email later from Settings. Verified accounts get a small badge
+(check-mark icon) on their profile and in PostCard. Nothing is gated by
+verification status today, but the column is in place if we want to gate
+admin actions or rate limits later.
+
+### [ ] 23.1 Schema additions
+
+- Migration `V<n>__email_verification.sql`:
+  ```sql
+  ALTER TABLE accounts
+      ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN email_verified_at TIMESTAMPTZ;
+
+  CREATE TABLE email_verification_tokens (
+      id BIGSERIAL PRIMARY KEY,
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      token_hash CHAR(64) NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+
+  CREATE INDEX idx_email_verification_account_active
+      ON email_verification_tokens(account_id) WHERE used_at IS NULL;
+  ```
+- Update `Account` entity: `Boolean emailVerified`, `Instant emailVerifiedAt`.
+- Update `MyAccountResponse` and `PublicAccountResponse` to expose `emailVerified` (the public response only — never the verifiedAt timestamp).
+
+### [ ] 23.2 Backend endpoints
+
+- `POST /api/v1/accounts/me/email/send-verification` — auth-required. Rate limit: 3 / hour / user. Skipped if `emailVerified == true`. Generates token, enqueues an email like password reset.
+- `POST /api/v1/accounts/me/email/verify` — body `{ token }`. Rate limit: 5 / hour / IP. Verifies token, flips `email_verified = true`, sets `email_verified_at`, marks token used. Audit log `EMAIL_VERIFIED`.
+- DTOs as needed.
+- Token TTL: 24 hours (longer than reset because the link goes to a real human inbox without urgency).
+
+### [ ] 23.3 Frontend integration
+
+- Settings page: "Email verification" section. If unverified, show a button "Send verification email". Disabled with a countdown if rate-limited (response 429 includes Retry-After, optional). After click, show "Check your inbox" state.
+- Public `/verify-email?token=` route — calls the verify endpoint, shows success or error.
+- Verified badge: in `PublicAccountResponse`, frontend shows a small `<CheckCircle />` from lucide next to the displayName when `emailVerified === true`. Same in `PostCard`'s author row.
+- No flow gates verification today. (Admins can enable a "verified-only posting" mode later via a system flag — Phase 26.)
+
+**Acceptance:** New users start unverified, see no badge. After verification flow, badge appears everywhere their account is shown. No part of the app blocks unverified users from any action.
+
+---
+
+## Phase 24 — Repost / Quote-Repost
+
+Twitter-style: a user can either re-share another user's post verbatim
+(simple repost) or quote it with their own commentary (quote-repost).
+
+### [ ] 24.1 Schema
+
+- Migration `V<n>__reposts.sql`:
+  ```sql
+  -- Simple reposts: a separate table to keep posts.* clean and avoid mixing
+  -- "this is a real post" with "this is a pointer to a real post"
+  CREATE TABLE reposts (
+      id BIGSERIAL PRIMARY KEY,
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at TIMESTAMPTZ,
+      UNIQUE(account_id, post_id)
+  );
+
+  CREATE INDEX idx_reposts_by_account ON reposts(account_id, created_at DESC)
+      WHERE deleted_at IS NULL;
+  CREATE INDEX idx_reposts_by_post ON reposts(post_id) WHERE deleted_at IS NULL;
+
+  -- Quote reposts ARE posts, just with a pointer to the quoted post.
+  -- parent_post_id keeps reply semantics; quoted_post_id is new.
+  ALTER TABLE posts
+      ADD COLUMN quoted_post_id BIGINT REFERENCES posts(id) ON DELETE SET NULL;
+
+  CREATE INDEX idx_posts_quoting ON posts(quoted_post_id, created_at DESC)
+      WHERE quoted_post_id IS NOT NULL AND deleted_at IS NULL;
+  ```
+- A simple repost = row in `reposts`. A quote-repost = row in `posts` with `quoted_post_id != NULL` (and may also have content + image).
+- The two are distinct because their feed semantics differ: a simple repost shows the original post in the reposter's profile/feed without altering it; a quote-repost is its own post that *embeds* the quoted post.
+
+### [ ] 24.2 Backend entities + DTOs
+
+- `entity/Repost extends BaseEntity`-like minimal entity (has `deletedAt` for soft-delete; no `updatedAt` since reposts aren't edited).
+- Update `Post` entity: `@ManyToOne(fetch=LAZY) Post quotedPost`.
+- Update `PostResponse` (record):
+  - Add `PostResponse quotedPost` (nullable, recursive type — flatten one level only, not the entire chain).
+  - Add `long repostCount`, `boolean repostedByMe`.
+  - Counts and `repostedByMe` come from the same batched query that already does likes/dislikes (Phase 5.5.3 pattern).
+- New DTO `CreateQuoteRepostRequest(@Size(max=500) String content, String imageUrl, @NotNull Long quotedPostId)` — endpoint shares the same controller surface as create-post but the validation differs (`content` may be empty for a quote with image).
+- `RepostMapper` (MapStruct) — for the simple-repost DTO when listing reposts.
+
+### [ ] 24.3 Endpoints
+
+- `POST /api/v1/posts/{id}/repost` — toggle simple repost. 201 on first call (created), 204 on second call (un-reposted). Rate limit shared with post creation.
+- `POST /api/v1/posts/{id}/quote-repost` — body `CreateQuoteRepostRequest`. Returns the new `PostResponse`.
+- Profile feed (`GET /by-user/{username}`) is now a **union**: their own posts (including quote-reposts) + their reposts. Feed items returned with a discriminator (`type: "POST" | "REPOST"`). Reposts include the `repostedAt` timestamp (used for ordering in the user's profile) plus the underlying `PostResponse`.
+- Following feed (`GET /feed`) likewise includes reposts from followed accounts.
+- New endpoint: `GET /api/v1/posts/{id}/quotes?page=&size=` — list of posts that quote this post.
+
+### [ ] 24.4 Notifications + WebSocket
+
+- New `NotificationType.REPOST` and `NotificationType.QUOTE_REPOST`.
+- A simple repost notifies the original author (skip if self-repost).
+- A quote-repost notifies the quoted post's author (skip if self-quote).
+- Both fire over the existing `/user/{username}/queue/notifications` channel.
+- A repost or quote-repost broadcast to `/topic/feed` so it shows up in real-time for followers (same flow as `PostCreatedEvent`). Add a `RepostCreatedEvent`.
+
+### [ ] 24.5 Frontend
+
+- Replace the disabled `Repeat2` icon in `PostCard` (Phase 16.3 removed the click handler; this restores it).
+- Click → shadcn `<DropdownMenu>` with two items: "Repost" and "Quote".
+- "Repost" → optimistic toggle of `repostedByMe`, mutation calls the toggle endpoint. Sonner toast "Reposted".
+- "Quote" → opens a `<Dialog>` containing a mini-composer with the quoted post embedded as a read-only card below the textarea. Submit creates a quote-repost.
+- Update `PostCard` rendering: when `quotedPost != null`, render the quoted post as a smaller embedded card (no nested embed — show only first level of quote chain).
+- Profile feed: items rendered as `<PostCard>` directly, with a small "🔁 reposted by @username" header strip on repost items.
+- Real-time: existing feed subscription already handles new posts; add a simple-repost handler to invalidate the relevant profile feed query. (Reposts on `/topic/feed` are scoped to followers anyway, same as posts.)
+
+**Acceptance:** Repost from user A → user B's "Following" feed shows it with a "reposted by @A" header. Un-repost → it disappears. Quote-repost → it appears as a new post with the quoted post embedded. Quote chain depth is capped at 1 (a quote of a quote shows the inner quote as a non-embedded link — "↗ quoted post by @x" — to avoid recursive bloat).
+
+---
+
+## Phase 25 — AI Content Moderation (Full Scope)
+
+The user-facing intent is "ship a real moderation pipeline like X / Bluesky:
+new posts run through automated checks, flagged content is hidden from the
+feed, admins review the queue, users can report content."
+
+**Provider choice:** OpenAI Moderation API (`omni-moderation-latest`).
+- **Free** for any OpenAI API account (no credits required for the moderation endpoint).
+- Multilingual (Turkish included).
+- Categories: sexual, sexual/minors, hate, hate/threatening, harassment, harassment/threatening, self-harm, self-harm/intent, self-harm/instructions, violence, violence/graphic.
+- Multimodal (text + image) — handy when post-images land.
+- Replaces the original Notion plan's `unitary/toxic-bert` (English-leaning,
+  HuggingFace inference rate limits unstable for production).
+- A regex-based pre-filter for the very obvious cases (hard slurs we always
+  block) runs first, so most posts skip the API call entirely.
+
+### [ ] 25.1 Schema additions
+
+- Migration `V<n>__moderation_columns.sql`:
+  ```sql
+  ALTER TABLE posts
+      ADD COLUMN moderation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
+          CHECK (moderation_status IN ('PENDING', 'CLEAN', 'FLAGGED')),
+      ADD COLUMN admin_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+          CHECK (admin_status IN ('ACTIVE', 'REMOVED_BY_ADMIN', 'RESTORED_BY_ADMIN')),
+      ADD COLUMN moderated_at TIMESTAMPTZ,
+      ADD COLUMN moderation_categories JSONB,           -- raw scores from provider
+      ADD COLUMN moderation_provider VARCHAR(32);
+
+  -- Hot path: feed query needs to skip flagged + removed quickly
+  CREATE INDEX idx_posts_visible_feed ON posts(created_at DESC)
+      WHERE deleted_at IS NULL
+        AND moderation_status IN ('PENDING', 'CLEAN')
+        AND admin_status = 'ACTIVE';
+
+  -- Admin review queue
+  CREATE INDEX idx_posts_moderation_queue ON posts(created_at ASC)
+      WHERE moderation_status = 'FLAGGED' AND deleted_at IS NULL;
+
+  CREATE TABLE reports (
+      id BIGSERIAL PRIMARY KEY,
+      post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+      reporter_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      reason VARCHAR(64) NOT NULL,                   -- HATE, HARASSMENT, SPAM, OTHER, ...
+      details VARCHAR(500),
+      resolved_at TIMESTAMPTZ,
+      resolved_by_id BIGINT REFERENCES accounts(id) ON DELETE SET NULL,
+      resolution VARCHAR(32),                        -- DISMISSED, POST_REMOVED, USER_BANNED
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(post_id, reporter_id)                   -- one report per (post, reporter)
+  );
+
+  CREATE INDEX idx_reports_unresolved ON reports(created_at ASC) WHERE resolved_at IS NULL;
+  ```
+- Discriminator semantics:
+  - `moderation_status` is the AI's verdict (PENDING / CLEAN / FLAGGED).
+  - `admin_status` is the human override (ACTIVE / REMOVED_BY_ADMIN / RESTORED_BY_ADMIN). RESTORED is distinct from ACTIVE so we have an audit trail of "an admin saw this and chose to keep it" — this also overrides any future re-flag attempt by the AI.
+- Visible posts in the public feed = `deleted_at IS NULL AND admin_status = 'ACTIVE' AND moderation_status IN ('PENDING','CLEAN')`. PENDING is shown optimistically; if the AI flags it post-hoc, the broadcast invalidator (see 25.4) yanks it from the feed.
+
+### [ ] 25.2 Moderation service
+
+- `service/moderation/ContentModerator` (interface):
+  ```java
+  ModerationResult moderate(String text, List<String> imageUrls);
+  ```
+  `ModerationResult` is a record `(boolean flagged, Map<String,Double> categoryScores, String provider)`.
+- Implementations:
+  - `RegexPreFilter` — checks against a configurable list of slurs / blocked terms. If any match → return `flagged=true, provider="REGEX"` immediately, skip the API call.
+  - `OpenAiModerator` — POSTs to `https://api.openai.com/v1/moderations` with `model: "omni-moderation-latest"`, parses the response. Threshold: any category with score `> 0.7` flips the post to FLAGGED. Threshold per category configurable in `app.moderation.thresholds.*`.
+- A `CompositeModerator` runs RegexPreFilter first, then OpenAI if not already flagged. The result is the merged categoryScores map.
+- Failure mode: if the provider call fails (timeout, 5xx, rate limit), the post stays at `moderation_status=PENDING`. A scheduled retry job (5 min cadence, max 3 attempts) re-tries PENDING posts older than 60 seconds. After 3 failed attempts, mark CLEAN and log a warn — we'd rather show a post than block a user indefinitely on a provider hiccup.
+- Config:
+  ```yaml
+  app:
+    moderation:
+      enabled: ${MODERATION_ENABLED:true}
+      openai-api-key: ${OPENAI_API_KEY:}
+      threshold-default: 0.7
+      thresholds:
+        hate: 0.5
+        violence: 0.7
+        sexual_minors: 0.0          # zero-tolerance
+  ```
+  When `MODERATION_ENABLED=false`, every post auto-passes to `CLEAN` — local dev needs no API key.
+
+### [ ] 25.3 Async pipeline + event flow
+
+- New `event/PostNeedsModerationEvent` published from `PostManager.create(...)` after persistence.
+- `@Async` listener `ContentModerationListener` runs the moderator and updates the post's `moderation_status`, `moderation_categories`, `moderated_at`, `moderation_provider`.
+- After the update commits, publish `PostModerationDecidedEvent`. Two listeners:
+  1. `ModerationFeedInvalidator` — if the post just flipped to FLAGGED, broadcast a `POST_REMOVED` message on `/topic/feed` (frontend removes it from any list it appears in). If it was CLEAN, broadcast `POST_VISIBLE` (frontend adds the green ✓ badge if we want one — optional).
+  2. `ModerationUserNotifier` — if FLAGGED, push to `/user/{authorUsername}/queue/notifications` a `MODERATION` notification: "Your post was held for review. An admin will look at it shortly." Persist as `Notification(type=MODERATION, recipient=author)`.
+- For the user notification, deliberately do NOT echo back the AI's category scores — vague is fine.
+
+### [ ] 25.4 User-facing reporting
+
+- `POST /api/v1/posts/{id}/report` — body `{ reason, details? }`. Rate limit: 10 reports / hour / user. UNIQUE constraint already prevents double-reporting the same post.
+- `GET /api/v1/me/reports` — list of reports the current user has filed (so they can see the resolution).
+- Frontend: `<DropdownMenu>` on each post (already added in Phase 16.3) gets a new "Report" item. Opens a small dialog with reason buttons (Hate, Harassment, Spam, Self-harm, Other) and an optional details textarea. Submit → toast "Thanks, we'll review."
+
+### [ ] 25.5 Spam-burst alert
+
+When several posts flip to FLAGGED in a short window, mail admins.
+
+- Sliding-window counter: count `FLAGGED` posts created in the last 10 minutes. If `> 20`, send an admin alert email (single email per 30-min window — debounce via a flag in a small `system_events` row or in-memory).
+- Audit log entry `SPAM_BURST_DETECTED` with the count.
+- Email goes to all `ROLE_ADMIN` accounts.
+
+**Acceptance:** Posting "I love kittens" → CLEAN, visible. Posting an obvious slur (matched by regex) → FLAGGED instantly, hidden from feed, author sees a "held for review" notification. Posting borderline content where OpenAI returns hate=0.6 (below the 0.5 threshold) → FLAGGED. With `MODERATION_ENABLED=false`, all posts immediately go to CLEAN.
+
+---
+
+## Phase 26 — Admin Panel (Full Feature)
+
+Bigger than just a moderation queue — admins can manage users, gate
+registration, kill sessions, and review reports + audit log. Frontend route
+`/admin`, protected by `ROLE_ADMIN`. Backend endpoints under `/api/v1/admin/*`,
+gated by `@PreAuthorize("hasRole('ADMIN')")`.
+
+### [ ] 26.1 System settings + role bootstrapping
+
+- Migration `V<n>__system_settings.sql`:
+  ```sql
+  CREATE TABLE system_settings (
+      key VARCHAR(64) PRIMARY KEY,
+      value_text TEXT,
+      value_bool BOOLEAN,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_by_id BIGINT REFERENCES accounts(id) ON DELETE SET NULL
+  );
+
+  INSERT INTO system_settings (key, value_bool) VALUES
+      ('registration_enabled', TRUE),
+      ('verified_only_posting', FALSE),
+      ('moderation_enabled', TRUE);
+  ```
+- `SystemSettingsService` — read/write with caching (Caffeine, 30s TTL).
+- `SecurityConfig` plus `AuthManager.register(...)` consult `registration_enabled` — if `false`, reject with 403 + a message.
+- A bootstrap admin: a one-shot Flyway `R__bootstrap_admin.sql` (repeatable) is wrong because we don't want to silently grant admin in prod. Instead, ship a dedicated `cli` command via a `CommandLineRunner` activated only when `--promote-admin=<username>` is passed. Document in README. Local dev: a seed user (Phase 27) is auto-promoted.
+
+### [ ] 26.2 Admin user management
+
+Endpoints under `/api/v1/admin/users`:
+
+- `GET /` — paginated list. Filter by `?status=active|banned|all`, `?verified=true|false`, `?role=user|admin`, `?q=<search>`. Returns `AdminAccountResponse` (extends PublicAccountResponse with email, last login, post count, ban status).
+- `GET /{id}` — full detail incl. last 10 audit-log entries, last 10 login history rows, current session count.
+- `POST /{id}/ban` — body `{ reason }`. Sets `accounts.banned_at` (new column — see migration below) and triggers `revokeAllForAccount(id)`. Audit `USER_BANNED`. Push WebSocket message `/user/{username}/queue/system` with a "your account has been suspended" payload (their next session refresh will fail and they'll be logged out anyway, this is just immediate UX).
+- `POST /{id}/unban` — clears `banned_at`. Audit `USER_UNBANNED`.
+- `POST /{id}/force-logout` — equivalent of `logout-all` for that user. Audit `FORCE_LOGOUT`.
+- `POST /{id}/reset-password` — admin-initiated reset: generates a reset token (Phase 22) and emails it. Audit `ADMIN_INITIATED_RESET`.
+- `POST /{id}/promote` — grants `ROLE_ADMIN`. Audit `ROLE_GRANTED`. Demote with `POST /{id}/demote`.
+
+**Schema add:**
+```sql
+ALTER TABLE accounts
+    ADD COLUMN banned_at TIMESTAMPTZ,
+    ADD COLUMN banned_reason VARCHAR(500);
+```
+
+A banned user's posts are filtered out of public feeds (extend the visibility predicate). `JwtAuthenticationFilter` rejects requests from banned users with 403 (so even valid access tokens stop working immediately).
+
+### [ ] 26.3 Admin moderation queue + reports
+
+- `GET /api/v1/admin/moderation-queue` — posts with `moderation_status='FLAGGED' AND admin_status='ACTIVE'`, ordered oldest-first. Paginated.
+- `GET /api/v1/admin/reports?status=open|resolved` — paginated reports. Group by post — show `(postId, reportCount, latestReportedAt)` so admins triage by "most reported" first.
+- `POST /api/v1/admin/posts/{id}/approve` — set `admin_status='RESTORED_BY_ADMIN'`, `moderation_status='CLEAN'`. Audit `POST_RESTORED_BY_ADMIN`. Push `POST_VISIBLE` on `/topic/feed`.
+- `POST /api/v1/admin/posts/{id}/remove` — set `admin_status='REMOVED_BY_ADMIN'`. Audit `POST_REMOVED_BY_ADMIN`. Push `POST_REMOVED` on `/topic/feed`. Notify the author via `/user/{username}/queue/notifications`: "Your post was removed for violating community guidelines."
+- `POST /api/v1/admin/reports/{id}/resolve` — body `{ resolution, removePost?: boolean, banUser?: boolean }`. One call covers the common workflows.
+
+### [ ] 26.4 Admin system controls
+
+- `GET /api/v1/admin/settings` — current `system_settings` snapshot.
+- `PUT /api/v1/admin/settings/{key}` — update one setting. Audit `SETTING_CHANGED` with key + old/new value in metadata.
+- `GET /api/v1/admin/metrics` — counts: users (total / active 24h / banned), posts (total / today / flagged / removed), open reports, refresh-token families (active), email outbox (pending / sent today / failed).
+- `GET /api/v1/admin/audit-log?action=&actorId=&targetType=&targetId=&page=&size=` — full filtered audit log access.
+
+### [ ] 26.5 Frontend `/admin`
+
+- New route `/admin`, gated by a `<RequireAdmin>` wrapper that 403s if `user.role !== 'ROLE_ADMIN'`.
+- Sidebar with sections: Dashboard, Moderation Queue, Reports, Users, Audit Log, System.
+- **Dashboard** — top-line counters (cards) sourced from `/admin/metrics`. Auto-refresh every 30s.
+- **Moderation Queue** — list of FLAGGED posts. Each row: post content + AI category scores (debug-style). Two buttons: Approve / Remove. Keyboard shortcuts (`A` / `R`).
+- **Reports** — grouped by post. Click expands to show all reports for that post. Resolution dropdown.
+- **Users** — paginated table with search + filters. Row click → user detail drawer. Drawer has all the actions from 26.2 behind buttons.
+- **Audit Log** — filterable, infinite-scroll list. Read-only.
+- **System** — toggles for `registration_enabled`, `verified_only_posting`, `moderation_enabled` (with a confirmation dialog for each, since these have user-visible blast radius).
+- All admin actions show a confirmation `<Dialog>` when destructive (ban, remove, demote). Toasts on success.
+
+**Acceptance:** A non-admin hitting `/admin` is redirected. An admin can: see the dashboard, find a flagged post, approve it (it's visible immediately on the feed via WebSocket), open a user detail, ban that user (their session dies within ≤ 15 min and any active WebSocket gets a system-channel message), toggle `registration_enabled` to false (next signup attempt returns 403). All actions appear in the audit log within 1 second.
+
+---
+
+## Phase 27 — Mock Data Seeder + AI Bot Service (Dead Internet Theory)
+
+Two distinct things, sharing a phase because they both produce fake content:
+- **Seeder** — a dev-only one-shot data generator using Java Faker. Boots the
+  app with 50 realistic users, follows, posts, comments, likes. Never sends
+  email, never invokes AI moderation.
+- **Bot service** — a production-eligible scheduled poster that uses an LLM
+  (Gemini Flash free tier) to generate believable posts on a cadence. Runs
+  under a special `ROLE_BOT` so admins can spot bot-authored content if they
+  want. Optional, gated by config.
+
+### [ ] 27.1 Mock data seeder (dev only)
+
+- Add `com.github.javafaker:javafaker:1.0.2` (test scope OR `runtime` scope — but DON'T put on the prod classpath).
+- `db/seed/V<n>__seed_dev_data.sql` is one option. Better: a Java seeder class `dev.MockDataSeeder` that runs once at boot when:
+  1. `spring.profiles.active` includes `local` AND
+  2. `accounts` table count is `0`.
+- Generates: 50 accounts (one is auto-promoted to `ROLE_ADMIN` — hardcoded username `admin_dev`, password `admin_dev_password`), 200 posts (varied lengths, some with images via known-good Cloudinary placeholder URLs), 30 reposts, 50 quote-reposts, 1000 likes spread across the 200 posts, 100 follow relationships, 80 reply chains.
+- All seeded posts get `moderation_status='CLEAN'` directly (skip the AI call — we don't want to burn the OpenAI quota on Faker's lorem ipsum).
+- Seeded accounts have `email_verified=true` so the verified-badge UI has data.
+- Seeder is idempotent — only runs if accounts table is empty.
+- Welcome emails are NEVER sent for seeded users (`UserRegisteredEvent` is bypassed by hitting the repository directly, not `AuthManager.register`).
+
+### [ ] 27.2 Bot service (production-optional)
+
+- Add a new role `ROLE_BOT` in `roles` migration. (Doesn't affect existing rows — bots are created later.)
+- Config:
+  ```yaml
+  app:
+    bot:
+      enabled: ${BOT_ENABLED:false}
+      gemini-api-key: ${GEMINI_API_KEY:}
+      gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
+      cadence-min-minutes: ${BOT_CADENCE_MIN:20}      # min wait between posts
+      cadence-max-minutes: ${BOT_CADENCE_MAX:120}
+      daily-quota: ${BOT_DAILY_QUOTA:50}              # hard cap per bot
+      account-count: ${BOT_ACCOUNT_COUNT:5}
+  ```
+- One-shot bootstrapper that creates `BOT_ACCOUNT_COUNT` accounts with `ROLE_BOT` if they don't exist. Their displayName/bio is varied (Faker again). Email is `bot-{i}@bots.local`, no email verification.
+- `BotPostScheduler` `@Scheduled(fixedDelay = 60_000)`:
+  1. Pick a random bot account whose last post was longer ago than its random cadence (between `cadenceMinMinutes` and `cadenceMaxMinutes`).
+  2. Check daily quota (count its posts in last 24h, skip if `>= dailyQuota`).
+  3. Build a prompt mixing recent feed snippets ("here are 3 recent posts; write one in a similar tone, max 280 chars, no hashtags more than 1, no @mentions") and call Gemini.
+  4. Persist the post via the normal `PostManager.create(...)` path so the moderation pipeline still runs. This is intentional — bots are not exempt from moderation.
+  5. Log `BOT_POSTED` audit entry.
+- Replies / interactions: bots randomly like a small fraction of recent posts (1 in 20 ticks). Don't have them follow each other automatically — admins/users follow bots manually if they want them in their feed.
+- Gemini free tier: 1500 req/day. With 5 bots and 50 posts/day each = 250 calls/day. Comfortable.
+- Failure handling: Gemini 5xx / quota → skip this tick, no retry. We're decorative, not critical.
+- A killswitch endpoint: `POST /api/v1/admin/bots/disable` flips `app.bot.enabled` at runtime via the `system_settings` table.
+
+**Acceptance (dev):** First boot with `local` profile + empty DB → 50 users, 200 posts, working follow graph, admin login works.
+**Acceptance (prod-optional):** With `BOT_ENABLED=true` and a Gemini key, a bot posts something coherent within an hour. The post passes through OpenAI moderation. Disabling the bots via admin panel stops new posts within one scheduler tick.
+
+---
+
+## Phase 28 — Pre-Deploy Hardening Pass
+
+Final security/config sweep before flipping the deploy switch. Many items here
+are echoes of earlier phases (5.6, 18.x); this phase is the gate that nothing
+ships without the full list checked.
+
+### [ ] 28.1 Production secret audit
+
+- Every `${VAR:default}` in any `application*.yml` reviewed: is the default safe? If `prod` profile loads it, the default must be either a fail-fast sentinel (Phase 5.6.10 pattern) or empty.
+- Every `*Config`/`*Properties` class reviewed for hard-coded fallbacks.
+- A rendered list of REQUIRED env vars for `prod` lives in `.env.example` (Phase 18.5). The list at minimum includes:
+  - `JWT_SECRET` (≥ 32 bytes random)
+  - `DATABASE_URL`, `DB_USERNAME`, `DB_PASSWORD`
+  - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+  - `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_FROM_NAME`, `EMAIL_ENABLED=true`
+  - `OPENAI_API_KEY` (for moderation)
+  - `GEMINI_API_KEY` (only if `BOT_ENABLED=true`)
+  - `FRONTEND_ORIGIN` (the public URL of the deployed client)
+  - `SPRING_PROFILES_ACTIVE=prod`
+- Secrets are in Render's env editor, not in any committed file.
+
+### [ ] 28.2 Security headers
+
+`SecurityConfig` adds:
+```java
+http.headers(h -> h
+    .contentTypeOptions(c -> {})                          // X-Content-Type-Options: nosniff
+    .frameOptions(f -> f.sameOrigin())                    // clickjacking
+    .referrerPolicy(r -> r.policy(STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+    .permissionsPolicy(p -> p.policy("geolocation=(), microphone=(), camera=()"))
+    .httpStrictTransportSecurity(h2 -> h2.includeSubDomains(true).maxAgeInSeconds(31536000))
+    .contentSecurityPolicy(csp -> csp.policyDirectives(
+        "default-src 'self'; img-src 'self' https://res.cloudinary.com data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss: https:;"
+    ))
+);
+```
+The CSP `connect-src` allows the SockJS/STOMP upgrade. Loosen only with care.
+Test on the deployed URL — browser dev tools console will scream if a real
+asset is blocked.
+
+### [ ] 28.3 CORS final lockdown
+
+- `FRONTEND_ORIGIN` is the only origin allowed in prod. No wildcards anywhere (also see 5.6.7).
+- `setAllowedHeaders` restricted to: `Authorization`, `Content-Type`, `X-Requested-With`, `Accept`, `Idempotency-Key` (for 21.4).
+- `setExposedHeaders` restricted to `X-Request-Id`, `Retry-After`.
+- WebSocket: same. `setAllowedOrigins(FRONTEND_ORIGIN)`, no patterns.
+
+### [ ] 28.4 SQL safety + transaction review
+
+- Audit every `@Query` for parameter binding (no string concat). MapStruct/JPA paths should be safe by construction.
+- Audit `@Transactional` placement: must be on the **manager** layer for orchestrating writes; service can be `@Transactional(readOnly = true)` on read paths.
+- `open-in-view: false` is already set — verify no LazyInitializationException slip through (covered by integration tests in Phase 9.4).
+
+### [ ] 28.5 Rate-limit verification
+
+- Run a 1-minute curl burst against each rate-limited endpoint, confirm 429 responses arrive at the configured threshold.
+- Confirm the IP-vs-user-id resolution (Phase 5.6.6) works behind Render's proxy: hit twice from the same Render-routed IP under two different bearer tokens, both succeed.
+
+### [ ] 28.6 Logging hygiene
+
+- No `System.out.println` anywhere — `grep -rn "System.out" api/src/main`.
+- No `e.printStackTrace()` — fail loudly via the logger.
+- No PII in logs: email addresses, phone, tokens never logged. Logback masking of `password=` patterns added if needed.
+- Logback JSON logging works on Render (Render's log viewer expects line-per-event; the logstash encoder produces that).
+
+### [ ] 28.7 Frontend production build review
+
+- `npm run build` succeeds with zero TypeScript errors.
+- Production bundle does not include `vite/devtools` or `react-query/devtools` (gate behind `import.meta.env.DEV`).
+- No `console.log` left in feature code — keep a deliberate few in `lib/ws.ts` debug output but only when `import.meta.env.DEV`.
+- Source maps: shipped (helps debug live), but bundle size kept reasonable (< 500 KB initial JS gzipped — verify in `dist/` after build).
+
+### [ ] 28.8 Health + readiness
+
+- `/actuator/health` exposes `liveness` and `readiness` groups.
+- `readiness` includes a DB check (Spring Boot does this by default with the JDBC starter).
+- Render's `healthCheckPath: /actuator/health` is sufficient. Confirm in `render.yaml`.
+
+**Acceptance:** A pre-deploy checklist run produces no FAIL items. The app boots in `prod` profile with all secrets set, fails fast if any are missing, and serves the frontend correctly behind Render's edge.
+
+---
+
+## Phase 29 — k6 Load Testing + OWASP ZAP Audit (Manual)
+
+Both produce reports that go in `docs/`. Neither runs in CI (per the user's
+preference — these are deliberate manual checks before each major release,
+not gating gates).
+
+### [ ] 29.1 k6 load test
+
+- `tests/load/feed.js` — primary scenario: 50 virtual users, ramp 30s, sustain 60s, ramp-down 10s. Each VU: log in once, then loop on `GET /api/v1/posts/feed` with realistic 2–8s think time.
+- Thresholds:
+  ```js
+  thresholds: {
+      http_req_duration: ['p(95)<500'],
+      http_req_failed: ['rate<0.01'],
+  }
+  ```
+- Secondary scenarios: `tests/load/post-and-like.js` (writes), `tests/load/dm-burst.js` (WebSocket — k6 has STOMP-over-WebSocket support, but a simple HTTP POST simulation is acceptable).
+- Run target: a local docker-compose stack OR a deployed staging instance. Never the prod URL.
+- Output artifact: `docs/load-test-<date>.html` (k6's HTML report).
+- README in `tests/load/` documenting how to run and interpret.
+
+### [ ] 29.2 OWASP ZAP baseline scan
+
+- Run via Docker: `docker run -v $(pwd)/docs:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:8080 -r zap-baseline-<date>.html`.
+- Authenticated scan (more revealing): write a small ZAP context file with login credentials for a seed account; then `zap-full-scan.py` (only against staging — never prod).
+- Triage findings:
+  - HIGH/CRIT → fix before deploy. (Most likely zero given Phase 28's hardening, but a CSP misconfig or a missing security header will pop up here.)
+  - MEDIUM → log as known issues in `docs/security/known-issues.md` with mitigation rationale.
+  - LOW/INFO → ignore unless related to a real attack vector.
+- Output: HTML report committed to `docs/security/zap-<date>.html`.
+
+### [ ] 29.3 Documentation in `docs/`
+
+- `docs/load-test-<date>.html` (k6 output)
+- `docs/security/zap-<date>.html` (ZAP output)
+- `docs/security/known-issues.md` — triaged medium/low items with notes
+- `docs/security/threat-model.md` — short doc covering: trust boundaries, asset inventory (auth tokens, user data, uploaded media), top 10 threats (token theft, IDOR, mass-assignment, XSS in posts, CSRF on state-changing endpoints — already mitigated by stateless JWT, etc.).
+
+**Acceptance:** Both reports exist on `main`. The README's "Security" section links to them. Any HIGH from ZAP is fixed before the next deploy.
+
+---
+
+## Phase 30 — Launch
+
+### [ ] 30.1 Root README.md
 Sections:
 - Hero: project name, screenshot/gif, live link
 - Overview: what + why
@@ -1456,27 +1119,30 @@ Sections:
 - Architecture: link to ARCHITECTURE.md
 - Acknowledgements: link to the 2024 legacy version
 
-### [ ] 19.2 ARCHITECTURE.md
+### [ ] 30.2 ARCHITECTURE.md
 - Mermaid diagram of: client ↔ api ↔ postgres + cloudinary, with WebSocket overlay
 - Module boundaries explanation
 - Why monorepo, why monolith
 - Real-time data flow (post → event → broadcast → client)
+- Moderation pipeline diagram (post → AsyncEvent → OpenAI → status flip → invalidator)
+- Email outbox pattern diagram (enqueue → flusher → Resend)
 
-### [ ] 19.3 Deploy to Render
+### [ ] 30.3 Deploy to Render
 - Create Render account
 - Connect GitHub
 - Apply `render.yaml`
-- Set secrets (JWT_SECRET, Cloudinary trio)
+- Set secrets: `JWT_SECRET`, Cloudinary trio, `RESEND_API_KEY`, `EMAIL_FROM`, `OPENAI_API_KEY`, `FRONTEND_ORIGIN`, `BOT_ENABLED` (false initially), and (if enabling bots) `GEMINI_API_KEY`.
 - Verify both services healthy
-- Test full happy path on live URLs
+- Run the bootstrap admin promote step (Phase 26.1) to give yourself ROLE_ADMIN
+- Test full happy path on live URLs: register → login → post → like → comment → DM → notification → admin panel access
 
-### [ ] 19.4 Update legacy repo READMEs
+### [ ] 30.4 Update legacy repo READMEs
 Add to top of `social-media-api/README.md` and `social-media-frontend/README.md`:
-> ⚠️ **Archived 2024 version.** This is preserved for reference. The 2026 modern rewrite — with WebSocket-based real-time feed, follow system, direct messaging, image uploads, and a shadcn/ui frontend — lives at [`<new-repo-url>`](url).
+> ⚠️ **Archived 2024 version.** This is preserved for reference. The 2026 modern rewrite — with WebSocket-based real-time feed, follow system, direct messaging, image uploads, AI content moderation, and a shadcn/ui frontend — lives at [`<new-repo-url>`](url).
 
 Then archive both old repos via Settings → Archive on GitHub.
 
-### [ ] 19.5 Portfolio integration
+### [ ] 30.5 Portfolio integration
 - Add link from main portfolio site
 - Optional: case study page describing the rewrite (1 paragraph each: 2024 state → identified issues → 2026 redesign → result)
 
@@ -1486,8 +1152,51 @@ Then archive both old repos via Settings → Archive on GitHub.
 
 - **Schema is set in stone after V1.** Once V1 lands on main, never edit it. Changes go through V2, V3, ...
 - **DTOs must mirror exactly across stack.** When you add a field to `PostResponse` in Java, add it to `src/types/api.ts` in the same task.
-- **Soft delete is universal except for `Follow`, `Notification`, and `RefreshToken`.** A follow has a binary state (followed or not). A notification is read or unread, but deletion is hard (or just left alone — they accumulate, paginate them). A refresh token is either active or revoked — revoked rows must remain queryable for reuse detection (Phase 5.5.7).
-- **Self-actions don't generate notifications.** Liking your own post should not create a notification.
+- **Soft delete is universal except for `Follow`, `Notification`, `RefreshToken`, `LoginHistory`, `AuditLog`, `EmailOutbox`, `PasswordResetToken`, `EmailVerificationToken`, and `Report`.** A follow has a binary state (followed or not). A notification is read or unread, but deletion is hard (or just left alone — they accumulate, paginate them). A refresh token is either active or revoked — revoked rows must remain queryable for reuse detection (Phase 5.5.7). Audit log, login history, and email outbox are append-only by design. Verification and reset tokens have explicit `used_at` markers.
+- **Self-actions don't generate notifications.** Liking your own post should not create a notification. Same for self-repost, self-quote, self-follow attempts (latter rejected at the controller anyway).
 - **Backwards compatibility within a deploy.** Backend changes that affect the frontend contract land in the same commit — never deploy a backend that breaks the deployed frontend.
 - **Tests aim for confidence, not coverage.** One happy-path integration test per major flow > 80% coverage of getters and setters.
 - **Auth contract is the single hardest cross-cutting contract.** Any change to login/refresh/logout response shapes must update Phase 10.4 (interceptor), Phase 10.5 (store), and Phase 13.1 (STOMP client `connectHeaders`) in the same PR. The refresh-rotation contract from Phase 5.5.7 is non-negotiable: stored refresh token must be overwritten on every successful refresh.
+- **Comments are posts.** As of V6 (Phase 5.6.1), there is no `Interaction.type=COMMENT`. A comment is a `Post` row with `parent_post_id != NULL`. Reply-fanout notifications go through `PostCreatedEvent`, not `InteractionCreatedEvent`. Anything in the docs or code that says otherwise is stale.
+- **Repost vs reply vs quote-repost.** Three distinct shapes: a reply is a Post with `parent_post_id != NULL` and `quoted_post_id = NULL`; a quote-repost is a Post with `parent_post_id = NULL` and `quoted_post_id != NULL`; a simple repost is a row in the `reposts` table, not a Post at all. The frontend's `<PostCard>` must read all three correctly.
+- **Email is rate-limited at the provider.** The free Resend tier is 100/day, 3000/month. The outbox + flusher (Phase 21) enforces these caps at 90/day and 2800/month — never bypass the outbox by calling Resend directly. Mock data seed never sends mail. Bot accounts never receive mail (Phase 27).
+- **Moderation runs after persistence, not before.** A new post is persisted with `moderation_status='PENDING'` and is shown optimistically. The async moderator flips it to CLEAN or FLAGGED, and the broadcast updates clients in real time. Never block the request thread on the moderation API call.
+- **Admin status outranks moderation status.** If `admin_status = 'RESTORED_BY_ADMIN'`, the post is visible regardless of `moderation_status`. If `admin_status = 'REMOVED_BY_ADMIN'`, the post is hidden regardless of moderation. The AI never overrides a human decision.
+- **Bots are not exempt from moderation.** All bot posts go through the normal `PostManager.create(...)` path so the AI evaluates them like any other content. A bot whose posts repeatedly get FLAGGED is a bug, not a feature.
+- **Audit log is one-way.** Admin actions, security events, and config changes all leave audit trails. The audit log is never edited or deleted from application code.
+- **Layer order is unforgiving.** Controller → Manager → Service → Repository. The manager owns transactions, auth context resolution, and event publishing. Services do business logic and return entities. Mappers (DTO conversion) live at the manager boundary, never inside services. This rule is enforced by Phase 5.5.1 and audited again in Phase 28.4.
+- **Production secrets fail fast.** Phase 5.6.10's startup validator extends to: `JWT_SECRET`, `CLOUDINARY_API_SECRET`, `RESEND_API_KEY`, `OPENAI_API_KEY`, and (only when bots are enabled) `GEMINI_API_KEY`. Missing any required secret in the `prod` profile aborts boot with a clear message.
+
+---
+
+## Pre-Deploy Security Audit — Findings From the Current Codebase
+
+These items were surfaced by reviewing the current `api/` and `client/` source.
+Each is wired into a specific phase task above; this section is the consolidated
+reference list so nothing slips through before the deploy.
+
+| # | Severity | Finding | Fix in |
+|---|----------|---------|--------|
+| 1 | **CRITICAL** | `JWT_SECRET` falls back to `dev-secret-must-be-at-least-32-bytes-long-please-change` if env var unset. Production tokens would be signed with a publicly-known key. | 5.6.10 |
+| 2 | **CRITICAL** | `CorsConfigurationSource` falls back to `List.of("*")` when `app.cors.allowed-origins` is null, combined with `setAllowCredentials(true)`. Browser will technically reject `*`+credentials, but any misconfig that produces a single permissive origin still allows session theft. | 5.6.7 |
+| 3 | **CRITICAL** | `WebSocketConfig.registerStompEndpoints` uses `setAllowedOriginPatterns("*")`. The `*` pattern bypasses the same-origin protection; a malicious site can open a STOMP session against the WebSocket if a victim is logged in. The commented-out `setAllowedOrigins(...)` line is the right code. | 5.6.7 |
+| 4 | **HIGH** | `client/src/lib/api.ts` baseURL bug: `import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'`. Render's `VITE_API_URL` is the origin only; the `/api/v1` suffix is in the fallback only, so production HTTPS calls miss the path. | 5.6.8 |
+| 5 | **HIGH** | `application-prod.yml` is essentially empty (two log-level lines). No CORS override, no Swagger gating, no error-detail suppression, no fail-loud sentinels. Production silently inherits dev values for everything not explicitly set. | 5.6.9 |
+| 6 | **HIGH** | `/test.html` is `permitAll`'d in `SecurityConfig` and lives in `static/`. A WebSocket dev tester is publicly reachable in production. Move out of `static/`, drop the matcher. | 5.6.7 |
+| 7 | **HIGH** | Swagger UI / OpenAPI JSON is `permitAll` in production. Even in a portfolio context this exposes the full API surface to scrapers. Disable in `prod` profile, or at minimum gate with basic auth. | 5.6.9 |
+| 8 | **HIGH** | `forward-headers-strategy` is unset. Behind Render's proxy, every rate-limit bucket keys on the load balancer's IP — i.e. one shared bucket for all users. `X-Forwarded-For` parsing in `RateLimitAspect` works around this for HTTP, but actuator and any other Spring component using the request's remote address is wrong. | 5.6.9 |
+| 9 | **HIGH** | Rate limiting is annotation-based and only on `/auth/register` + `/auth/login`. Posting, image upload, follow, and DM send are wide open to abuse. | 5.6.6 |
+| 10 | **MEDIUM** | `InteractionType.COMMENT` enum still exists despite V6 removing the DB constraint and column. Any code path that still creates a row with `type=COMMENT` would fail at runtime. The compile-time API surface is wrong. | 5.6.1 |
+| 11 | **MEDIUM** | No request body size cap for non-multipart endpoints. Spring won't reject a 100MB JSON body — it'll deserialize it (and run out of memory before the `@Size(max=500)` check can fire). | 5.6.11 |
+| 12 | **MEDIUM** | No security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP, HSTS). Browsers default-permissively when these are absent. | 28.2 |
+| 13 | **MEDIUM** | The frontend has no CSRF protection in shape but doesn't need it because of the bearer token model — provided no part of the API ever accepts session cookies. Verify that the deployed app never sets a cookie-based auth path during refresh-token rotation. | 28.4 |
+| 14 | **MEDIUM** | `application-test.yml` has hardcoded JWT secret and Cloudinary credentials that look like real values to a quick reader. They aren't, but rename them to `test-only-not-a-real-secret-…` to reduce confusion in a public repo. | 28.6 |
+| 15 | **LOW** | `RateLimitAspect` cache is `ConcurrentHashMap` with no eviction. Memory grows unbounded with unique IPs over time. Replace with Caffeine in Phase 20.1 or add an explicit max size. | 20.1 (extend) |
+| 16 | **LOW** | `CorsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"))` is fine but Phase 21's outbox uses `Idempotency-Key` headers. Add it before email rolls out. | 28.3 |
+| 17 | **LOW** | No `Content-Security-Policy` on the served frontend. Vite's dev server is permissive; Render's static hosting needs explicit CSP via `_headers` or response headers. | 28.2 |
+| 18 | **INFO** | `LogstashEncoder` JSON logs include `MDC` automatically; if any future code stuffs PII into MDC (e.g. user emails for tracing), it'll show up in logs. Wire a Logback masking pattern early. | 28.6 |
+
+**The five blockers** (must be fixed before flipping the deploy switch): #1, #2, #3, #4, #5.
+Without these, the deploy will either be exploitable or non-functional in production.
+
+---
