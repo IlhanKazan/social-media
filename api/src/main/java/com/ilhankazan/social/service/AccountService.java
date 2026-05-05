@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 
@@ -79,6 +81,16 @@ public class AccountService {
         Account account = getAccount(username);
         String imageUrl = storageService.uploadFile(file, "covers");
         account.setCoverImageUrl(imageUrl);
+        return accountRepository.save(account);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Account> findByEmail(String email) {
+        return accountRepository.findByEmail(email);
+    }
+
+    @Transactional
+    public Account saveRaw(Account account) {
         return accountRepository.save(account);
     }
 }

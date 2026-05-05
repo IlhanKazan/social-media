@@ -72,4 +72,27 @@ public class AuthController {
         authManager.logoutAll();
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Request password reset", description = "Generates a reset token and sends an email if the account exists.")
+    @ApiResponse(responseCode = "204", description = "Request processed (no leak on email existence)")
+    @PostMapping("/password-reset/request")
+    @RateLimit(capacity = 3, minutes = 60)
+    public ResponseEntity<Void> requestPasswordReset(@Valid @RequestBody PasswordResetRequest request, HttpServletRequest httpRequest) {
+        String ip = httpRequest.getHeader("X-Forwarded-For");
+        if (ip == null) ip = httpRequest.getRemoteAddr();
+        else ip = ip.split(",")[0].trim();
+
+        authManager.requestPasswordReset(request.email(), ip);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Confirm password reset", description = "Validates the token and updates the user's password. Revokes all active sessions.")
+    @ApiResponse(responseCode = "204", description = "Password successfully reset")
+    @ApiResponse(responseCode = "400", description = "Invalid or expired token")
+    @PostMapping("/password-reset/confirm")
+    @RateLimit(capacity = 5, minutes = 60)
+    public ResponseEntity<Void> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
+        authManager.confirmPasswordReset(request.token(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
 }
