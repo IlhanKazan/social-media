@@ -5,5 +5,7 @@ public enum NotificationType {
     COMMENT,
     FOLLOW,
     REPLY,
-    MENTION
+    MENTION,
+    REPOST,
+    QUOTE_REPOST
 }

@@ -27,4 +27,8 @@ public class Post extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_post_id")
     private Post parentPost;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quoted_post_id")
+    private Post quotedPost;
 }

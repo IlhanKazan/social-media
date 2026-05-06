@@ -18,7 +18,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PostCard } from '@/features/feed/components/PostCard';
-import type { PostResponse } from "@/types/api";
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>();
@@ -59,6 +58,26 @@ export function ProfilePage() {
   }
 
   const isOwnProfile = currentUser?.username === profile.username;
+
+  const renderPostItem = (item: any, index: number) => {
+    const isFeedItem = 'post' in item && 'type' in item;
+    const actualPost = isFeedItem ? item.post : item;
+    const feedType = isFeedItem ? item.type : 'POST';
+    const reposter = isFeedItem ? item.reposter : undefined;
+
+    const uniqueKey = isFeedItem
+      ? `${item.type}-${actualPost.id}-${reposter?.id || 'none'}-${index}`
+      : `${actualPost.id}-${index}`; // Fallback key
+
+    return (
+      <PostCard
+        key={uniqueKey}
+        post={actualPost}
+        feedType={feedType}
+        reposter={reposter}
+      />
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -145,7 +164,7 @@ export function ProfilePage() {
         <TabsContent value="posts" className="m-0 border-none outline-none">
           {feedQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : feedQuery.status === 'error' ? <div className="p-4 text-center text-sm text-destructive">Yüklenemedi.</div> : (
             <div className="flex flex-col">
-              {feedQuery.data.pages.map((page) => page.content.map((post: PostResponse) => <PostCard key={post.id} post={post} />))}
+              {feedQuery.data.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
                 {feedQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
                 {!feedQuery.hasNextPage && feedQuery.data.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Gönderi yok.</span>}
@@ -157,7 +176,7 @@ export function ProfilePage() {
         <TabsContent value="replies" className="m-0 border-none outline-none">
           {repliesQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
             <div className="flex flex-col">
-              {repliesQuery.data?.pages.map((page) => page.content.map((post: PostResponse) => <PostCard key={post.id} post={post} />))}
+              {repliesQuery.data?.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
                 {repliesQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
                 {!repliesQuery.hasNextPage && repliesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Yanıt yok.</span>}
@@ -169,7 +188,7 @@ export function ProfilePage() {
         <TabsContent value="likes" className="m-0 border-none outline-none">
           {likesQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
             <div className="flex flex-col">
-              {likesQuery.data?.pages.map((page) => page.content.map((post: PostResponse) => <PostCard key={post.id} post={post} />))}
+              {likesQuery.data?.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
                 {likesQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
                 {!likesQuery.hasNextPage && likesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Beğenilen gönderi yok.</span>}

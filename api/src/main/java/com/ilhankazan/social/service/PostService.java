@@ -4,6 +4,7 @@ import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.repository.AccountRepository;
 import com.ilhankazan.social.repository.PostRepository;
+import com.ilhankazan.social.repository.projection.FeedItemProjection;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -128,5 +129,45 @@ public class PostService {
                 PostRepository.PostCountRow::getPostId,
                 PostRepository.PostCountRow::getCount
             ));
+    }
+
+    @Transactional
+    public Post createQuote(Long accountId, Long quotedPostId, String content, String imageUrl) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new EntityNotFoundException("Account not found"));
+
+        Post quotedPost = postRepository.findById(quotedPostId)
+            .orElseThrow(() -> new EntityNotFoundException("Quoted post not found"));
+
+        Post post = new Post();
+        post.setAccount(account);
+        post.setContent(content == null ? "" : content);
+        post.setImageUrl(imageUrl);
+        post.setQuotedPost(quotedPost);
+
+        return postRepository.save(post);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Post> getQuotes(Long quotedPostId, Pageable pageable) {
+        return postRepository.findQuotes(quotedPostId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Post> getPostsByIds(List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return postRepository.findAllById(postIds);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FeedItemProjection> getFollowingFeedUnion(Long userId, Pageable pageable) {
+        return postRepository.getFollowingFeedUnion(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FeedItemProjection> getProfileFeedUnion(Long accountId, Pageable pageable) {
+        return postRepository.getProfileFeedUnion(accountId, pageable);
     }
 }

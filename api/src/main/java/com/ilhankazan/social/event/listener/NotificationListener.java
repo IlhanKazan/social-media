@@ -8,6 +8,7 @@ import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.FollowCreatedEvent;
 import com.ilhankazan.social.event.InteractionCreatedEvent;
 import com.ilhankazan.social.event.PostCreatedEvent;
+import com.ilhankazan.social.event.RepostCreatedEvent;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.NotificationService;
@@ -50,7 +51,29 @@ public class NotificationListener {
             pushToWebSocket(notification);
         }
 
+        if (event.post().quotedPost() != null) {
+            Long quotedAuthorId = event.post().quotedPost().author().id();
+            Notification notification = notificationService.create(
+                quotedAuthorId,
+                actorId,
+                NotificationType.QUOTE_REPOST,
+                postId
+            );
+            pushToWebSocket(notification);
+        }
+
         handleMentions(event.post().content(), actorId, postId);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleRepostCreated(RepostCreatedEvent event) {
+        Notification notification = notificationService.create(
+            event.originalPostAuthorId(),
+            event.reposterId(),
+            NotificationType.REPOST,
+            event.originalPostId()
+        );
+        pushToWebSocket(notification);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

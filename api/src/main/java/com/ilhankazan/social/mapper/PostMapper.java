@@ -6,6 +6,7 @@ import com.ilhankazan.social.dto.post.PostResponse;
 import com.ilhankazan.social.entity.Post;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring", uses = {AccountMapper.class})
 public interface PostMapper {
@@ -13,11 +14,20 @@ public interface PostMapper {
     @Mapping(target = "author", source = "post.account", qualifiedByName = "noFollow")
     @Mapping(target = "parentPostId", source = "post.parentPost.id")
     @Mapping(target = "parentPostAuthorUsername", source = "post.parentPost.account.username")
+    @Mapping(target = "quotedPost", source = "post.quotedPost", qualifiedByName = "mapQuotedPost")
     @Mapping(target = "likeCount", source = "counts.likes")
     @Mapping(target = "dislikeCount", source = "counts.dislikes")
     @Mapping(target = "replyCount", source = "replyCount")
+    @Mapping(target = "repostCount", source = "repostCount")
     @Mapping(target = "likedByMe", source = "userInteractions.liked")
     @Mapping(target = "dislikedByMe", source = "userInteractions.disliked")
+    @Mapping(target = "repostedByMe", source = "repostedByMe")
     @Mapping(target = "isEdited", expression = "java(post.getUpdatedAt() != null && post.getUpdatedAt().isAfter(post.getCreatedAt().plusSeconds(1)))")
-    PostResponse toResponse(Post post, InteractionCounts counts, UserInteractions userInteractions, long replyCount);
+    PostResponse toResponse(Post post, InteractionCounts counts, UserInteractions userInteractions, long replyCount, long repostCount, boolean repostedByMe);
+
+    @Named("mapQuotedPost")
+    default PostResponse mapQuotedPost(Post quotedPost) {
+        if (quotedPost == null) return null;
+        return toResponse(quotedPost, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L, 0L, false);
+    }
 }

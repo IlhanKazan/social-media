@@ -54,9 +54,25 @@ function FeedTabContent({
     <>
       <div className="flex flex-col">
         {data.pages.map((page) =>
-          page.content.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))
+          page.content.map((item: any, index: number) => {
+            const isFeedItem = 'post' in item && 'type' in item;
+            const actualPost = isFeedItem ? item.post : item;
+            const feedType = isFeedItem ? item.type : 'POST';
+            const reposter = isFeedItem ? item.reposter : undefined;
+
+            const uniqueKey = isFeedItem
+              ? `${item.type}-${actualPost.id}-${reposter?.id || 'none'}-${index}`
+              : actualPost.id;
+
+            return (
+              <PostCard
+                key={uniqueKey}
+                post={actualPost}
+                feedType={feedType}
+                reposter={reposter}
+              />
+            );
+          })
         )}
       </div>
 
