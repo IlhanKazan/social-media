@@ -664,7 +664,7 @@ admin actions or rate limits later.
 Twitter-style: a user can either re-share another user's post verbatim
 (simple repost) or quote it with their own commentary (quote-repost).
 
-### [ ] 24.1 Schema
+### [x] 24.1 Schema
 
 - Migration `V<n>__reposts.sql`:
   ```sql
@@ -694,7 +694,7 @@ Twitter-style: a user can either re-share another user's post verbatim
 - A simple repost = row in `reposts`. A quote-repost = row in `posts` with `quoted_post_id != NULL` (and may also have content + image).
 - The two are distinct because their feed semantics differ: a simple repost shows the original post in the reposter's profile/feed without altering it; a quote-repost is its own post that *embeds* the quoted post.
 
-### [ ] 24.2 Backend entities + DTOs
+### [x] 24.2 Backend entities + DTOs
 
 - `entity/Repost extends BaseEntity`-like minimal entity (has `deletedAt` for soft-delete; no `updatedAt` since reposts aren't edited).
 - Update `Post` entity: `@ManyToOne(fetch=LAZY) Post quotedPost`.
@@ -705,7 +705,7 @@ Twitter-style: a user can either re-share another user's post verbatim
 - New DTO `CreateQuoteRepostRequest(@Size(max=500) String content, String imageUrl, @NotNull Long quotedPostId)` — endpoint shares the same controller surface as create-post but the validation differs (`content` may be empty for a quote with image).
 - `RepostMapper` (MapStruct) — for the simple-repost DTO when listing reposts.
 
-### [ ] 24.3 Endpoints
+### [x] 24.3 Endpoints
 
 - `POST /api/v1/posts/{id}/repost` — toggle simple repost. 201 on first call (created), 204 on second call (un-reposted). Rate limit shared with post creation.
 - `POST /api/v1/posts/{id}/quote-repost` — body `CreateQuoteRepostRequest`. Returns the new `PostResponse`.
@@ -713,7 +713,7 @@ Twitter-style: a user can either re-share another user's post verbatim
 - Following feed (`GET /feed`) likewise includes reposts from followed accounts.
 - New endpoint: `GET /api/v1/posts/{id}/quotes?page=&size=` — list of posts that quote this post.
 
-### [ ] 24.4 Notifications + WebSocket
+### [x] 24.4 Notifications + WebSocket
 
 - New `NotificationType.REPOST` and `NotificationType.QUOTE_REPOST`.
 - A simple repost notifies the original author (skip if self-repost).
@@ -721,7 +721,7 @@ Twitter-style: a user can either re-share another user's post verbatim
 - Both fire over the existing `/user/{username}/queue/notifications` channel.
 - A repost or quote-repost broadcast to `/topic/feed` so it shows up in real-time for followers (same flow as `PostCreatedEvent`). Add a `RepostCreatedEvent`.
 
-### [ ] 24.5 Frontend
+### [x] 24.5 Frontend
 
 - Replace the disabled `Repeat2` icon in `PostCard` (Phase 16.3 removed the click handler; this restores it).
 - Click → shadcn `<DropdownMenu>` with two items: "Repost" and "Quote".
