@@ -10,11 +10,14 @@ public record PostResponse(
     PublicAccountResponse author,
     Long parentPostId,
     String parentPostAuthorUsername,
+    PostResponse quotedPost,
     long likeCount,
     long dislikeCount,
     long replyCount,
+    long repostCount,
     boolean likedByMe,
     boolean dislikedByMe,
+    boolean repostedByMe,
     boolean isEdited,
     Instant createdAt
 ) {}

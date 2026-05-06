@@ -1,6 +1,7 @@
 package com.ilhankazan.social.repository;
 
 import com.ilhankazan.social.entity.Post;
+import com.ilhankazan.social.repository.projection.FeedItemProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -52,4 +53,50 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p JOIN Interaction i ON i.post = p WHERE i.account.id = :accountId AND i.type = com.ilhankazan.social.entity.InteractionType.LIKE AND p.deletedAt IS NULL AND i.deletedAt IS NULL ORDER BY i.createdAt DESC")
     Page<Post> findLikedPostsByAccountId(@Param("accountId") Long accountId, Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.quotedPost.id = :quotedPostId AND p.deletedAt IS NULL ORDER BY p.createdAt DESC")
+    Page<Post> findQuotes(@Param("quotedPostId") Long quotedPostId, Pageable pageable);
+
+
+    @Query(value = """
+        SELECT * FROM (
+            SELECT id AS "postId", CAST('POST' AS VARCHAR) AS "type", created_at AS "actionAt", account_id AS "actorId"
+            FROM posts
+            WHERE account_id = :accountId AND parent_post_id IS NULL AND deleted_at IS NULL
+            UNION ALL
+            SELECT post_id AS "postId", CAST('REPOST' AS VARCHAR) AS "type", created_at AS "actionAt", account_id AS "actorId"
+            FROM reposts
+            WHERE account_id = :accountId AND deleted_at IS NULL
+        ) AS combined_feed
+        ORDER BY "actionAt" DESC
+    """, countQuery = """
+        SELECT COUNT(*) FROM (
+            SELECT id FROM posts WHERE account_id = :accountId AND parent_post_id IS NULL AND deleted_at IS NULL
+            UNION ALL
+            SELECT post_id FROM reposts WHERE account_id = :accountId AND deleted_at IS NULL
+        ) AS count_feed
+    """, nativeQuery = true)
+    Page<FeedItemProjection> getProfileFeedUnion(@Param("accountId") Long accountId, Pageable pageable);
+
+    @Query(value = """
+        SELECT * FROM (
+            SELECT id AS "postId", CAST('POST' AS VARCHAR) AS "type", created_at AS "actionAt", account_id AS "actorId"
+            FROM posts
+            WHERE (account_id IN (SELECT following_id FROM follows WHERE follower_id = :userId) OR account_id = :userId)
+              AND parent_post_id IS NULL AND deleted_at IS NULL
+            UNION ALL
+            SELECT post_id AS "postId", CAST('REPOST' AS VARCHAR) AS "type", created_at AS "actionAt", account_id AS "actorId"
+            FROM reposts
+            WHERE (account_id IN (SELECT following_id FROM follows WHERE follower_id = :userId) OR account_id = :userId)
+              AND deleted_at IS NULL
+        ) AS combined_feed
+        ORDER BY "actionAt" DESC
+    """, countQuery = """
+        SELECT COUNT(*) FROM (
+            SELECT id FROM posts WHERE (account_id IN (SELECT following_id FROM follows WHERE follower_id = :userId) OR account_id = :userId) AND parent_post_id IS NULL AND deleted_at IS NULL
+            UNION ALL
+            SELECT post_id FROM reposts WHERE (account_id IN (SELECT following_id FROM follows WHERE follower_id = :userId) OR account_id = :userId) AND deleted_at IS NULL
+        ) AS count_feed
+    """, nativeQuery = true)
+    Page<FeedItemProjection> getFollowingFeedUnion(@Param("userId") Long userId, Pageable pageable);
 }

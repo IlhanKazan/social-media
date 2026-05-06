@@ -1,9 +1,7 @@
 package com.ilhankazan.social.controller;
 
 import com.ilhankazan.social.dto.common.PageResponse;
-import com.ilhankazan.social.dto.post.CreatePostRequest;
-import com.ilhankazan.social.dto.post.PostResponse;
-import com.ilhankazan.social.dto.post.UpdatePostRequest;
+import com.ilhankazan.social.dto.post.*;
 import com.ilhankazan.social.manager.PostManager;
 import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,12 +63,12 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get user's feed", description = "Returns a paginated feed of posts from users the current user follows, plus their own posts.")
+    @Operation(summary = "Get user's feed", description = "Returns a paginated feed of posts and reposts from users the current user follows.")
     @GetMapping("/feed")
-    public ResponseEntity<PageResponse<PostResponse>> getFeed(
+    public ResponseEntity<PageResponse<FeedItemResponse>> getFeed(
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
-        return ResponseEntity.ok(postManager.getFeed(page, size));
+        return ResponseEntity.ok(postManager.getFeedUnion(page, size));
     }
 
     @Operation(summary = "Get global feed", description = "Returns top-level posts ordered by newest first.")
@@ -81,13 +79,13 @@ public class PostController {
         return ResponseEntity.ok(postManager.getExplore(page, size));
     }
 
-    @Operation(summary = "Get profile feed", description = "Returns a paginated list of top-level posts for a specific user.")
+    @Operation(summary = "Get profile feed", description = "Returns a paginated list of posts and reposts for a specific user.")
     @GetMapping("/by-user/{username}")
-    public ResponseEntity<PageResponse<PostResponse>> getProfileFeed(
-            @PathVariable String username,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
-        return ResponseEntity.ok(postManager.getProfileFeed(username, page, size));
+    public ResponseEntity<PageResponse<FeedItemResponse>> getProfileFeed(
+        @PathVariable String username,
+        @RequestParam(defaultValue = "0") @Min(0) int page,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(postManager.getProfileFeedUnion(username, page, size));
     }
 
     @Operation(summary = "Get replies", description = "Returns a paginated list of replies to a specific post.")
@@ -125,4 +123,33 @@ public class PostController {
         String url = postManager.uploadPostImage(file);
         return ResponseEntity.ok(Map.of("url", url));
     }
+
+    @Operation(summary = "Toggle simple repost", description = "Reposts a post, or removes the repost if already reposted.")
+    @ApiResponse(responseCode = "201", description = "Successfully reposted")
+    @ApiResponse(responseCode = "204", description = "Successfully un-reposted")
+    @RateLimit(capacity = 30, minutes = 5)
+    @PostMapping("/{id}/repost")
+    public ResponseEntity<Void> toggleRepost(@PathVariable Long id) {
+        boolean isCreated = postManager.toggleRepost(id);
+        return isCreated ? ResponseEntity.status(HttpStatus.CREATED).build()
+            : ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Create quote repost", description = "Quotes a post with user's own content.")
+    @ApiResponse(responseCode = "201", description = "Quote post successfully created")
+    @RateLimit(capacity = 30, minutes = 5)
+    @PostMapping("/{id}/quote-repost")
+    public ResponseEntity<PostResponse> quoteRepost(@PathVariable Long id, @Valid @RequestBody CreateQuoteRepostRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(postManager.quoteRepost(id, request));
+    }
+
+    @Operation(summary = "Get quotes", description = "Returns a paginated list of posts that quote this post.")
+    @GetMapping("/{id}/quotes")
+    public ResponseEntity<PageResponse<PostResponse>> getQuotes(
+        @PathVariable Long id,
+        @RequestParam(defaultValue = "0") @Min(0) int page,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(postManager.getQuotes(id, page, size));
+    }
+
 }

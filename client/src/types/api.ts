@@ -89,12 +89,28 @@ export interface PostResponse {
   author: PublicAccountResponse;
   parentPostId: number | null;
   parentPostAuthorUsername: string | null;
+  quotedPost?: PostResponse;
   likeCount: number;
   dislikeCount: number;
   replyCount: number;
+  repostCount: number;
   likedByMe: boolean;
   dislikedByMe: boolean;
+  repostedByMe: boolean;
   createdAt: string;
+}
+
+export interface FeedItemResponse {
+  type: 'POST' | 'REPOST';
+  repostedAt: string;
+  reposter?: PublicAccountResponse;
+  post: PostResponse;
+}
+
+export interface CreateQuoteRepostRequest {
+  content: string;
+  imageUrl?: string;
+  quotedPostId: number;
 }
 
 // ─── Notification ──────────────────────────────────────────────

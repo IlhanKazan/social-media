@@ -93,4 +93,12 @@ public class AccountService {
     public Account saveRaw(Account account) {
         return accountRepository.save(account);
     }
+
+    @Transactional(readOnly = true)
+    public List<Account> getAccountsByIds(List<Long> accountIds) {
+        if (accountIds == null || accountIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return accountRepository.findAllById(accountIds);
+    }
 }
