@@ -751,7 +751,7 @@ feed, admins review the queue, users can report content."
 - A regex-based pre-filter for the very obvious cases (hard slurs we always
   block) runs first, so most posts skip the API call entirely.
 
-### [ ] 25.1 Schema additions
+### [x] 25.1 Schema additions
 
 - Migration `V<n>__moderation_columns.sql`:
   ```sql
@@ -794,7 +794,7 @@ feed, admins review the queue, users can report content."
   - `admin_status` is the human override (ACTIVE / REMOVED_BY_ADMIN / RESTORED_BY_ADMIN). RESTORED is distinct from ACTIVE so we have an audit trail of "an admin saw this and chose to keep it" — this also overrides any future re-flag attempt by the AI.
 - Visible posts in the public feed = `deleted_at IS NULL AND admin_status = 'ACTIVE' AND moderation_status IN ('PENDING','CLEAN')`. PENDING is shown optimistically; if the AI flags it post-hoc, the broadcast invalidator (see 25.4) yanks it from the feed.
 
-### [ ] 25.2 Moderation service
+### [x] 25.2 Moderation service
 
 - `service/moderation/ContentModerator` (interface):
   ```java
@@ -820,7 +820,7 @@ feed, admins review the queue, users can report content."
   ```
   When `MODERATION_ENABLED=false`, every post auto-passes to `CLEAN` — local dev needs no API key.
 
-### [ ] 25.3 Async pipeline + event flow
+### [x] 25.3 Async pipeline + event flow
 
 - New `event/PostNeedsModerationEvent` published from `PostManager.create(...)` after persistence.
 - `@Async` listener `ContentModerationListener` runs the moderator and updates the post's `moderation_status`, `moderation_categories`, `moderated_at`, `moderation_provider`.
@@ -829,13 +829,13 @@ feed, admins review the queue, users can report content."
   2. `ModerationUserNotifier` — if FLAGGED, push to `/user/{authorUsername}/queue/notifications` a `MODERATION` notification: "Your post was held for review. An admin will look at it shortly." Persist as `Notification(type=MODERATION, recipient=author)`.
 - For the user notification, deliberately do NOT echo back the AI's category scores — vague is fine.
 
-### [ ] 25.4 User-facing reporting
+### [x] 25.4 User-facing reporting
 
 - `POST /api/v1/posts/{id}/report` — body `{ reason, details? }`. Rate limit: 10 reports / hour / user. UNIQUE constraint already prevents double-reporting the same post.
 - `GET /api/v1/me/reports` — list of reports the current user has filed (so they can see the resolution).
 - Frontend: `<DropdownMenu>` on each post (already added in Phase 16.3) gets a new "Report" item. Opens a small dialog with reason buttons (Hate, Harassment, Spam, Self-harm, Other) and an optional details textarea. Submit → toast "Thanks, we'll review."
 
-### [ ] 25.5 Spam-burst alert
+### [x] 25.5 Spam-burst alert
 
 When several posts flip to FLAGGED in a short window, mail admins.
 
