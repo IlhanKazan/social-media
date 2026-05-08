@@ -18,16 +18,16 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
 
         cacheManager.registerCustomCache("accountsByUsername",
-            Caffeine.newBuilder().expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(1000).build());
+            Caffeine.newBuilder().recordStats().expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(1000).build());
 
         cacheManager.registerCustomCache("publicProfilesByUsername",
-            Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(1000).build());
+            Caffeine.newBuilder().recordStats().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(1000).build());
 
         cacheManager.registerCustomCache("unreadNotificationCount",
-            Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).maximumSize(1000).build());
+            Caffeine.newBuilder().recordStats().expireAfterWrite(5, TimeUnit.SECONDS).maximumSize(1000).build());
 
         cacheManager.registerCustomCache("suggestions",
-            Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(1000).build());
+            Caffeine.newBuilder().recordStats().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(1000).build());
 
         return cacheManager;
     }

@@ -9,6 +9,7 @@ import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.FollowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -29,13 +30,13 @@ public class FollowManager {
     private final AccountService accountService;
     private final AccountMapper accountMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final CacheManager cacheManager;
 
     private Long getCurrentAccountId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return accountService.getAccount(username).getId();
     }
 
-    @CacheEvict(value = "suggestions", key = "@auth.user()")
     @Transactional
     public void follow(Long targetId) {
         Long currentId = getCurrentAccountId();
@@ -48,17 +49,35 @@ public class FollowManager {
             return;
         }
 
-        // Fazladan veritabanı okuması yapmamak için Proxy objeler (Referans) kullanıyoruz.
         Account follower = accountService.getAccountById(currentId);
         Account target = accountService.getAccountById(targetId);
 
         followService.follow(follower, target);
         eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId));
+
+        evictProfileCaches(target);
     }
 
-    @CacheEvict(value = "suggestions", key = "@auth.user()")
+    @Transactional
     public void unfollow(Long targetId) {
         followService.unfollow(getCurrentAccountId(), targetId);
+
+        Account target = accountService.getAccountById(targetId);
+        evictProfileCaches(target);
+    }
+
+    private void evictProfileCaches(Account target) {
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        var suggestionsCache = cacheManager.getCache("suggestions");
+        if (suggestionsCache != null) {
+            suggestionsCache.evict(currentUser);
+        }
+
+        var profileCache = cacheManager.getCache("publicProfilesByUsername");
+        if (profileCache != null) {
+            profileCache.evict(target.getUsername() + "-" + currentUser);
+        }
     }
 
     public FollowStatusResponse isFollowing(Long targetId) {
@@ -94,5 +113,15 @@ public class FollowManager {
         Long currentUserId = getCurrentAccountId();
         Page<Account> followingPage = followService.getFollowing(accountId, PageRequest.of(page, size));
         return enrichAccounts(followingPage, currentUserId);
+    }
+
+    @Transactional
+    public void removeFollower(Long followerId) {
+        Long currentId = getCurrentAccountId();
+
+        followService.unfollow(followerId, currentId);
+
+        Account followerAccount = accountService.getAccountById(followerId);
+        evictProfileCaches(followerAccount);
     }
 }

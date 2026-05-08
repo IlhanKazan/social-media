@@ -36,6 +36,7 @@ export function useFollowUser(username: string, accountId: number) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', username] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['suggestions'] });
     }
   });
 }

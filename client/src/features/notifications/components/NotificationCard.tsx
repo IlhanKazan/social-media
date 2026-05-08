@@ -64,11 +64,18 @@ export function NotificationCard({ notification }: Props) {
   const isSystemNotification = notification.type === 'MODERATION_ALERT' || !notification.actor;
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       className={cn(
-        "flex w-full text-left gap-3 border-b border-zinc-100 dark:border-zinc-800/50 p-4 transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 outline-none",
+        "flex w-full cursor-pointer text-left gap-3 border-b border-zinc-100 dark:border-zinc-800/50 p-4 transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 outline-none",
         notification.readAt === null && "bg-primary/5 dark:bg-primary/10"
       )}
     >
@@ -76,13 +83,12 @@ export function NotificationCard({ notification }: Props) {
         {getIcon()}
       </div>
       <div className="flex flex-col w-full min-w-0 relative group">
-        {/* ÇÖP KUTUSU BUTONU */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             deleteMut.mutate(notification.id);
           }}
-          className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+          className="absolute top-3 right-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-destructive transition-opacity text-muted-foreground"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -116,6 +122,6 @@ export function NotificationCard({ notification }: Props) {
           {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: tr })}
         </span>
       </div>
-    </button>
+    </div>
   );
 }

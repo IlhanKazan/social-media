@@ -8,6 +8,7 @@ import { useAuthStore } from "@/stores/auth-store.ts";
 import { useMessagingWebSocket } from '@/features/messaging/hooks/use-messaging-websocket';
 import { RightSidebarSearch } from '@/features/search/components/RightSidebarSearch';
 import { cn } from '@/lib/utils';
+import {SuggestedUsers} from "@/features/profile/components/SuggestedUsers.tsx";
 
 function LayoutContent() {
   const match = useMatch('/messages/:conversationId');
@@ -41,12 +42,7 @@ function LayoutContent() {
       )}>
         <RightSidebarSearch />
 
-        <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/30">
-          <h3 className="mb-2 font-bold text-[17px]">Kimi Takip Etmeli</h3>
-          <p className="leading-relaxed text-sm text-muted-foreground">
-            Önerilen kullanıcılar ve trendler modülü yakında eklenecek.
-          </p>
-        </div>
+        <SuggestedUsers />
       </aside>
 
       <BottomNav />
