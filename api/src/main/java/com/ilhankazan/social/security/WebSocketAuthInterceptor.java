@@ -55,14 +55,17 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         try {
             Claims claims = jwtTokenProvider.validateToken(jwt);
             String username = claims.getSubject();
+            Long accountId = claims.get("accountId", Long.class);
 
             List<?> rawRoles = claims.get("roles", List.class);
             List<SimpleGrantedAuthority> authorities = rawRoles.stream()
                 .map(role -> new SimpleGrantedAuthority(String.valueOf(role)))
                 .toList();
 
+            CustomUserDetails principal = new CustomUserDetails(accountId, username, authorities);
+
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                username, null, authorities
+                principal, null, authorities
             );
 
             accessor.setUser(authentication);

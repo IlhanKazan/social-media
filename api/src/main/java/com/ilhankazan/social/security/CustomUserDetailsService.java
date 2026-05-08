@@ -27,10 +27,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         var authority = new SimpleGrantedAuthority(account.getRole().getName());
 
-        return new User(
-                account.getUsername(),
-                account.getPassword(),
-                Collections.singleton(authority)
+        return new CustomUserDetails(
+            account.getId(),
+            account.getUsername(),
+            account.getPassword(),
+            Collections.singleton(authority)
         );
     }
 }

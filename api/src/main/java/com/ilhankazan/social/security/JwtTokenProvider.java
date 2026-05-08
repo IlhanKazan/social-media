@@ -26,11 +26,12 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(jwtProps.secret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateAccessToken(String username, List<String> roles) {
+    public String generateAccessToken(String username, Long accountId, List<String> roles) {
         return Jwts.builder()
                 .subject(username)
                 .id(UUID.randomUUID().toString())
                 .claim("roles", roles)
+                .claim("accountId", accountId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProps.accessTtlMs()))
                 .signWith(key, Jwts.SIG.HS256)

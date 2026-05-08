@@ -7,5 +7,6 @@ public enum NotificationType {
     REPLY,
     MENTION,
     REPOST,
-    QUOTE_REPOST
+    QUOTE_REPOST,
+    MODERATION_ALERT
 }

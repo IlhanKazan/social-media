@@ -20,6 +20,8 @@ export function useMessagingWebSocket(activeConversationId?: number) {
 
       if (!isMine && convId === activeConversationId) {
         api.put(`/conversations/${convId}/read`).catch(() => {});
+      } else if (!isMine && convId !== activeConversationId) {
+        queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
       }
 
       queryClient.setQueryData<InfiniteData<PageResponse<MessageResponse>>>(
