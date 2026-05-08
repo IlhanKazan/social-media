@@ -26,7 +26,7 @@ public class Notification {
     private Account recipient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "actor_id", nullable = false)
+    @JoinColumn(name = "actor_id", nullable = true)
     private Account actor;
 
     @Enumerated(EnumType.STRING)

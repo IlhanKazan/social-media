@@ -11,6 +11,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,10 +35,12 @@ public class NotificationManager {
         Long currentId = getCurrentAccountId();
         Page<Notification> notifications;
 
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
         if (unreadOnly) {
-            notifications = notificationService.findUnread(currentId, PageRequest.of(page, size));
+            notifications = notificationService.findUnread(currentId, pageRequest);
         } else {
-            notifications = notificationService.findAll(currentId, PageRequest.of(page, size));
+            notifications = notificationService.findAll(currentId, pageRequest);
         }
 
         return PageResponse.of(notifications.map(this::toResponse));
@@ -69,5 +73,14 @@ public class NotificationManager {
             notification.getReadAt(),
             notification.getCreatedAt()
         );
+    }
+
+    @Transactional
+    public void deleteNotification(Long id) {
+        Notification notification = notificationService.getById(id);
+        if (!notification.getRecipient().getId().equals(getCurrentAccountId())) {
+            throw new AccessDeniedException("Sadece kendi bildirimlerinizi silebilirsiniz.");
+        }
+        notificationService.delete(id);
     }
 }

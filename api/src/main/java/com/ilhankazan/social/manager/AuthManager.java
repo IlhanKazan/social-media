@@ -101,7 +101,7 @@ public class AuthManager {
     private AuthResponse buildInitialAuthResponse(Account account, String ipAddress, String userAgent) {
         UUID familyId = UUID.randomUUID();
         String refreshToken = refreshTokenService.issue(account, familyId, userAgent, ipAddress);
-        String accessToken = jwtTokenProvider.generateAccessToken(account.getUsername(), List.of(account.getRole().getName()));
+        String accessToken = jwtTokenProvider.generateAccessToken(account.getUsername(), account.getId(), List.of(account.getRole().getName()));
 
         return new AuthResponse(
             accessToken,

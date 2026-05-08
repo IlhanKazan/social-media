@@ -56,4 +56,10 @@ public class NotificationController {
         notificationManager.markAllAsRead();
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
+        notificationManager.deleteNotification(id);
+        return ResponseEntity.noContent().build();
+    }
 }

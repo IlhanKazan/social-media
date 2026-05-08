@@ -82,22 +82,27 @@ export interface UpdatePostRequest {
   imageUrl?: string;
 }
 
+export type ModerationStatus = 'PENDING' | 'CLEAN' | 'FLAGGED';
+export type AdminStatus = 'ACTIVE' | 'REMOVED_BY_ADMIN' | 'RESTORED_BY_ADMIN';
+
 export interface PostResponse {
   id: number;
   content: string;
-  imageUrl: string | null;
+  imageUrl?: string;
   author: PublicAccountResponse;
-  parentPostId: number | null;
-  parentPostAuthorUsername: string | null;
-  quotedPost?: PostResponse;
-  likeCount: number;
-  dislikeCount: number;
+  createdAt: string;
+  updatedAt: string;
+  parentPostId?: number;
+  parentPostAuthorUsername?: string;
   replyCount: number;
+  likeCount: number;
   repostCount: number;
   likedByMe: boolean;
-  dislikedByMe: boolean;
   repostedByMe: boolean;
-  createdAt: string;
+  quotedPost?: PostResponse;
+  moderationStatus: ModerationStatus;
+  adminStatus: AdminStatus;
+  isEdited: boolean;
 }
 
 export interface FeedItemResponse {
@@ -115,7 +120,7 @@ export interface CreateQuoteRepostRequest {
 
 // ─── Notification ──────────────────────────────────────────────
 
-export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION';
+export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION' | 'REPOST' | 'QUOTE_REPOST' | 'MODERATION_ALERT';
 
 export interface NotificationResponse {
   id: number;

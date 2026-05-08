@@ -1,15 +1,20 @@
 package com.ilhankazan.social.service;
 
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.entity.ModerationStatus;
 import com.ilhankazan.social.entity.Post;
+import com.ilhankazan.social.event.PostNeedsModerationEvent;
 import com.ilhankazan.social.repository.AccountRepository;
 import com.ilhankazan.social.repository.PostRepository;
 import com.ilhankazan.social.repository.projection.FeedItemProjection;
+import com.ilhankazan.social.security.CustomUserDetails;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,16 +29,17 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final AccountRepository accountRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Post create(Long accountId, String content, String imageUrl, Long parentPostId) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new EntityNotFoundException("Account not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Account not found"));
 
         Post parentPost = null;
         if (parentPostId != null) {
             parentPost = postRepository.findById(parentPostId)
-                    .orElseThrow(() -> new EntityNotFoundException("Parent post not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Parent post not found"));
         }
 
         Post post = new Post();
@@ -42,7 +48,9 @@ public class PostService {
         post.setImageUrl(imageUrl);
         post.setParentPost(parentPost);
 
-        return postRepository.save(post);
+        post = postRepository.save(post);
+        eventPublisher.publishEvent(new PostNeedsModerationEvent(post.getId()));
+        return post;
     }
 
     @Transactional
@@ -52,12 +60,42 @@ public class PostService {
             throw new AccessDeniedException("You can only update your own posts");
         }
 
+        boolean contentChanged = !post.getContent().equals(content);
+
         post.setContent(content);
         if (imageUrl != null) {
             post.setImageUrl(imageUrl);
         }
 
-        return postRepository.save(post);
+        if (contentChanged) {
+            post.setEdited(true);
+            post.setModerationStatus(ModerationStatus.PENDING);
+            post.setModerationAttempts(0);
+            post.setModerationProvider(null);
+            post.setModerationCategories(null);
+            post = postRepository.save(post);
+
+            eventPublisher.publishEvent(new PostNeedsModerationEvent(post.getId()));
+        } else {
+            post = postRepository.save(post);
+        }
+
+        return post;
+    }
+
+    @Transactional(readOnly = true)
+    public Post getById(Long postId) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+
+        if (post.getModerationStatus() == ModerationStatus.FLAGGED) {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (!post.getAccount().getUsername().equals(currentUsername)) {
+                throw new EntityNotFoundException("Post not found");
+            }
+        }
+
+        return post;
     }
 
     @Transactional
@@ -86,14 +124,8 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Post getById(Long postId) {
-        return postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
-    }
-
-    @Transactional(readOnly = true)
     public Page<Post> getProfileFeed(Long accountId, Pageable pageable) {
-        return postRepository.findByAccountIdAndParentPostIsNull(accountId, pageable);
+        return postRepository.findByAccountIdAndParentPostIsNull(accountId, getCurrentUserIdOrNull(), pageable);
     }
 
     @Transactional(readOnly = true)
@@ -113,12 +145,12 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Page<Post> getRepliesByAccount(Long accountId, Pageable pageable) {
-        return postRepository.findRepliesByAccountId(accountId, pageable);
+        return postRepository.findRepliesByAccountId(accountId, getCurrentUserIdOrNull(), pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Post> getLikedPostsByAccount(Long accountId, Pageable pageable) {
-        return postRepository.findLikedPostsByAccountId(accountId, pageable);
+        return postRepository.findLikedPostsByAccountId(accountId, getCurrentUserIdOrNull(), pageable);
     }
 
     @Transactional(readOnly = true)
@@ -145,7 +177,9 @@ public class PostService {
         post.setImageUrl(imageUrl);
         post.setQuotedPost(quotedPost);
 
-        return postRepository.save(post);
+        post = postRepository.save(post);
+        eventPublisher.publishEvent(new PostNeedsModerationEvent(post.getId()));
+        return post;
     }
 
     @Transactional(readOnly = true)
@@ -168,6 +202,49 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Page<FeedItemProjection> getProfileFeedUnion(Long accountId, Pageable pageable) {
-        return postRepository.getProfileFeedUnion(accountId, pageable);
+        return postRepository.getProfileFeedUnion(accountId, getCurrentUserIdOrNull(), pageable);
+    }
+
+    @Transactional
+    public Post updateModerationResult(Long postId, com.ilhankazan.social.entity.ModerationStatus status, String provider, java.util.Map<String, Double> categories) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+        post.setModerationStatus(status);
+        post.setModerationProvider(provider);
+        post.setModerationCategories(categories);
+        post.setModeratedAt(java.time.Instant.now());
+        return postRepository.save(post);
+    }
+
+    @Transactional(readOnly = true)
+    public long countFlaggedPostsSince(java.time.Instant since) {
+        return postRepository.countByModerationStatusAndCreatedAtAfter(com.ilhankazan.social.entity.ModerationStatus.FLAGGED, since);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Post> getPendingPostsOlderThan(java.time.Instant cutoff, int limit) {
+        return postRepository.findPendingPostsOlderThan(cutoff, org.springframework.data.domain.PageRequest.of(0, limit));
+    }
+
+    @Transactional
+    public void handleModerationFailure(Long postId) {
+        Post post = getById(postId);
+        post.setModerationAttempts(post.getModerationAttempts() + 1);
+
+        if (post.getModerationAttempts() >= 3) {
+            post.setModerationStatus(ModerationStatus.CLEAN);
+            post.setModerationProvider("FALLBACK_AUTO_PASS");
+            post.setModeratedAt(java.time.Instant.now());
+        }
+        postRepository.save(post);
+    }
+
+    private Long getCurrentUserIdOrNull() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() &&
+            authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return userDetails.getId();
+        }
+        return null;
     }
 }

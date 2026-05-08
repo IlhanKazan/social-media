@@ -28,7 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
 
         try {
             String jwt = getJwtFromRequest(request);
@@ -41,22 +41,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt)) {
                 Claims claims = jwtTokenProvider.validateToken(jwt);
                 String username = claims.getSubject();
+                Long accountId = claims.get("accountId", Long.class);
 
                 @SuppressWarnings("unchecked")
                 List<String> roles = claims.get("roles", List.class);
 
                 var authorities = roles != null ? roles.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList()) : List.<SimpleGrantedAuthority>of();
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList()) : List.<SimpleGrantedAuthority>of();
+
+                CustomUserDetails principal = new CustomUserDetails(accountId, username, authorities);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        username, null, authorities);
+                    principal, null, authorities);
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            // Do not throw here, let Spring Security handle unauthorized requests
             logger.error("Could not set user authentication in security context", ex);
         }
 

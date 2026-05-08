@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AccountSummary, AuthResponse } from '@/types/api';
 import axios from 'axios';
-import {useNotificationStore} from "@/stores/notification-store.ts";
+import { useNotificationStore } from "@/stores/notification-store.ts";
 
 interface AuthState {
   token: string | null;
@@ -37,8 +37,12 @@ export const useAuthStore = create<AuthState>()(
           } catch {
           }
         }
+
         set({ token: null, refreshToken: null, account: null });
         useNotificationStore.getState().reset();
+
+        localStorage.removeItem('auth-storage');
+        window.location.href = '/login';
       },
       tryRefresh: async () => {
         const currentRefresh = get().refreshToken;
@@ -56,6 +60,7 @@ export const useAuthStore = create<AuthState>()(
           return true;
         } catch {
           set({ token: null, refreshToken: null, account: null });
+          localStorage.removeItem('auth-storage');
           return false;
         }
       },

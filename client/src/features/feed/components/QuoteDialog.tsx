@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { PostResponse } from '@/types/api';
 
 interface QuoteDialogProps {
   post: PostResponse;
-  trigger: React.ReactElement;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function QuoteDialog({ post, trigger }: QuoteDialogProps) {
-  const [open, setOpen] = useState(false);
+export function QuoteDialog({ post, open, onOpenChange }: QuoteDialogProps) {
   const [content, setContent] = useState('');
   const queryClient = useQueryClient();
 
@@ -26,11 +26,12 @@ export function QuoteDialog({ post, trigger }: QuoteDialogProps) {
       return data;
     },
     onSuccess: () => {
-      setOpen(false);
       setContent('');
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
       toast.success('Alıntı paylaşıldı');
+      setContent('');
+      onOpenChange(false);
     },
   });
 
@@ -40,19 +41,17 @@ export function QuoteDialog({ post, trigger }: QuoteDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Alıntı ile Paylaş</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 mt-2">
           <Textarea
-            placeholder="Düşüncelerini ekle..."
+            placeholder="Alıntıya düşüncelerini ekle..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="resize-none border-0 focus-visible:ring-0 p-0 text-base"
-            rows={4}
+            className="min-h-[100px] mt-4 p-4 text-base resize-none border-none focus-visible:ring-0"
           />
           <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 opacity-70 pointer-events-none">
             <div className="flex items-center gap-2 mb-1">

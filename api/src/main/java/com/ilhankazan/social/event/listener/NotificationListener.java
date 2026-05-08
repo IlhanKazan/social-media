@@ -1,14 +1,12 @@
 package com.ilhankazan.social.event.listener;
 
+import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.notification.NotificationResponse;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Notification;
 import com.ilhankazan.social.entity.NotificationType;
 import com.ilhankazan.social.entity.Post;
-import com.ilhankazan.social.event.FollowCreatedEvent;
-import com.ilhankazan.social.event.InteractionCreatedEvent;
-import com.ilhankazan.social.event.PostCreatedEvent;
-import com.ilhankazan.social.event.RepostCreatedEvent;
+import com.ilhankazan.social.event.*;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.NotificationService;
@@ -102,6 +100,22 @@ public class NotificationListener {
         pushToWebSocket(notification);
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleModerationDecided(PostModerationDecidedEvent event) {
+        if (event.status() == com.ilhankazan.social.entity.ModerationStatus.FLAGGED) {
+            Account author = accountService.getAccount(event.authorUsername());
+
+            Notification notification = notificationService.create(
+                author.getId(),
+                null,
+                NotificationType.MODERATION_ALERT,
+                event.postId()
+            );
+
+            pushToWebSocket(notification);
+        }
+    }
+
     private void handleMentions(String content, Long actorId, Long referenceId) {
         if (content == null) return;
         Matcher matcher = MENTION_PATTERN.matcher(content);
@@ -126,9 +140,14 @@ public class NotificationListener {
     private void pushToWebSocket(Notification notification) {
         if (notification == null) return;
 
+        PublicAccountResponse actorResponse = null;
+        if (notification.getActor() != null) {
+            actorResponse = accountMapper.toPublicResponseNoFollow(notification.getActor());
+        }
+
         NotificationResponse response = new NotificationResponse(
             notification.getId(),
-            accountMapper.toPublicResponseNoFollow(notification.getActor()),
+            actorResponse,
             notification.getType().name(),
             notification.getReferenceId(),
             notification.getReadAt(),

@@ -89,6 +89,7 @@ public class RefreshTokenService {
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(
             existing.getAccount().getUsername(),
+            existing.getAccount().getId(),
             List.of(existing.getAccount().getRole().getName())
         );
 

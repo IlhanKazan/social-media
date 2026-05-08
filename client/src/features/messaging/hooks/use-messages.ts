@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { CursorPageResponse, MessageResponse } from '@/types/api';
 
@@ -31,6 +31,18 @@ export function useMarkMessagesRead() {
     onSuccess: (_, conversationId) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
     },
+  });
+}
+
+export function useUnreadMessageCount() {
+  return useQuery({
+    queryKey: ['messages', 'unread-count'],
+    queryFn: async () => {
+      const { data } = await api.get<number>('/conversations/unread-count');
+      return data;
+    },
+    refetchInterval: 30000,
   });
 }

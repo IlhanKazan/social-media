@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { formatDistanceToNow, formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2 } from 'lucide-react';
+import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2, Flag } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EditPostDialog } from '@/features/post/components/EditPostDialog';
@@ -13,7 +13,9 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Card, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
+import { ReportDialog } from './ReportDialog'
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import type { PostResponse, PublicAccountResponse } from '@/types/api';
+import type {PostResponse, PublicAccountResponse} from '@/types/api';
 
 interface PostCardProps {
   readonly post: PostResponse;
@@ -31,6 +33,8 @@ interface PostCardProps {
 
 export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const account = useAuthStore((state) => state.account);
@@ -83,7 +87,9 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
                   if (actualPost.id === post.id) {
                     const updatedPost = {
                       ...actualPost,
-                      likeCount: actualPost.likedByMe ? actualPost.likeCount - 1 : actualPost.likeCount + 1,
+                      likeCount: actualPost.likedByMe
+                        ? Math.max(0, actualPost.likeCount - 1)
+                        : actualPost.likeCount + 1,
                       likedByMe: !actualPost.likedByMe,
                     };
                     return isFeedItem ? { ...item, post: updatedPost } : updatedPost;
@@ -100,7 +106,9 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
         if (!old) return old;
         return {
           ...old,
-          likeCount: old.likedByMe ? old.likeCount - 1 : old.likeCount + 1,
+          likeCount: old.likedByMe
+            ? Math.max(0, old.likeCount - 1)
+            : old.likeCount + 1,
           likedByMe: !old.likedByMe,
         };
       });
@@ -209,42 +217,66 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
                     <span className="text-muted-foreground text-[15px] shrink-0 whitespace-nowrap">
                       {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: tr })}
                     </span>
+
+                    {post.isEdited === true && (
+                      <span className="text-muted-foreground text-xs italic shrink-0 whitespace-nowrap">
+                        (Düzenlendi)
+                      </span>
+                    )}
                   </div>
 
-                  {isMine && (
-                    <div className="shrink-0 z-20" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={
-                          <Button variant="ghost" size="icon-sm" className="h-8 w-8 text-muted-foreground rounded-full hover:bg-primary/10 hover:text-primary -mt-1 transition-colors" />
-                        }>
-                          <MoreHorizontal className="h-5 w-5" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem
-                            className="cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsEditOpen(true);
-                            }}
-                          >
-                            <Edit2 className="mr-2 h-4 w-4" />
-                            <span>Düzenle</span>
-                          </DropdownMenuItem>
+                  <div className="flex items-center gap-2 ml-auto shrink-0 z-20" onClick={(e) => e.stopPropagation()}>
+                    {isMine && post.moderationStatus === 'FLAGGED' && (
+                      <Badge variant="destructive" className="h-5 text-[10px] pointer-events-none">
+                        İhlal: Gizlendi
+                      </Badge>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={
+                        <Button variant="ghost" size="icon-sm" className="h-8 w-8 text-muted-foreground rounded-full hover:bg-primary/10 hover:text-primary -mt-1 transition-colors" />
+                      }>
+                        <MoreHorizontal className="h-5 w-5" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
+                        {isMine ? (
+                          <>
+                            <DropdownMenuItem
+                              className="cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsEditOpen(true);
+                              }}
+                            >
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              <span>Düzenle</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteMutation.mutate();
+                              }}
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>{deleteMutation.isPending ? 'Siliniyor...' : 'Sil'}</span>
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteMutation.mutate();
+                              setIsReportOpen(true);
                             }}
-                            disabled={deleteMutation.isPending}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>{deleteMutation.isPending ? 'Siliniyor...' : 'Sil'}</span>
+                            <Flag className="mr-2 h-4 w-4" />
+                            <span>Bildir</span>
                           </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  )}
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 <div className="mt-1">
@@ -363,18 +395,16 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
                       <span>{post.repostedByMe ? 'Repostu Geri Al' : 'Repost'}</span>
                     </DropdownMenuItem>
 
-                    <QuoteDialog
-                      post={post}
-                      trigger={
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onSelect={(e) => e.preventDefault()}
-                        >
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          <span>Alıntı ile Paylaş</span>
-                        </DropdownMenuItem>
-                      }
-                    />
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsQuoteOpen(true);
+                      }}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Alıntı ile Paylaş</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -401,6 +431,8 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
       </article>
 
       <EditPostDialog post={post} open={isEditOpen} onOpenChange={setIsEditOpen} />
+      <ReportDialog postId={post.id} open={isReportOpen} onOpenChange={setIsReportOpen} />
+      <QuoteDialog post={post} open={isQuoteOpen} onOpenChange={setIsQuoteOpen} />
     </>
   );
 }

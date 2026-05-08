@@ -53,3 +53,20 @@ app:
     resend-api-key: ${RESEND_API_KEY:}
     daily-cap: ${EMAIL_DAILY_CAP:90}
     monthly-cap: ${EMAIL_MONTHLY_CAP:2800}
+  moderation:
+    enabled: ${MODERATION_ENABLED:true}
+    openai-api-key: ${OPENAI_API_KEY:}
+    threshold-default: 0.7
+    thresholds:
+      hate: 0.5
+      hate/threatening: 0.5
+      harassment: 0.6
+      harassment/threatening: 0.5
+      self-harm: 0.5
+      self-harm/intent: 0.5
+      self-harm/instructions: 0.5
+      sexual: 0.7
+      sexual/minors: 0.0
+      violence: 0.7
+      violence/graphic: 0.6
+    blocked-terms-path: "api/bad-words.txt"

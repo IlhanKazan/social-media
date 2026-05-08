@@ -35,8 +35,10 @@ public class NotificationService {
         Account recipient = accountRepository.findById(recipientId)
             .orElseThrow(() -> new EntityNotFoundException("Recipient not found"));
 
-        Account actor = accountRepository.findById(actorId)
-            .orElseThrow(() -> new EntityNotFoundException("Actor not found"));
+        Account actor = null;
+        if (actorId != null) {
+            actor = accountRepository.findById(actorId).orElse(null);
+        }
 
         Notification notification = new Notification();
         notification.setRecipient(recipient);
@@ -78,5 +80,16 @@ public class NotificationService {
 
         notification.setReadAt(Instant.now());
         notificationRepository.save(notification);
+    }
+
+    @Transactional(readOnly = true)
+    public Notification getById(Long id) {
+        return notificationRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        notificationRepository.deleteById(id);
     }
 }
