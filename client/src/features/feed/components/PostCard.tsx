@@ -192,7 +192,7 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
 
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2 w-full">
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1 z-10">
+                  <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0 flex-1 z-10">
                     <Link
                       to={`/u/${post.author.username}`}
                       className="font-bold hover:underline truncate text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
@@ -357,7 +357,7 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
           </CardHeader>
 
           <CardFooter className="p-0 pl-[3.5rem] pb-2 bg-transparent border-t-0">
-            <div className="flex items-center gap-8 w-full max-w-md text-muted-foreground">
+            <div className="flex items-center justify-start gap-4 sm:gap-8 w-full max-w-md text-muted-foreground">
 
               <Button
                 variant="ghost"
