@@ -73,4 +73,10 @@ public class MessageController {
         messageManager.markAsRead(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Get total unread message count", description = "Returns the total number of unread messages across all conversations.")
+    @GetMapping("/unread-count")
+    public ResponseEntity<Integer> getUnreadCount() {
+        return ResponseEntity.ok(messageManager.getTotalUnreadCount());
+    }
 }

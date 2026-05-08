@@ -178,4 +178,9 @@ public class MessageManager {
             hasMore
         );
     }
+
+    @Transactional(readOnly = true)
+    public int getTotalUnreadCount() {
+        return messageService.countTotalUnread(getCurrentAccount().getId());
+    }
 }

@@ -4,19 +4,21 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import {useUnreadMessageCount} from "@/features/messaging/hooks/use-messages.ts";
 
 export function Sidebar() {
   const account = useAuthStore((state) => state.account);
   const logout = useAuthStore((state) => state.logout);
 
   const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const { data: unreadMessageCount = 0 } = useUnreadMessageCount();
 
   const navItems = [
     { name: 'Akış', to: '/', icon: Home },
     { name: 'Ara', to: '/search', icon: Search },
     { name: 'Keşfet', to: '/explore', icon: Compass },
     { name: 'Bildirimler', to: '/notifications', icon: Bell, badge: unreadCount },
-    { name: 'Mesajlar', to: '/messages', icon: Mail },
+    { name: 'Mesajlar', to: '/messages', icon: Mail, badge: unreadMessageCount },
     { name: 'Profil', to: `/u/${account?.username}`, icon: User },
     { name: 'Ayarlar', to: '/settings', icon: Settings },
   ];
