@@ -69,4 +69,12 @@ public class FollowController {
     public ResponseEntity<FollowStatusResponse> isFollowing(@PathVariable Long accountId) {
         return ResponseEntity.ok(followManager.isFollowing(accountId));
     }
+
+    @Operation(summary = "Remove a follower", description = "Forces the target account to unfollow the current user.")
+    @ApiResponse(responseCode = "204", description = "Follower successfully removed")
+    @DeleteMapping("/remove/{followerId}")
+    public ResponseEntity<Void> removeFollower(@PathVariable Long followerId) {
+        followManager.removeFollower(followerId);
+        return ResponseEntity.noContent().build();
+    }
 }
