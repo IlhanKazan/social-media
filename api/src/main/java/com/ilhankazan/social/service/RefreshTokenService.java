@@ -107,4 +107,14 @@ public class RefreshTokenService {
     public void revokeAllForAccount(Long accountId) {
         refreshTokenRepository.revokeByAccountId(accountId);
     }
+
+    @Transactional(readOnly = true)
+    public long countActiveSessions() {
+        return refreshTokenRepository.countByRevokedAtIsNullAndExpiresAtAfter(Instant.now());
+    }
+
+    @Transactional(readOnly = true)
+    public int countActiveSessionsForAccount(Long accountId) {
+        return refreshTokenRepository.countActiveSessions(accountId);
+    }
 }

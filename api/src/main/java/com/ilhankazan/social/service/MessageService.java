@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
+
 import java.util.List;
 
 @Service
@@ -22,7 +24,7 @@ public class MessageService {
         Message message = new Message();
         message.setConversation(conversation);
         message.setSender(sender);
-        message.setContent(content);
+        message.setContent(HtmlUtils.htmlEscape(content));
         return messageRepository.save(message);
     }
 

@@ -1,5 +1,7 @@
 package com.ilhankazan.social.security;
 
+import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -25,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final AccountService accountService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -42,6 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = jwtTokenProvider.validateToken(jwt);
                 String username = claims.getSubject();
                 Long accountId = claims.get("accountId", Long.class);
+
+                if (accountService.isAccountBanned(accountId)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("Your account has been suspended.");
+                    return;
+                }
 
                 @SuppressWarnings("unchecked")
                 List<String> roles = claims.get("roles", List.class);

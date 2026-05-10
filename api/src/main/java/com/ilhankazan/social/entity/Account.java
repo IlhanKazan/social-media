@@ -49,4 +49,14 @@ public class Account extends BaseEntity {
 
     @Column(name = "email_verified_at")
     private Instant emailVerifiedAt;
+
+    @Column(name = "banned_at")
+    private Instant bannedAt;
+
+    @Column(name = "banned_reason", length = 500)
+    private String bannedReason;
+
+    public boolean isBanned() {
+        return bannedAt != null;
+    }
 }

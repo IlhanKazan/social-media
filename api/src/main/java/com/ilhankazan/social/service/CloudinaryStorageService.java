@@ -3,6 +3,7 @@ package com.ilhankazan.social.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CloudinaryStorageService {
 
@@ -41,6 +43,20 @@ public class CloudinaryStorageService {
             return uploadResult.get("secure_url").toString();
         } catch (IOException e) {
             throw new RuntimeException("Dosya yükleme başarısız", e);
+        }
+    }
+
+    public void deleteFileByUrl(String imageUrl) {
+        if (imageUrl == null || !imageUrl.contains("res.cloudinary.com")) return;
+
+        try {
+            String[] parts = imageUrl.split("/");
+            String folderAndFile = parts[parts.length - 2] + "/" + parts[parts.length - 1];
+            String publicId = "social/" + folderAndFile.substring(0, folderAndFile.lastIndexOf('.'));
+
+            cloudinary.uploader().destroy(publicId, com.cloudinary.utils.ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            log.error("Failed to delete image from Cloudinary: {}", imageUrl, e);
         }
     }
 }

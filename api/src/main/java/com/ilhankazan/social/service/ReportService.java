@@ -4,7 +4,10 @@ import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.entity.Report;
 import com.ilhankazan.social.repository.ReportRepository;
+import com.ilhankazan.social.repository.projection.ReportGroupProjection;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,5 +35,19 @@ public class ReportService {
     @Transactional(readOnly = true)
     public List<Report> getReportsByReporterId(Long reporterId) {
         return reportRepository.findByReporterIdOrderByCreatedAtDesc(reporterId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReportGroupProjection> getOpenReportsGrouped(Pageable pageable) {
+        return reportRepository.findOpenReportsGrouped(pageable);
+    }
+
+    @Transactional
+    public void resolveReportsForPost(Long postId, String resolution, Long adminId) {
+        reportRepository.resolveAllByPostId(postId, resolution, adminId);
+    }
+
+    public long countOpenReports(){
+        return reportRepository.countByResolvedAtIsNull();
     }
 }

@@ -101,4 +101,19 @@ public class AccountService {
         }
         return accountRepository.findAllById(accountIds);
     }
+
+    @Transactional(readOnly = true)
+    public boolean isAccountBanned(Long accountId) {
+        return accountRepository.existsByIdAndBannedAtIsNotNull(accountId);
+    }
+
+    @Transactional(readOnly = true)
+    public long countTotalAccounts() {
+        return accountRepository.count();
+    }
+
+    @Transactional(readOnly = true)
+    public long countBannedAccounts() {
+        return accountRepository.countByBannedAtIsNotNull();
+    }
 }

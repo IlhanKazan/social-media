@@ -1,6 +1,7 @@
 package com.ilhankazan.social.service;
 
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.entity.AdminStatus;
 import com.ilhankazan.social.entity.ModerationStatus;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.PostNeedsModerationEvent;
@@ -17,10 +18,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 import java.util.Map;
-
 import static java.util.stream.Collectors.toMap;
 
 @Service
@@ -44,7 +45,7 @@ public class PostService {
 
         Post post = new Post();
         post.setAccount(account);
-        post.setContent(content);
+        post.setContent(HtmlUtils.htmlEscape(content));
         post.setImageUrl(imageUrl);
         post.setParentPost(parentPost);
 
@@ -60,9 +61,9 @@ public class PostService {
             throw new AccessDeniedException("You can only update your own posts");
         }
 
-        boolean contentChanged = !post.getContent().equals(content);
-
-        post.setContent(content);
+        String safeContent = HtmlUtils.htmlEscape(content);
+        boolean contentChanged = !post.getContent().equals(safeContent);
+        post.setContent(safeContent);
         if (imageUrl != null) {
             post.setImageUrl(imageUrl);
         }
@@ -173,7 +174,7 @@ public class PostService {
 
         Post post = new Post();
         post.setAccount(account);
-        post.setContent(content == null ? "" : content);
+        post.setContent(content == null ? "" : HtmlUtils.htmlEscape(content));
         post.setImageUrl(imageUrl);
         post.setQuotedPost(quotedPost);
 
@@ -246,5 +247,44 @@ public class PostService {
             return userDetails.getId();
         }
         return null;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Post> getModerationQueue(Pageable pageable) {
+        return postRepository.findByModerationStatusAndAdminStatusAndDeletedAtIsNull(
+            ModerationStatus.FLAGGED,
+            AdminStatus.ACTIVE,
+            pageable
+        );
+    }
+
+    @Transactional
+    public Post updateAdminAndModerationStatus(Long postId, AdminStatus adminStatus, ModerationStatus modStatus) {
+        Post post = getById(postId);
+        post.setAdminStatus(adminStatus);
+        if (modStatus != null) {
+            post.setModerationStatus(modStatus);
+        }
+        return postRepository.save(post);
+    }
+
+    @Transactional(readOnly = true)
+    public long countTotalPosts() {
+        return postRepository.count();
+    }
+
+    @Transactional(readOnly = true)
+    public long countByModerationStatus(ModerationStatus status, java.time.Instant since) {
+        return postRepository.countByModerationStatusAndCreatedAtAfter(status, since);
+    }
+
+    @Transactional(readOnly = true)
+    public long countByAdminStatus(AdminStatus status) {
+        return postRepository.countByAdminStatus(status);
+    }
+
+    @Transactional(readOnly = true)
+    public long countPostsByAccountId(Long accountId) {
+        return postRepository.countByAccountIdAndDeletedAtIsNull(accountId);
     }
 }
