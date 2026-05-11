@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -36,6 +37,7 @@ public class AdminModerationManager {
     private final ReportService reportService;
     private final AdminUserManager adminUserManager;
 
+    @Transactional(readOnly = true)
     public PageResponse<PostResponse> getModerationQueue(int page, int size) {
         Page<Post> flaggedPosts = postService.getModerationQueue(
             PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"))
@@ -46,6 +48,7 @@ public class AdminModerationManager {
         ));
     }
 
+    @Transactional
     public void approvePost(Long postId) {
         Post post = postService.updateAdminAndModerationStatus(postId, AdminStatus.RESTORED_BY_ADMIN, ModerationStatus.CLEAN);
 
@@ -54,6 +57,7 @@ public class AdminModerationManager {
         eventPublisher.publishEvent(new PostModerationDecidedEvent(postId, post.getAccount().getUsername(), ModerationStatus.CLEAN));
     }
 
+    @Transactional
     public void removePost(Long postId) {
         Post post = postService.updateAdminAndModerationStatus(postId, AdminStatus.REMOVED_BY_ADMIN, null);
 
@@ -62,11 +66,13 @@ public class AdminModerationManager {
         eventPublisher.publishEvent(new PostModerationDecidedEvent(postId, post.getAccount().getUsername(), ModerationStatus.FLAGGED));
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<ReportGroupProjection> getGroupedReports(int page, int size) {
         Page<ReportGroupProjection> reports = reportService.getOpenReportsGrouped(PageRequest.of(page, size));
         return PageResponse.of(reports);
     }
 
+    @Transactional
     public void resolveReport(Long postId, String resolution, boolean removePost, boolean banUser) {
         String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         Long adminId = accountService.getAccount(adminUsername).getId();

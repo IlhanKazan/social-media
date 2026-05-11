@@ -15,10 +15,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class PostService {
 
         Post post = new Post();
         post.setAccount(account);
-        post.setContent(HtmlUtils.htmlEscape(content));
+        post.setContent(content);
         post.setImageUrl(imageUrl);
         post.setParentPost(parentPost);
 
@@ -61,9 +61,9 @@ public class PostService {
             throw new AccessDeniedException("You can only update your own posts");
         }
 
-        String safeContent = HtmlUtils.htmlEscape(content);
-        boolean contentChanged = !post.getContent().equals(safeContent);
-        post.setContent(safeContent);
+        boolean contentChanged = !post.getContent().equals(content);
+
+        post.setContent(content);
         if (imageUrl != null) {
             post.setImageUrl(imageUrl);
         }
@@ -90,8 +90,13 @@ public class PostService {
             .orElseThrow(() -> new EntityNotFoundException("Post not found"));
 
         if (post.getModerationStatus() == ModerationStatus.FLAGGED) {
-            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-            if (!post.getAccount().getUsername().equals(currentUsername)) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentUsername = authentication.getName();
+
+            boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin && !post.getAccount().getUsername().equals(currentUsername)) {
                 throw new EntityNotFoundException("Post not found");
             }
         }
@@ -174,7 +179,7 @@ public class PostService {
 
         Post post = new Post();
         post.setAccount(account);
-        post.setContent(content == null ? "" : HtmlUtils.htmlEscape(content));
+        post.setContent(content == null ? "" : content);
         post.setImageUrl(imageUrl);
         post.setQuotedPost(quotedPost);
 

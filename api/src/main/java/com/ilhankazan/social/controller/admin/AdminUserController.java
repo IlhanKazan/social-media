@@ -2,6 +2,7 @@ package com.ilhankazan.social.controller.admin;
 
 import com.ilhankazan.social.dto.admin.AdminAccountResponse;
 import com.ilhankazan.social.dto.admin.AdminUserDetailResponse;
+import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.manager.AdminUserManager;
 import com.ilhankazan.social.security.RateLimit;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,14 @@ public class AdminUserController {
     private final AdminUserManager adminUserManager;
 
     @GetMapping
-    public ResponseEntity<Page<AdminAccountResponse>> getUsers(
+    public ResponseEntity<PageResponse<AdminAccountResponse>> getUsers(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size,
-        @RequestParam(required = false) String q,
+        @RequestParam(required = false) String search,
         @RequestParam(required = false, defaultValue = "all") String status,
         @RequestParam(required = false) Boolean verified,
         @RequestParam(required = false) String role) {
-        return ResponseEntity.ok(adminUserManager.getUsers(page, size, q, status, verified, role));
+        return ResponseEntity.ok(adminUserManager.getUsers(page, size, search, status, verified, role));
     }
 
     @GetMapping("/{id}")

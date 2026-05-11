@@ -2,6 +2,7 @@ package com.ilhankazan.social.manager;
 
 import com.ilhankazan.social.dto.admin.AdminAccountResponse;
 import com.ilhankazan.social.dto.admin.AdminUserDetailResponse;
+import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.event.UserBannedEvent;
 import com.ilhankazan.social.mapper.AdminAccountMapper;
@@ -34,13 +35,15 @@ public class AdminUserManager {
     private final AdminAccountMapper adminAccountMapper;
 
     @Transactional(readOnly = true)
-    public Page<AdminAccountResponse> getUsers(int page, int size, String search, String status, Boolean verified, String role) {
-        return adminUserService.getUsers(page, size, search, status, verified, role)
+    public PageResponse<AdminAccountResponse> getUsers(int page, int size, String search, String status, Boolean verified, String role) {
+        Page<AdminAccountResponse> accountPage = adminUserService.getUsers(page, size, search, status, verified, role)
             .map(account -> {
                 Instant lastLogin = loginHistoryService.getLastLoginDate(account.getId());
                 long postCount = postService.countPostsByAccountId(account.getId());
                 return adminAccountMapper.toResponse(account, lastLogin, postCount);
             });
+
+        return PageResponse.of(accountPage);
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +54,7 @@ public class AdminUserManager {
         long postCount = postService.countPostsByAccountId(account.getId());
 
         var recentLogins = loginHistoryService.getRecentLogins(accountId, 10)
-            .stream().map(AdminUserDetailResponse.LoginHistoryDto::from).toList(); // Not: İç içe DTO'lar için küçük statik .from metodları kabul edilebilir ama istersen buna da mapper açarız.
+            .stream().map(AdminUserDetailResponse.LoginHistoryDto::from).toList();
 
         var recentAudits = adminAuditManager.getRecentTargetAuditsDto(accountId, "ACCOUNT", 10);
         int sessionCount = refreshTokenService.countActiveSessionsForAccount(accountId);
@@ -99,7 +102,7 @@ public class AdminUserManager {
     @Transactional
     public void resetPassword(Long accountId) {
         Account target = adminUserService.getUserById(accountId);
-        authManager.requestPasswordReset(target.getEmail(), "ADMIN_INITIATED");
+        authManager.requestPasswordReset(target.getEmail(), "127.0.0.1");
         adminAuditManager.logAction("ADMIN_INITIATED_RESET", "ACCOUNT", accountId, null);
     }
 

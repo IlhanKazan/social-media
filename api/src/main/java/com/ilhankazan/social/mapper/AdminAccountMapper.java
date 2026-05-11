@@ -11,7 +11,9 @@ import java.time.Instant;
 public interface AdminAccountMapper {
 
     @Mapping(target = "role", source = "account.role.name")
+    @Mapping(target = "joinedAt", source = "account.createdAt")
     @Mapping(target = "lastLoginAt", source = "lastLogin")
     @Mapping(target = "postCount", source = "postCount")
+    @Mapping(target = "isBanned", source = "account.banned")
     AdminAccountResponse toResponse(Account account, Instant lastLogin, long postCount);
 }

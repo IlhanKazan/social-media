@@ -38,12 +38,17 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Page<Account> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email, Pageable pageable);
 
     @Query("SELECT a FROM Account a WHERE " +
-        "(:search IS NULL OR LOWER(a.username) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(a.email) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+        "(:search IS NULL OR LOWER(a.username) LIKE :search OR LOWER(a.email) LIKE :search) AND " +
         "(:status IS NULL OR :status = 'all' OR (:status = 'banned' AND a.bannedAt IS NOT NULL) OR (:status = 'active' AND a.bannedAt IS NULL)) AND " +
         "(:verified IS NULL OR a.emailVerified = :verified) AND " +
         "(:roleName IS NULL OR a.role.name = :roleName)")
-    Page<Account> findAdminUsers(@Param("search") String search, @Param("status") String status, @Param("verified") Boolean verified, @Param("roleName") String roleName, Pageable pageable);
-
+    Page<Account> findAdminUsers(
+        @Param("search") String search,
+        @Param("status") String status,
+        @Param("verified") Boolean verified,
+        @Param("roleName") String roleName,
+        Pageable pageable
+    );
     boolean existsByIdAndBannedAtIsNotNull(Long id);
 
     long countByBannedAtIsNotNull();

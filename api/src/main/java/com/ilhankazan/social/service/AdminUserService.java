@@ -23,9 +23,12 @@ public class AdminUserService {
 
     @Transactional(readOnly = true)
     public Page<Account> getUsers(int page, int size, String search, String status, Boolean verified, String role) {
+        String searchParam = (search != null && !search.trim().isEmpty())
+            ? "%" + search.toLowerCase() + "%"
+            : null;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         String roleName = role != null && !role.isEmpty() ? "ROLE_" + role.toUpperCase() : null;
-        return accountRepository.findAdminUsers(search, status, verified, roleName, pageRequest);
+        return accountRepository.findAdminUsers(searchParam, status, verified, roleName, pageRequest);
     }
 
     @Transactional(readOnly = true)
