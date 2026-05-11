@@ -854,7 +854,7 @@ registration, kill sessions, and review reports + audit log. Frontend route
 `/admin`, protected by `ROLE_ADMIN`. Backend endpoints under `/api/v1/admin/*`,
 gated by `@PreAuthorize("hasRole('ADMIN')")`.
 
-### [ ] 26.1 System settings + role bootstrapping
+### [x] 26.1 System settings + role bootstrapping
 
 - Migration `V<n>__system_settings.sql`:
   ```sql
@@ -875,7 +875,7 @@ gated by `@PreAuthorize("hasRole('ADMIN')")`.
 - `SecurityConfig` plus `AuthManager.register(...)` consult `registration_enabled` — if `false`, reject with 403 + a message.
 - A bootstrap admin: a one-shot Flyway `R__bootstrap_admin.sql` (repeatable) is wrong because we don't want to silently grant admin in prod. Instead, ship a dedicated `cli` command via a `CommandLineRunner` activated only when `--promote-admin=<username>` is passed. Document in README. Local dev: a seed user (Phase 27) is auto-promoted.
 
-### [ ] 26.2 Admin user management
+### [x] 26.2 Admin user management
 
 Endpoints under `/api/v1/admin/users`:
 
@@ -896,7 +896,7 @@ ALTER TABLE accounts
 
 A banned user's posts are filtered out of public feeds (extend the visibility predicate). `JwtAuthenticationFilter` rejects requests from banned users with 403 (so even valid access tokens stop working immediately).
 
-### [ ] 26.3 Admin moderation queue + reports
+### [x] 26.3 Admin moderation queue + reports
 
 - `GET /api/v1/admin/moderation-queue` — posts with `moderation_status='FLAGGED' AND admin_status='ACTIVE'`, ordered oldest-first. Paginated.
 - `GET /api/v1/admin/reports?status=open|resolved` — paginated reports. Group by post — show `(postId, reportCount, latestReportedAt)` so admins triage by "most reported" first.
@@ -904,14 +904,14 @@ A banned user's posts are filtered out of public feeds (extend the visibility pr
 - `POST /api/v1/admin/posts/{id}/remove` — set `admin_status='REMOVED_BY_ADMIN'`. Audit `POST_REMOVED_BY_ADMIN`. Push `POST_REMOVED` on `/topic/feed`. Notify the author via `/user/{username}/queue/notifications`: "Your post was removed for violating community guidelines."
 - `POST /api/v1/admin/reports/{id}/resolve` — body `{ resolution, removePost?: boolean, banUser?: boolean }`. One call covers the common workflows.
 
-### [ ] 26.4 Admin system controls
+### [x] 26.4 Admin system controls
 
 - `GET /api/v1/admin/settings` — current `system_settings` snapshot.
 - `PUT /api/v1/admin/settings/{key}` — update one setting. Audit `SETTING_CHANGED` with key + old/new value in metadata.
 - `GET /api/v1/admin/metrics` — counts: users (total / active 24h / banned), posts (total / today / flagged / removed), open reports, refresh-token families (active), email outbox (pending / sent today / failed).
 - `GET /api/v1/admin/audit-log?action=&actorId=&targetType=&targetId=&page=&size=` — full filtered audit log access.
 
-### [ ] 26.5 Frontend `/admin`
+### [x] 26.5 Frontend `/admin`
 
 - New route `/admin`, gated by a `<RequireAdmin>` wrapper that 403s if `user.role !== 'ROLE_ADMIN'`.
 - Sidebar with sections: Dashboard, Moderation Queue, Reports, Users, Audit Log, System.
