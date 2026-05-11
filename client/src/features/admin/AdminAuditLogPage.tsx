@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Activity, Loader2, Search, FilterX } from 'lucide-react';
+import { Loader2, FilterX } from 'lucide-react';
 import { useAuditLog } from './hooks/use-audit-log';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -35,7 +35,6 @@ export function AdminAuditLogPage() {
 
   const logs = data?.pages.flatMap(p => p.content) || [];
 
-  // LINTER ÇÖZÜMÜ: İç içe ternary yerine bağımsız render bloğu
   const renderTableContent = () => {
     if (isLoading) {
       return (
@@ -58,9 +57,7 @@ export function AdminAuditLogPage() {
     }
 
     return logs.map((log) => {
-      // BACKEND TİP ÇÖZÜMÜ: Backend'den actorUsername ya da actor.username gelebilir. İkisini de yakala.
-      // EĞER type hatası verirse use-audit-log.ts içindeki arayüze (actor?: { username: string }) ekle.
-      const username = log.actorUsername || log.actor?.username;
+      const username = log.actorUsername || 'Sistem';
 
       return (
         <tr key={log.id} className="hover:bg-muted/30 transition-colors">
