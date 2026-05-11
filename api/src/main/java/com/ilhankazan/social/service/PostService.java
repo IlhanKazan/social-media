@@ -1,6 +1,7 @@
 package com.ilhankazan.social.service;
 
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.entity.AdminStatus;
 import com.ilhankazan.social.entity.ModerationStatus;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.PostNeedsModerationEvent;
@@ -14,13 +15,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-
 import static java.util.stream.Collectors.toMap;
 
 @Service
@@ -89,8 +90,13 @@ public class PostService {
             .orElseThrow(() -> new EntityNotFoundException("Post not found"));
 
         if (post.getModerationStatus() == ModerationStatus.FLAGGED) {
-            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-            if (!post.getAccount().getUsername().equals(currentUsername)) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentUsername = authentication.getName();
+
+            boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin && !post.getAccount().getUsername().equals(currentUsername)) {
                 throw new EntityNotFoundException("Post not found");
             }
         }
@@ -246,5 +252,44 @@ public class PostService {
             return userDetails.getId();
         }
         return null;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Post> getModerationQueue(Pageable pageable) {
+        return postRepository.findByModerationStatusAndAdminStatusAndDeletedAtIsNull(
+            ModerationStatus.FLAGGED,
+            AdminStatus.ACTIVE,
+            pageable
+        );
+    }
+
+    @Transactional
+    public Post updateAdminAndModerationStatus(Long postId, AdminStatus adminStatus, ModerationStatus modStatus) {
+        Post post = getById(postId);
+        post.setAdminStatus(adminStatus);
+        if (modStatus != null) {
+            post.setModerationStatus(modStatus);
+        }
+        return postRepository.save(post);
+    }
+
+    @Transactional(readOnly = true)
+    public long countTotalPosts() {
+        return postRepository.count();
+    }
+
+    @Transactional(readOnly = true)
+    public long countByModerationStatus(ModerationStatus status, java.time.Instant since) {
+        return postRepository.countByModerationStatusAndCreatedAtAfter(status, since);
+    }
+
+    @Transactional(readOnly = true)
+    public long countByAdminStatus(AdminStatus status) {
+        return postRepository.countByAdminStatus(status);
+    }
+
+    @Transactional(readOnly = true)
+    public long countPostsByAccountId(Long accountId) {
+        return postRepository.countByAccountIdAndDeletedAtIsNull(accountId);
     }
 }

@@ -14,6 +14,14 @@ import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
 import {ForgotPasswordPage} from "@/features/auth/ForgotPasswordPage.tsx";
 import {ResetPasswordPage} from "@/features/auth/ResetPasswordPage.tsx";
 import {VerifyEmailPage} from "@/features/auth/VerifyEmailPage.tsx";
+import {AdminLayout} from "@/app/layouts/AdminLayout.tsx";
+import {AdminRoute} from "@/routes/AdminRoute.tsx";
+import {AdminSystemSettingsPage} from "@/features/admin/AdminSystemSettingsPage.tsx";
+import { AdminUsersPage } from "@/features/admin/AdminUsersPage";
+import {AdminDashboardPage} from "@/features/admin/AdminDashboardPage.tsx";
+import {AdminModerationPage} from "@/features/admin/AdminModerationPage.tsx";
+import {AdminAuditLogPage} from "@/features/admin/AdminAuditLogPage.tsx";
+import {AdminReportsPage} from "@/features/admin/AdminReportsPage.tsx";
 
 const NotFound = () => <div className="p-8 text-center"><h1 className="text-2xl font-bold">404 Not Found</h1></div>;
 
@@ -45,6 +53,23 @@ export const router = createBrowserRouter([
           { path: '/settings', element: <SettingsPage /> },
         ],
       },
+      {
+        path: '/admin',
+        element: <AdminRoute />,
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: 'moderation', element: <AdminModerationPage /> },
+              { path: 'reports', element: <AdminReportsPage /> },
+              { path: 'users', element: <AdminUsersPage /> },
+              { path: 'settings', element: <AdminSystemSettingsPage/> },
+              { path: 'audit-log', element: <AdminAuditLogPage /> },
+            ]
+          }
+        ]
+      }
     ],
   },
   { path: '*', element: <NotFound /> }

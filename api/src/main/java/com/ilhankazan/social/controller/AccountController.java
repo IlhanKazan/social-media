@@ -1,5 +1,6 @@
 package com.ilhankazan.social.controller;
 
+import com.ilhankazan.social.dto.account.ChangePasswordRequest;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
@@ -89,6 +90,15 @@ public class AccountController {
     @RateLimit(capacity = 3, minutes = 60)
     public ResponseEntity<Void> sendVerificationEmail() {
         accountManager.sendVerificationEmail();
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Change password", description = "Updates the current user's password using their old password.")
+    @ApiResponse(responseCode = "204", description = "Password successfully changed")
+    @RateLimit(capacity = 5, minutes = 60)
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        accountManager.changePassword(request);
         return ResponseEntity.noContent().build();
     }
 

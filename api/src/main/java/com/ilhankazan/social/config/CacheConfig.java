@@ -29,6 +29,9 @@ public class CacheConfig {
         cacheManager.registerCustomCache("suggestions",
             Caffeine.newBuilder().recordStats().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(1000).build());
 
+        cacheManager.registerCustomCache("systemSettings",
+            Caffeine.newBuilder().recordStats().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(100).build());
+
         return cacheManager;
     }
 }

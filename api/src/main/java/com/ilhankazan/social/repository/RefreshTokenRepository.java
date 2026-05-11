@@ -23,4 +23,10 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     @Modifying
     int deleteByExpiresAtBefore(Instant cutoff);
+
+    @Query("SELECT COUNT(r) FROM RefreshToken r WHERE r.account.id = :accountId AND r.revokedAt IS NULL AND r.expiresAt > CURRENT_TIMESTAMP")
+    int countActiveSessions(@Param("accountId") Long accountId);
+
+    long countByRevokedAtIsNullAndExpiresAtAfter(Instant now);
+
 }

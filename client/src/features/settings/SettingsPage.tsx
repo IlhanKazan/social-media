@@ -1,6 +1,18 @@
-import { Monitor, Moon, Sun, AlertTriangle, ShieldAlert, LogOut, MailCheck, Loader2, BadgeCheck } from 'lucide-react';
+import {
+  Monitor,
+  Moon,
+  Sun,
+  AlertTriangle,
+  ShieldAlert,
+  LogOut,
+  MailCheck,
+  Loader2,
+  BadgeCheck,
+  KeyRound
+} from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
 import { useLogoutAll, useDeleteAccount } from './hooks/use-security';
+import { useChangePassword } from './hooks/use-settings';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -17,13 +29,20 @@ import {
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 import type { MyAccountResponse } from '@/types/api';
+import { useState } from "react";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const logoutAllMutation = useLogoutAll();
   const deleteAccountMutation = useDeleteAccount();
+  const changePasswordMutation = useChangePassword();
   const logout = useAuthStore((state) => state.logout);
+
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const { data: account, isLoading } = useQuery({
     queryKey: ['me'],
@@ -54,6 +73,27 @@ export function SettingsPage() {
       }
     }
   });
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword.length < 6) {
+      toast.error('Yeni şifreniz en az 6 karakter olmalıdır.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Yeni şifreler birbiriyle eşleşmiyor.');
+      return;
+    }
+
+    if (oldPassword === newPassword) {
+      toast.error('Yeni şifreniz eski şifrenizle aynı olamaz.');
+      return;
+    }
+
+    changePasswordMutation.mutate({ oldPassword, newPassword });
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -134,6 +174,38 @@ export function SettingsPage() {
               </Button>
             )}
           </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2"><KeyRound className="h-5 w-5" /> Şifre Değiştir</h3>
+            <p className="text-sm text-muted-foreground">Hesap güvenliğiniz için şifrenizi güçlü tutun.</p>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit} className="space-y-4 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-card">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Mevcut Şifreniz</label>
+              <Input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Yeni Şifre</label>
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Yeni Şifre (Tekrar)</label>
+                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              </div>
+            </div>
+            <div className="pt-2">
+              <Button type="submit" disabled={changePasswordMutation.isPending || !oldPassword || !newPassword || !confirmPassword}>
+                {changePasswordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Şifreyi Güncelle
+              </Button>
+            </div>
+          </form>
         </section>
 
         <Separator />

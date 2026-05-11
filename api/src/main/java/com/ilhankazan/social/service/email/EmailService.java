@@ -31,4 +31,9 @@ public class EmailService {
 
         return outboxRepository.save(outbox).getId();
     }
+
+    @Transactional(readOnly = true)
+    public long countByStatusSince(EmailStatus status, java.time.Instant since) {
+        return outboxRepository.countByStatusAndSentAtAfter(status, since);
+    }
 }

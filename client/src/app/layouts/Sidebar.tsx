@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Bell, Mail, User, Settings, LogOut, Zap, Search } from 'lucide-react';
+import { Home, Compass, Bell, Mail, User, Settings, LogOut, Zap, Search, ShieldHalf } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
@@ -52,10 +52,28 @@ export function Sidebar() {
                 </span>
               )}
             </div>
-
             <span className="hidden xl:block">{item.name}</span>
           </NavLink>
         ))}
+
+        {account?.role === 'ROLE_ADMIN' && (
+          <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800/50">
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center justify-center xl:justify-start gap-4 rounded-xl p-3 text-base font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/50",
+                  isActive ? "font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10" : "text-muted-foreground"
+                )
+              }
+            >
+              <div className="relative flex items-center justify-center">
+                <ShieldHalf className="h-6 w-6 shrink-0" />
+              </div>
+              <span className="hidden xl:block text-indigo-600 dark:text-indigo-400 font-bold">Admin Paneli</span>
+            </NavLink>
+          </div>
+        )}
       </nav>
 
       <div className="mt-auto flex w-full flex-col items-center gap-4 px-2 sm:px-0 xl:items-stretch">

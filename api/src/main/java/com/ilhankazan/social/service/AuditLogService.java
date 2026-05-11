@@ -1,13 +1,19 @@
 package com.ilhankazan.social.service;
 
+import com.ilhankazan.social.entity.AuditLog;
 import com.ilhankazan.social.event.AuditLogEvent;
+import com.ilhankazan.social.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -15,6 +21,7 @@ import java.util.Map;
 public class AuditLogService {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditLogRepository auditLogRepository;
 
     public void record(String action, String targetType, Long targetId, Map<String, Object> metadata) {
         String username = null;
@@ -38,5 +45,15 @@ public class AuditLogService {
         } catch (Exception ignored) {}
 
         eventPublisher.publishEvent(new AuditLogEvent(username, action, targetType, targetId, metadata, ip, ua));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AuditLog> getFilteredLogs(String action, Long actorId, String targetType, Long targetId, Pageable pageable) {
+        return auditLogRepository.findFiltered(action, actorId, targetType, targetId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AuditLog> getRecentTargetAudits(Long targetId, String targetType, int limit) {
+        return auditLogRepository.findTop10ByTargetIdAndTargetTypeOrderByCreatedAtDesc(targetId, targetType);
     }
 }

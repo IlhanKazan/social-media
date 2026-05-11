@@ -1,5 +1,6 @@
 package com.ilhankazan.social.repository;
 
+import com.ilhankazan.social.entity.AdminStatus;
 import com.ilhankazan.social.entity.ModerationStatus;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.repository.projection.FeedItemProjection;
@@ -130,4 +131,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         ) AS count_feed
     """, nativeQuery = true)
     Page<FeedItemProjection> getProfileFeedUnion(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
+
+    long countByAccountIdAndDeletedAtIsNull(Long accountId);
+
+    Page<Post> findByModerationStatusAndAdminStatusAndDeletedAtIsNull(
+        ModerationStatus moderationStatus,
+        AdminStatus adminStatus,
+        Pageable pageable
+    );
+
+    long countByAdminStatus(AdminStatus status);
+
+    @Query("SELECT p FROM Post p WHERE p.account.id = :accountId AND p.imageUrl IS NOT NULL")
+    List<Post> findPostsWithImagesByAccountId(@Param("accountId") Long accountId);
+
 }

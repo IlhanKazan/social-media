@@ -1,5 +1,6 @@
 package com.ilhankazan.social.manager;
 
+import com.ilhankazan.social.dto.account.ChangePasswordRequest;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
@@ -16,7 +17,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +41,8 @@ public class AccountManager {
     private final EmailService emailService;
     private final AuditLogService auditLogService;
     private final Environment env;
+    private final RefreshTokenService refreshTokenService;
+    private final PasswordEncoder passwordEncoder;
 
     private String currentUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -166,6 +171,22 @@ public class AccountManager {
 
             auditLogService.record("EMAIL_VERIFIED", "ACCOUNT", account.getId(), null);
         }
+    }
+
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        Account account = accountService.getAccount(currentUsername());
+
+        if (!passwordEncoder.matches(request.oldPassword(), account.getPassword())) {
+            throw new BadCredentialsException("Mevcut şifreniz yanlış.");
+        }
+
+        account.setPassword(passwordEncoder.encode(request.newPassword()));
+        accountService.saveRaw(account);
+
+        refreshTokenService.revokeAllForAccount(account.getId());
+
+        auditLogService.record("PASSWORD_CHANGED", "ACCOUNT", account.getId(), null);
     }
 
 }
