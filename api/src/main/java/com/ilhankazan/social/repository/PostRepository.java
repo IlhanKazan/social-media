@@ -145,4 +145,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.account.id = :accountId AND p.imageUrl IS NOT NULL")
     List<Post> findPostsWithImagesByAccountId(@Param("accountId") Long accountId);
 
+    long countByModerationStatusAndAdminStatus(ModerationStatus modStatus, AdminStatus adminStatus);
+
 }

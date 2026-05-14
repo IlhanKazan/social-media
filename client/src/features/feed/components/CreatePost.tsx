@@ -78,8 +78,9 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
       toast.success(parentPostId ? 'Yanıt gönderildi!' : 'Gönderi paylaşıldı!');
       if (onSuccessCallback) onSuccessCallback();
     },
-    onError: () => {
-      toast.error('Paylaşılamadı. Lütfen tekrar dene.');
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || 'Gönderi paylaşılırken bir hata oluştu.';
+      toast.error(errorMessage);
     }
   });
 

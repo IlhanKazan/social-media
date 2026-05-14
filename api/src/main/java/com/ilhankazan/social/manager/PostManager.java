@@ -9,6 +9,7 @@ import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.PostCreatedEvent;
 import com.ilhankazan.social.event.RepostCreatedEvent;
+import com.ilhankazan.social.exception.PostingRestrictedException;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.mapper.PostMapper;
 import com.ilhankazan.social.repository.projection.FeedItemProjection;
@@ -40,6 +41,7 @@ public class PostManager {
     private final CloudinaryStorageService storageService;
     private final RepostService repostService;
     private final AccountMapper accountMapper;
+    private final SystemSettingsService systemSettingsService;
 
     private Account getCurrentAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -90,6 +92,16 @@ public class PostManager {
     @Transactional
     public PostResponse create(CreatePostRequest request) {
         Account current = getCurrentAccount();
+
+        boolean verifiedOnly = systemSettingsService.getBooleanSetting(
+            SystemSettingsService.VERIFIED_ONLY_POSTING,
+            false
+        );
+
+        if (verifiedOnly && !current.isEmailVerified()) {
+            throw new PostingRestrictedException("Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir.");
+        }
+
         Post post = postService.create(current.getId(), request.content(), request.imageUrl(), request.parentPostId());
 
         PostResponse response = postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L, 0L, false);

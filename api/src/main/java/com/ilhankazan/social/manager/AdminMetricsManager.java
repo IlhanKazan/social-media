@@ -32,7 +32,7 @@ public class AdminMetricsManager {
             ),
             new AdminMetricsResponse.PostMetrics(
                 postService.countTotalPosts(),
-                postService.countByModerationStatus(ModerationStatus.FLAGGED, Instant.EPOCH),
+                postService.countByModerationStatusAndAdminStatus(ModerationStatus.FLAGGED, AdminStatus.ACTIVE),
                 postService.countByAdminStatus(AdminStatus.REMOVED_BY_ADMIN)
             ),
             reportService.countOpenReports(),
