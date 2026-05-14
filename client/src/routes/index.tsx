@@ -1,29 +1,50 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { RequireAuth } from './RequireAuth';
 import { AppLayout } from '@/app/layouts/AppLayout';
 import { AuthLayout } from '@/app/layouts/AuthLayout';
+import { AdminRoute } from '@/routes/AdminRoute';
+
+// Auth pages — small, load eagerly (needed before JS hydration completes)
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
-import {FeedPage} from "@/features/feed/FeedPage.tsx";
-import {ProfilePage} from "@/features/profile/ProfilePage.tsx";
-import { NotificationsPage } from '@/features/notifications/NotificationsPage';
-import {MessagingPage} from "@/features/messaging/MessagingPage.tsx";
-import {PostDetailPage} from "@/features/post/PostDetailPage.tsx";
-import {SearchPage} from "@/features/search/SearchPage.tsx";
-import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
-import {ForgotPasswordPage} from "@/features/auth/ForgotPasswordPage.tsx";
-import {ResetPasswordPage} from "@/features/auth/ResetPasswordPage.tsx";
-import {VerifyEmailPage} from "@/features/auth/VerifyEmailPage.tsx";
-import {AdminLayout} from "@/app/layouts/AdminLayout.tsx";
-import {AdminRoute} from "@/routes/AdminRoute.tsx";
-import {AdminSystemSettingsPage} from "@/features/admin/AdminSystemSettingsPage.tsx";
-import { AdminUsersPage } from "@/features/admin/AdminUsersPage";
-import {AdminDashboardPage} from "@/features/admin/AdminDashboardPage.tsx";
-import {AdminModerationPage} from "@/features/admin/AdminModerationPage.tsx";
-import {AdminAuditLogPage} from "@/features/admin/AdminAuditLogPage.tsx";
-import {AdminReportsPage} from "@/features/admin/AdminReportsPage.tsx";
 
-const NotFound = () => <div className="p-8 text-center"><h1 className="text-2xl font-bold">404 Not Found</h1></div>;
+// Everything else — lazy loaded per route
+const FeedPage = lazy(() => import('@/features/feed/FeedPage').then(m => ({ default: m.FeedPage })));
+const ProfilePage = lazy(() => import('@/features/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const MessagingPage = lazy(() => import('@/features/messaging/MessagingPage').then(m => ({ default: m.MessagingPage })));
+const PostDetailPage = lazy(() => import('@/features/post/PostDetailPage').then(m => ({ default: m.PostDetailPage })));
+const SearchPage = lazy(() => import('@/features/search/SearchPage').then(m => ({ default: m.SearchPage })));
+const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const ForgotPasswordPage = lazy(() => import('@/features/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
+const VerifyEmailPage = lazy(() => import('@/features/auth/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
+
+// Admin panel — separate chunk, never loaded for regular users
+const AdminLayout = lazy(() => import('@/app/layouts/AdminLayout').then(m => ({ default: m.AdminLayout })));
+const AdminDashboardPage = lazy(() => import('@/features/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const AdminModerationPage = lazy(() => import('@/features/admin/AdminModerationPage').then(m => ({ default: m.AdminModerationPage })));
+const AdminReportsPage = lazy(() => import('@/features/admin/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
+const AdminUsersPage = lazy(() => import('@/features/admin/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
+const AdminSystemSettingsPage = lazy(() => import('@/features/admin/AdminSystemSettingsPage').then(m => ({ default: m.AdminSystemSettingsPage })));
+const AdminAuditLogPage = lazy(() => import('@/features/admin/AdminAuditLogPage').then(m => ({ default: m.AdminAuditLogPage })));
+
+const PageLoader = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+  </div>
+);
+
+const NotFound = () => (
+  <div className="p-8 text-center">
+    <h1 className="text-2xl font-bold">404 Not Found</h1>
+  </div>
+);
+
+const withSuspense = (element: React.ReactNode) => (
+  <Suspense fallback={<PageLoader />}>{element}</Suspense>
+);
 
 export const router = createBrowserRouter([
   {
@@ -31,9 +52,9 @@ export const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
-      { path: 'forgot-password', element: <ForgotPasswordPage /> },
-      { path: 'reset-password', element: <ResetPasswordPage /> },
-      { path: 'verify-email', element: <VerifyEmailPage /> },
+      { path: 'forgot-password', element: withSuspense(<ForgotPasswordPage />) },
+      { path: 'reset-password', element: withSuspense(<ResetPasswordPage />) },
+      { path: 'verify-email', element: withSuspense(<VerifyEmailPage />) },
     ],
   },
   {
@@ -42,15 +63,15 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <FeedPage /> },
-          { path: '/explore', element: <FeedPage defaultTab="explore" /> },
-          { path: '/post/:id', element: <PostDetailPage /> },
-          { path: '/search', element: <SearchPage /> },
-          { path: 'u/:username', element: <ProfilePage /> },
-          { path: '/notifications', element: <NotificationsPage/> },
-          { path: '/messages', element: <MessagingPage /> },
-          { path: '/messages/:conversationId', element: <MessagingPage /> },
-          { path: '/settings', element: <SettingsPage /> },
+          { index: true, element: withSuspense(<FeedPage />) },
+          { path: '/explore', element: withSuspense(<FeedPage defaultTab="explore" />) },
+          { path: '/post/:id', element: withSuspense(<PostDetailPage />) },
+          { path: '/search', element: withSuspense(<SearchPage />) },
+          { path: 'u/:username', element: withSuspense(<ProfilePage />) },
+          { path: '/notifications', element: withSuspense(<NotificationsPage />) },
+          { path: '/messages', element: withSuspense(<MessagingPage />) },
+          { path: '/messages/:conversationId', element: withSuspense(<MessagingPage />) },
+          { path: '/settings', element: withSuspense(<SettingsPage />) },
         ],
       },
       {
@@ -58,19 +79,19 @@ export const router = createBrowserRouter([
         element: <AdminRoute />,
         children: [
           {
-            element: <AdminLayout />,
+            element: withSuspense(<AdminLayout />),
             children: [
-              { index: true, element: <AdminDashboardPage /> },
-              { path: 'moderation', element: <AdminModerationPage /> },
-              { path: 'reports', element: <AdminReportsPage /> },
-              { path: 'users', element: <AdminUsersPage /> },
-              { path: 'settings', element: <AdminSystemSettingsPage/> },
-              { path: 'audit-log', element: <AdminAuditLogPage /> },
-            ]
-          }
-        ]
-      }
+              { index: true, element: withSuspense(<AdminDashboardPage />) },
+              { path: 'moderation', element: withSuspense(<AdminModerationPage />) },
+              { path: 'reports', element: withSuspense(<AdminReportsPage />) },
+              { path: 'users', element: withSuspense(<AdminUsersPage />) },
+              { path: 'settings', element: withSuspense(<AdminSystemSettingsPage />) },
+              { path: 'audit-log', element: withSuspense(<AdminAuditLogPage />) },
+            ],
+          },
+        ],
+      },
     ],
   },
-  { path: '*', element: <NotFound /> }
+  { path: '*', element: <NotFound /> },
 ]);

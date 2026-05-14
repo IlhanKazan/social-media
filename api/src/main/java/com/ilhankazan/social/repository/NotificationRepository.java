@@ -12,9 +12,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    Page<Notification> findByRecipientIdAndReadAtIsNull(Long recipientId, Pageable pageable);
+    @Query("SELECT n FROM Notification n LEFT JOIN FETCH n.actor WHERE n.recipient.id = :recipientId AND n.readAt IS NULL")
+    Page<Notification> findByRecipientIdAndReadAtIsNull(@Param("recipientId") Long recipientId, Pageable pageable);
 
-    Page<Notification> findByRecipientId(Long recipientId, Pageable pageable);
+    @Query("SELECT n FROM Notification n LEFT JOIN FETCH n.actor WHERE n.recipient.id = :recipientId")
+    Page<Notification> findByRecipientId(@Param("recipientId") Long recipientId, Pageable pageable);
 
     int countByRecipientIdAndReadAtIsNull(Long recipientId);
 

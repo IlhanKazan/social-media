@@ -988,7 +988,7 @@ Final security/config sweep before flipping the deploy switch. Many items here
 are echoes of earlier phases (5.6, 18.x); this phase is the gate that nothing
 ships without the full list checked.
 
-### [ ] 28.1 Production secret audit
+### [x] 28.1 Production secret audit
 
 - Every `${VAR:default}` in any `application*.yml` reviewed: is the default safe? If `prod` profile loads it, the default must be either a fail-fast sentinel (Phase 5.6.10 pattern) or empty.
 - Every `*Config`/`*Properties` class reviewed for hard-coded fallbacks.
@@ -1003,7 +1003,7 @@ ships without the full list checked.
   - `SPRING_PROFILES_ACTIVE=prod`
 - Secrets are in Render's env editor, not in any committed file.
 
-### [ ] 28.2 Security headers
+### [x] 28.2 Security headers
 
 `SecurityConfig` adds:
 ```java
@@ -1022,14 +1022,14 @@ The CSP `connect-src` allows the SockJS/STOMP upgrade. Loosen only with care.
 Test on the deployed URL — browser dev tools console will scream if a real
 asset is blocked.
 
-### [ ] 28.3 CORS final lockdown
+### [x] 28.3 CORS final lockdown
 
 - `FRONTEND_ORIGIN` is the only origin allowed in prod. No wildcards anywhere (also see 5.6.7).
 - `setAllowedHeaders` restricted to: `Authorization`, `Content-Type`, `X-Requested-With`, `Accept`, `Idempotency-Key` (for 21.4).
 - `setExposedHeaders` restricted to `X-Request-Id`, `Retry-After`.
 - WebSocket: same. `setAllowedOrigins(FRONTEND_ORIGIN)`, no patterns.
 
-### [ ] 28.4 SQL safety + transaction review
+### [x] 28.4 SQL safety + transaction review
 
 - Audit every `@Query` for parameter binding (no string concat). MapStruct/JPA paths should be safe by construction.
 - Audit `@Transactional` placement: must be on the **manager** layer for orchestrating writes; service can be `@Transactional(readOnly = true)` on read paths.
@@ -1040,21 +1040,21 @@ asset is blocked.
 - Run a 1-minute curl burst against each rate-limited endpoint, confirm 429 responses arrive at the configured threshold.
 - Confirm the IP-vs-user-id resolution (Phase 5.6.6) works behind Render's proxy: hit twice from the same Render-routed IP under two different bearer tokens, both succeed.
 
-### [ ] 28.6 Logging hygiene
+### [x] 28.6 Logging hygiene
 
 - No `System.out.println` anywhere — `grep -rn "System.out" api/src/main`.
 - No `e.printStackTrace()` — fail loudly via the logger.
 - No PII in logs: email addresses, phone, tokens never logged. Logback masking of `password=` patterns added if needed.
 - Logback JSON logging works on Render (Render's log viewer expects line-per-event; the logstash encoder produces that).
 
-### [ ] 28.7 Frontend production build review
+### [x] 28.7 Frontend production build review
 
 - `npm run build` succeeds with zero TypeScript errors.
 - Production bundle does not include `vite/devtools` or `react-query/devtools` (gate behind `import.meta.env.DEV`).
 - No `console.log` left in feature code — keep a deliberate few in `lib/ws.ts` debug output but only when `import.meta.env.DEV`.
 - Source maps: shipped (helps debug live), but bundle size kept reasonable (< 500 KB initial JS gzipped — verify in `dist/` after build).
 
-### [ ] 28.8 Health + readiness
+### [x] 28.8 Health + readiness
 
 - `/actuator/health` exposes `liveness` and `readiness` groups.
 - `readiness` includes a DB check (Spring Boot does this by default with the JDBC starter).
@@ -1145,6 +1145,136 @@ Then archive both old repos via Settings → Archive on GitHub.
 ### [ ] 30.5 Portfolio integration
 - Add link from main portfolio site
 - Optional: case study page describing the rewrite (1 paragraph each: 2024 state → identified issues → 2026 redesign → result)
+
+---
+
+## Phase 31 — Internationalisation (i18n)
+
+Two supported languages at launch: **English (`en`)** and **Turkish (`tr`)**.
+English is the default. Language preference is persisted per-user in the DB
+and falls back to browser language for unauthenticated pages.
+
+Scope: all static UI strings (nav, buttons, form labels, toasts, empty states,
+modals). User-generated content (posts, bios, DMs) is never translated.
+Notification text is assembled on the frontend from typed enums — no backend
+template changes needed.
+
+### [ ] 31.1 Backend — clean up Turkish error messages
+
+Several exception messages and one validation message are in Turkish. They reach
+the HTTP response body via `GlobalExceptionHandler` which passes `ex.getMessage()`
+directly. Fix in this order:
+
+- Audit every `throw new ...Exception(...)` in `api/src/main/java/**` for
+  Turkish strings. Convert to English. The messages are user-facing but not
+  translated yet — English is the interim standard until 31.4 ships.
+- Files confirmed to have Turkish messages (from security audit):
+  `PostManager.java`, `PasswordResetService.java`, `AuthManager.java`,
+  `CloudinaryStorageService.java`, `DmWebSocketController.java`.
+- Turkish comments in code are also a CLAUDE.md violation — convert any found
+  during this pass (same files + `AccountManager.java`).
+- `GlobalExceptionHandler.handleIllegalArgument` and
+  `handlePostingRestricted` must NOT echo `ex.getMessage()` directly to
+  clients in prod; return a stable, translatable key or a generic English
+  message. For validation errors use the `fieldErrors` map from
+  `MethodArgumentNotValidException` — those messages are already in English
+  (Bean Validation defaults).
+
+**Acceptance:** `grep -rn "türkçe\|dosya\|yük\|geçersiz\|başarısız" api/src/main/java` returns nothing in exception messages.
+
+### [ ] 31.2 Backend — `language_preference` on accounts
+
+- Migration `V21__language_preference.sql`:
+  ```sql
+  ALTER TABLE accounts
+      ADD COLUMN language_preference VARCHAR(5) NOT NULL DEFAULT 'en'
+          CHECK (language_preference IN ('en', 'tr'));
+  ```
+- Update `Account` entity: `String languagePreference`.
+- Expose in `MyAccountResponse` and `UpdateProfileRequest` (optional field,
+  defaults to `'en'` if omitted). This allows the frontend to restore the
+  user's saved language after login without relying on `localStorage` alone.
+
+**Acceptance:** `PATCH /api/v1/accounts/me` with `{ "languagePreference": "tr" }` persists and is returned in `GET /api/v1/accounts/me`.
+
+### [ ] 31.3 Frontend — i18n setup
+
+- Install: `i18next`, `react-i18next`, `i18next-browser-languagedetector`,
+  `i18next-http-backend`.
+- `src/lib/i18n.ts` — configure with:
+  - Backend plugin loading from `public/locales/{lng}/translation.json`.
+  - Detector order: `querystring` → `localStorage` → `navigator` → `htmlTag`.
+  - Default language: `en`. Fallback: `en`.
+  - Namespace: `translation` (single namespace is sufficient at this scale).
+- `src/main.tsx` — import `src/lib/i18n.ts` before rendering (side-effect
+  import). Wrap app in `<Suspense>` during initial translation load (already
+  present from Phase 28.7 lazy loading).
+- `public/locales/en/translation.json` and `public/locales/tr/translation.json`
+  — JSON trees keyed by feature (`auth.*`, `feed.*`, `profile.*`, `settings.*`,
+  `admin.*`, `nav.*`, `common.*`, `notifications.*`, `errors.*`).
+
+**Acceptance:** `i18n.changeLanguage('tr')` → all static UI strings switch without page reload.
+
+### [ ] 31.4 Frontend — wrap all UI strings
+
+Replace every hardcoded string in `client/src/` with `t('key')`. Work
+feature-by-feature:
+
+- `nav.*` — sidebar navigation labels, mobile tab bar.
+- `auth.*` — login, register, forgot-password, reset-password, verify-email
+  forms: labels, placeholders, button text, success/error messages.
+- `feed.*` — FeedPage tabs ("For you" / "Following" / "Explore"), post
+  composer placeholder, empty state.
+- `post.*` — PostCard action labels (Like, Reply, Repost, Quote), timestamps
+  via `date-fns` locale (pass `{ locale: tr }` when `lng === 'tr'`).
+- `profile.*` — ProfilePage header (Follow/Unfollow, Edit Profile), bio
+  empty state, tab labels (Posts / Replies / Reposts / Likes).
+- `notifications.*` — notification type display text (assembled from actor
+  username + type key, e.g. `t('notifications.liked', { actor: n.actor.username })`).
+- `messaging.*` — conversation list, message composer placeholder, empty state.
+- `settings.*` — all Settings section labels, button text, confirmation dialogs.
+- `admin.*` — admin panel sidebar, table headers, action buttons, status badges.
+- `common.*` — shared: "Cancel", "Save", "Confirm", "Loading…", "Error",
+  "No results", pagination labels.
+- `errors.*` — toast error messages, API error fallbacks.
+
+**Rule:** never duplicate a string. If the same phrase appears in two places,
+use the same key from `common.*`.
+
+### [ ] 31.5 Frontend — language switcher
+
+Two surfaces:
+
+1. **Unauthenticated pages** (`/login`, `/register`): A small globe icon +
+   dropdown (`EN` / `TR`) in the top-right corner of `AuthLayout`. Updates
+   `i18next.changeLanguage(lng)` and persists to `localStorage`.
+
+2. **Settings page** (`/settings`): A "Language" row in the Preferences section.
+   Same dropdown, plus a `useMutation` call to `PATCH /api/v1/accounts/me` with
+   `{ languagePreference: lng }` so the preference is server-persisted.
+
+3. **On login**: After a successful auth, read `user.languagePreference` from
+   the JWT/response and call `i18next.changeLanguage(user.languagePreference)`.
+   This restores the server-saved preference on a new device or browser.
+
+**Acceptance:** Switch to Turkish on desktop → refresh → still Turkish. Log in
+on a different browser → language is restored from the server preference.
+
+### [ ] 31.6 Frontend — date localisation
+
+`date-fns` already supports Turkish. Pass the active locale to all `formatDistanceToNow`
+and `format` calls:
+
+```ts
+import { tr, enUS } from 'date-fns/locale';
+const locale = i18n.language === 'tr' ? tr : enUS;
+formatDistanceToNow(date, { addSuffix: true, locale });
+```
+
+Centralise in a `src/lib/date.ts` helper `relativeTime(date: string | Date)` so
+locale is always read from `i18next.language` — no prop-drilling.
+
+**Acceptance:** Post timestamp shows "3 dakika önce" when language is `tr`, "3 minutes ago" when `en`.
 
 ---
 

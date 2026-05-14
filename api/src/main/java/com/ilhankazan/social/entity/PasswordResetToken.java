@@ -20,7 +20,6 @@ public class PasswordResetToken {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "token_hash", nullable = false, unique = true, length = 64)
     private String tokenHash;
 

@@ -1,5 +1,6 @@
 package com.ilhankazan.social.security;
 
+import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final AccountService accountService;
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -56,6 +58,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             Claims claims = jwtTokenProvider.validateToken(jwt);
             String username = claims.getSubject();
             Long accountId = claims.get("accountId", Long.class);
+
+            if (accountService.isAccountBanned(accountId)) {
+                throw new IllegalArgumentException("Account is suspended");
+            }
 
             List<?> rawRoles = claims.get("roles", List.class);
             List<SimpleGrantedAuthority> authorities = rawRoles.stream()
