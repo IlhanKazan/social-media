@@ -69,6 +69,18 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, "TOKEN_REUSE_DETECTED", ex.getMessage(), request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(PostingRestrictedException.class)
+    public ResponseEntity<ErrorResponse> handlePostingRestricted(PostingRestrictedException ex, HttpServletRequest request) {
+        log.warn("Posting restricted at {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(
+            HttpStatus.FORBIDDEN,
+            "POSTING_RESTRICTED",
+            ex.getMessage(),
+            request.getRequestURI(),
+            null
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception occurred at {}: {}", request.getRequestURI(), ex.getMessage(), ex);

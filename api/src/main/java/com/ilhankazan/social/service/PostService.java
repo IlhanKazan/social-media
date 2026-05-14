@@ -292,4 +292,9 @@ public class PostService {
     public long countPostsByAccountId(Long accountId) {
         return postRepository.countByAccountIdAndDeletedAtIsNull(accountId);
     }
+
+    @Transactional(readOnly = true)
+    public long countByModerationStatusAndAdminStatus(ModerationStatus moderationStatus, AdminStatus adminStatus){
+        return postRepository.countByModerationStatusAndAdminStatus(moderationStatus, adminStatus);
+    }
 }
