@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.sql.Types;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -22,7 +21,6 @@ public class RefreshToken {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @JdbcTypeCode(Types.CHAR)
     @Column(name = "token_hash", nullable = false, unique = true, length = 64)
     private String tokenHash;
 
@@ -38,7 +36,6 @@ public class RefreshToken {
     @Column(name = "revoked_at")
     private Instant revokedAt;
 
-    @JdbcTypeCode(Types.CHAR)
     @Column(name = "replaced_by", length = 64)
     private String replacedBy;
 
