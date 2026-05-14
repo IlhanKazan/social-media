@@ -36,10 +36,15 @@ public class AdminPromoterRunner implements CommandLineRunner {
             return;
         }
 
-        log.info("Attempting to promote user '{}' to ADMIN...", username);
         accountRepository.findByUsername(username).ifPresentOrElse(account -> {
+            boolean alreadyAdmin = account.getRole() != null &&
+                "ROLE_ADMIN".equals(account.getRole().getName());
+            if (alreadyAdmin) {
+                log.warn("User '{}' is already ADMIN. Remove PROMOTE_ADMIN_USERNAME from env vars.", username);
+                return;
+            }
             adminUserManager.promoteUser(account.getId());
-            log.info("Successfully promoted '{}' to ADMIN.", username);
+            log.info("Successfully promoted '{}' to ADMIN. Remove PROMOTE_ADMIN_USERNAME from env vars now.", username);
         }, () -> log.error("User '{}' not found. Cannot promote to ADMIN.", username));
     }
 }

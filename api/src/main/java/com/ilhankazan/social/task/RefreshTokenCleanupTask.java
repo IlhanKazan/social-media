@@ -1,5 +1,6 @@
 package com.ilhankazan.social.task;
 
+import com.ilhankazan.social.repository.BlacklistedTokenRepository;
 import com.ilhankazan.social.repository.PasswordResetTokenRepository;
 import com.ilhankazan.social.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,9 @@ public class RefreshTokenCleanupTask {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    @Scheduled(cron = "0 0 3 * * *") // Her gün gece 03:00'te çalışır
+    @Scheduled(cron = "0 0 3 * * *")
     @Transactional
     public void cleanupExpiredTokens() {
         Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
@@ -30,5 +32,8 @@ public class RefreshTokenCleanupTask {
 
         int deletedReset = passwordResetTokenRepository.deleteByExpiresAtBefore(cutoff);
         log.info("Cleaned up {} expired password reset tokens older than {}", deletedReset, cutoff);
+
+        blacklistedTokenRepository.deleteExpired(Instant.now());
+        log.info("Cleaned up expired blacklisted tokens");
     }
 }

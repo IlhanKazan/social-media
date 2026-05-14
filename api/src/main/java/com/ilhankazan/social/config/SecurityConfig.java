@@ -39,7 +39,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(headers -> {
                 headers.contentTypeOptions(c -> {});
-                headers.frameOptions(f -> f.sameOrigin());
+                headers.frameOptions(f -> f.deny());
                 headers.referrerPolicy(r -> r.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
                 headers.permissionsPolicy(p -> p.policy("geolocation=(), microphone=(), camera=()"));
                 headers.httpStrictTransportSecurity(h -> h.includeSubDomains(true).maxAgeInSeconds(31536000));

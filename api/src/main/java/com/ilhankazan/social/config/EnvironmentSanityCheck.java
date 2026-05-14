@@ -2,7 +2,7 @@ package com.ilhankazan.social.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class EnvironmentSanityCheck implements ApplicationListener<ApplicationReadyEvent> {
+public class EnvironmentSanityCheck implements ApplicationListener<ApplicationStartedEvent> {
 
     private static final String DEV_JWT_SECRET = "dev-secret-must-be-at-least-32-bytes-long-please-change";
 
@@ -23,7 +23,7 @@ public class EnvironmentSanityCheck implements ApplicationListener<ApplicationRe
     private final AppProperties.EmailProperties emailProps;
 
     @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
+    public void onApplicationEvent(ApplicationStartedEvent event) {
         if (!Arrays.asList(env.getActiveProfiles()).contains("prod")) {
             return;
         }

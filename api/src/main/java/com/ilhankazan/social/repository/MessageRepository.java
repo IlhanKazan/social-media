@@ -14,11 +14,11 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt DESC")
+    @Query("SELECT m FROM Message m JOIN FETCH m.sender WHERE m.conversation.id = :conversationId ORDER BY m.createdAt DESC")
     Page<Message> findByConversationId(@Param("conversationId") Long conversationId, Pageable pageable);
 
     @Query("""
-        SELECT m FROM Message m
+        SELECT m FROM Message m JOIN FETCH m.sender
         WHERE m.id IN (
             SELECT MAX(m2.id) FROM Message m2
             WHERE m2.conversation.id IN :conversationIds

@@ -25,10 +25,10 @@ public class RequestIdFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String requestId = request.getHeader(REQUEST_ID_HEADER);
-        if (!StringUtils.hasText(requestId)) {
-            requestId = UUID.randomUUID().toString();
-        }
+        String incoming = request.getHeader(REQUEST_ID_HEADER);
+        String requestId = (StringUtils.hasText(incoming) && incoming.matches("[a-zA-Z0-9\\-]{1,64}"))
+            ? incoming
+            : UUID.randomUUID().toString();
 
         MDC.put(MDC_REQUEST_ID_KEY, requestId);
         response.setHeader(REQUEST_ID_HEADER, requestId);
