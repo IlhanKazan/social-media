@@ -90,7 +90,7 @@ app:
   bot:
     enabled: ${BOT_ENABLED:false}
     openai-api-key: ${OPENAI_API_KEY:}
-    openai-model: ${BOT_OPENAI_MODEL:gpt-4o-mini}
+    openai-model: ${BOT_OPENAI_MODEL:gpt-5.4-mini-2026-03-17}
     cadence-seconds: ${BOT_CADENCE_SECONDS:60}
     daily-quota: ${BOT_DAILY_QUOTA:50}
     account-count: ${BOT_ACCOUNT_COUNT:3}
