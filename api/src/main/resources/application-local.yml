@@ -9,3 +9,10 @@ logging:
 spring:
   flyway:
     locations: classpath:db/migration,classpath:db/seed
+
+app:
+  bot:
+    enabled: true
+    gemini-model: gemini-2.0-flash
+    daily-quota: 20
+    account-count: 3

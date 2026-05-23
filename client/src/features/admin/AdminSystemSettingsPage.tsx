@@ -1,4 +1,4 @@
-import { Loader2, ShieldAlert, UserPlus, FileText } from 'lucide-react';
+import { Loader2, ShieldAlert, UserPlus, FileText, Bot } from 'lucide-react';
 import { useSystemSettings, useUpdateSystemSetting } from './hooks/use-system-settings';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -45,7 +45,13 @@ export function AdminSystemSettingsPage() {
       title: 'Sadece Onaylı Kullanıcılar Paylaşım Yapabilir',
       description: 'Aktif edildiğinde sadece mavi tikli (onaylı) hesaplar gönderi paylaşabilir.',
       icon: FileText,
-    }
+    },
+    {
+      key: 'bot_enabled',
+      title: 'Bot Sistemi',
+      description: 'Yapay zeka bot hesaplarının otomatik gönderi paylaşmasını etkinleştirin.',
+      icon: Bot,
+    },
   ];
 
   return (

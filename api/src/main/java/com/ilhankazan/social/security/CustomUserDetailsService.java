@@ -2,6 +2,7 @@ package com.ilhankazan.social.security;
 
 import com.ilhankazan.social.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,6 +25,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         var account = accountRepository.findByUsername(identifier)
                 .orElseGet(() -> accountRepository.findByEmail(identifier)
                         .orElseThrow(() -> new UsernameNotFoundException("User not found with identifier: " + identifier)));
+
+        if ("ROLE_BOT".equals(account.getRole().getName())) {
+            throw new DisabledException("Bot accounts cannot authenticate");
+        }
 
         var authority = new SimpleGrantedAuthority(account.getRole().getName());
 

@@ -21,6 +21,7 @@ public class SystemSettingsService {
     public static final String REGISTRATION_ENABLED = "registration_enabled";
     public static final String VERIFIED_ONLY_POSTING = "verified_only_posting";
     public static final String MODERATION_ENABLED = "moderation_enabled";
+    public static final String BOT_ENABLED = "bot_enabled";
 
     @Cacheable(cacheNames = "systemSettings", key = "#key")
     @Transactional(readOnly = true)

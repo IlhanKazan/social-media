@@ -87,3 +87,10 @@ app:
       violence: 0.7
       violence/graphic: 0.6
     blocked-terms-path: "api/bad-words.txt"
+  bot:
+    enabled: ${BOT_ENABLED:false}
+    gemini-api-key: ${GEMINI_API_KEY:}
+    gemini-model: ${GEMINI_MODEL:gemini-2.0-flash}
+    cadence-seconds: ${BOT_CADENCE_SECONDS:60}
+    daily-quota: ${BOT_DAILY_QUOTA:50}
+    account-count: ${BOT_ACCOUNT_COUNT:3}
