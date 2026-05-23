@@ -89,8 +89,8 @@ app:
     blocked-terms-path: "api/bad-words.txt"
   bot:
     enabled: ${BOT_ENABLED:false}
-    gemini-api-key: ${GEMINI_API_KEY:}
-    gemini-model: ${GEMINI_MODEL:gemini-2.0-flash}
+    openai-api-key: ${OPENAI_API_KEY:}
+    openai-model: ${BOT_OPENAI_MODEL:gpt-4o-mini}
     cadence-seconds: ${BOT_CADENCE_SECONDS:60}
     daily-quota: ${BOT_DAILY_QUOTA:50}
     account-count: ${BOT_ACCOUNT_COUNT:3}

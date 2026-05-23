@@ -36,7 +36,7 @@ public class BotScheduler {
     private final PostService postService;
     private final InteractionService interactionService;
     private final AuditLogService auditLogService;
-    private final GeminiClient geminiClient;
+    private final OpenAiBotClient openAiBotClient;
     private final BotProperties botProperties;
     private final PostRepository postRepository;
 
@@ -77,7 +77,7 @@ public class BotScheduler {
         Account bot = bots.get(random.nextInt(bots.size()));
         String topic = BOT_TOPICS[random.nextInt(BOT_TOPICS.length)];
 
-        geminiClient.generatePost(topic).ifPresent(content -> {
+        openAiBotClient.generatePost(topic).ifPresent(content -> {
             try {
                 postService.create(bot.getId(), content, null, null);
                 postsToday.incrementAndGet();

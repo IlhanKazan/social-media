@@ -113,6 +113,11 @@ new frontend, new everything.
 - **Never** include AI attribution, "Generated with..." footers, or `Co-Authored-By` lines for AI assistants.
 - **No emojis** in commit messages, PR descriptions, or README files.
 - Subject in imperative mood, lowercase, no trailing period, ≤72 chars.
+- **Never commit directly to `main`.** Every change starts on a feature branch.
+  - Branch naming: `feat/<short-desc>`, `fix/<short-desc>`, `refactor/<short-desc>`.
+  - Create the branch **before** any code changes: `git checkout -b feat/<name>`.
+  - `main` is merged into only via PR (or fast-forward from a reviewed branch).
+  - The committer agent must refuse to commit if the current branch is `main`.
 
 ### Code comments
 - Default: **no comments.** Write self-documenting code with clear names.

@@ -13,6 +13,6 @@ spring:
 app:
   bot:
     enabled: true
-    gemini-model: gemini-2.0-flash
+    openai-model: gpt-4o-mini
     daily-quota: 20
     account-count: 3
