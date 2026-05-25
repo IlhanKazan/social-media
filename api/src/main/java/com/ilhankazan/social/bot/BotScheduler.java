@@ -16,12 +16,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,7 +58,9 @@ public class BotScheduler {
         "developer life"
     };
 
-    @Scheduled(fixedDelayString = "#{@botProperties.cadenceSeconds() * 1000}")
+    private static final String[] LANGUAGES = {"English", "Türkçe"};
+
+    @Scheduled(fixedDelayString = "#{${app.bot.cadence-seconds:180} * 1000}")
     public void tick() {
         if (!systemSettingsService.getBooleanSetting(SystemSettingsService.BOT_ENABLED, false)) {
             return;
@@ -64,36 +68,72 @@ public class BotScheduler {
 
         resetQuotaIfNewDay();
 
-        if (postsToday.get() >= botProperties.dailyQuota()) {
-            log.debug("BotScheduler: daily quota reached ({}/{}), skipping", postsToday.get(), botProperties.dailyQuota());
-            return;
-        }
-
         List<Account> bots = accountRepository.findByRoleName("ROLE_BOT");
         if (bots.isEmpty()) {
             return;
         }
 
         Account bot = bots.get(random.nextInt(bots.size()));
-        String topic = BOT_TOPICS[random.nextInt(BOT_TOPICS.length)];
+        String language = LANGUAGES[random.nextInt(LANGUAGES.length)];
+        BotPersonas.Persona persona = BotPersonas.forDisplayName(bot.getDisplayName());
 
-        openAiBotClient.generatePost(topic).ifPresent(content -> {
-            try {
-                postService.create(bot.getId(), content, null, null);
-                postsToday.incrementAndGet();
-                auditLogService.record("BOT_POSTED", "POST", null, java.util.Map.of("botId", bot.getId(), "topic", topic));
-            } catch (Exception e) {
-                log.warn("BotScheduler: failed to create post for bot '{}': {}", bot.getUsername(), e.getMessage());
-            }
-        });
+        // 0-1 (20%): new post, 2-5 (40%): reply, 6-9 (40%): like
+        int action = random.nextInt(10);
 
-        if (random.nextInt(20) == 0) {
-            try {
-                maybeLikeRandomPost(bot);
-            } catch (Exception e) {
-                log.warn("BotScheduler: failed to like post for bot '{}': {}", bot.getUsername(), e.getMessage());
+        if (action < 2) {
+            if (postsToday.get() < botProperties.dailyQuota()) {
+                maybePost(bot, language, persona);
             }
+        } else if (action < 6) {
+            maybeReplyToPost(bot, language, persona);
+        } else {
+            maybeLikeRandomPost(bot);
         }
+    }
+
+    private void maybePost(Account bot, String language, BotPersonas.Persona persona) {
+        String topic = BOT_TOPICS[random.nextInt(BOT_TOPICS.length)];
+        log.info("BotScheduler: generating post — bot='{}', topic='{}', lang='{}'", bot.getUsername(), topic, language);
+
+        openAiBotClient.generatePost(topic, language, persona).ifPresentOrElse(
+            content -> {
+                try {
+                    postService.create(bot.getId(), content, null, null);
+                    postsToday.incrementAndGet();
+                    log.info("BotScheduler: post created by '{}' ({}/{})", bot.getUsername(), postsToday.get(), botProperties.dailyQuota());
+                    auditLogService.record("BOT_POSTED", "POST", null, Map.of("botId", bot.getId(), "topic", topic));
+                } catch (Exception e) {
+                    log.warn("BotScheduler: failed to create post for bot '{}': {}", bot.getUsername(), e.getMessage());
+                }
+            },
+            () -> log.warn("BotScheduler: OpenAI returned empty for topic '{}', skipping", topic)
+        );
+    }
+
+    private void maybeReplyToPost(Account bot, String language, BotPersonas.Persona persona) {
+        List<Post> candidates = postRepository.findTopLevelPostsByHumans(PageRequest.of(0, 30))
+            .getContent().stream()
+            .filter(p -> StringUtils.hasText(p.getContent()))
+            .toList();
+
+        if (candidates.isEmpty()) {
+            return;
+        }
+
+        Post target = candidates.get(random.nextInt(candidates.size()));
+        log.info("BotScheduler: generating reply — bot='{}', targetPost={}, lang='{}'", bot.getUsername(), target.getId(), language);
+
+        openAiBotClient.generateReply(target.getContent(), language, persona).ifPresentOrElse(
+            reply -> {
+                try {
+                    postService.create(bot.getId(), reply, null, target.getId());
+                    log.info("BotScheduler: reply created by '{}' on post {}", bot.getUsername(), target.getId());
+                } catch (Exception e) {
+                    log.warn("BotScheduler: failed to create reply for bot '{}': {}", bot.getUsername(), e.getMessage());
+                }
+            },
+            () -> log.warn("BotScheduler: OpenAI returned empty for reply, skipping")
+        );
     }
 
     private void maybeLikeRandomPost(Account bot) {

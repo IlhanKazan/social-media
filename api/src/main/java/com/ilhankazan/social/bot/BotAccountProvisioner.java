@@ -36,20 +36,33 @@ public class BotAccountProvisioner implements CommandLineRunner {
             .orElseThrow(() -> new IllegalStateException("ROLE_BOT not found in database"));
 
         for (int i = 1; i <= botProperties.accountCount(); i++) {
-            String username = "bot_account_" + i;
-            if (!accountRepository.existsByUsername(username)) {
-                Account bot = new Account();
-                bot.setUsername(username);
-                bot.setEmail("bot" + i + "@internal.invalid");
-                bot.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-                bot.setDisplayName("Bot " + i);
-                bot.setBio("Automated AI bot account.");
-                bot.setRole(botRole);
-                bot.setEmailVerified(true);
-                bot.setEmailVerifiedAt(Instant.now());
-                accountRepository.save(bot);
-                log.info("BotAccountProvisioner: created bot account '{}'", username);
-            }
+            final int index = i;
+            String username = "bot_account_" + index;
+            BotPersonas.Persona persona = BotPersonas.forIndex(index - 1);
+            accountRepository.findByUsername(username).ifPresentOrElse(
+                existing -> {
+                    if (!persona.displayName().equals(existing.getDisplayName()) ||
+                        !persona.bio().equals(existing.getBio())) {
+                        existing.setDisplayName(persona.displayName());
+                        existing.setBio(persona.bio());
+                        accountRepository.save(existing);
+                        log.info("BotAccountProvisioner: updated persona for '{}'", username);
+                    }
+                },
+                () -> {
+                    Account bot = new Account();
+                    bot.setUsername(username);
+                    bot.setEmail("bot" + index + "@internal.invalid");
+                    bot.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                    bot.setDisplayName(persona.displayName());
+                    bot.setBio(persona.bio());
+                    bot.setRole(botRole);
+                    bot.setEmailVerified(true);
+                    bot.setEmailVerifiedAt(Instant.now());
+                    accountRepository.save(bot);
+                    log.info("BotAccountProvisioner: created bot account '{}'", username);
+                }
+            );
         }
     }
 }

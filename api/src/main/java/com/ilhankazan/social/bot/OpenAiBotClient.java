@@ -30,19 +30,38 @@ public class OpenAiBotClient {
         this.objectMapper = objectMapper;
     }
 
-    public Optional<String> generatePost(String topic) {
+    public Optional<String> generatePost(String topic, String language, BotPersonas.Persona persona) {
+        String prompt = "Write a short social media post (max 200 characters) about: " + topic + ". " +
+            "Write in " + language + ". Be engaging and conversational. Don't always use emojis.";
+        return callApi(prompt, persona);
+    }
+
+    public Optional<String> generateReply(String postContent, String language, BotPersonas.Persona persona) {
+        String prompt = "Here's a social media post: \"" + postContent + "\". " +
+            "Write a short reply (max 150 characters) in " + language + ". " +
+            "Be natural — sometimes agree, sometimes add a different perspective, occasionally disagree politely. " +
+            "Don't start every reply with 'I'. Don't use emojis every sentence.";
+        return callApi(prompt, persona);
+    }
+
+    private Optional<String> callApi(String prompt, BotPersonas.Persona persona) {
         if (!StringUtils.hasText(botProperties.openaiApiKey())) {
-            log.warn("OpenAiBotClient: openai-api-key is not configured, skipping post generation");
+            log.warn("OpenAiBotClient: openai-api-key is not configured, skipping");
             return Optional.empty();
         }
 
+        List<Map<String, String>> messages = persona != null
+            ? List.of(
+                Map.of("role", "system", "content",
+                    "You are " + persona.displayName() + ". Personality: " + persona.style() + ". " +
+                    "Write authentically as this person. Keep it short and natural."),
+                Map.of("role", "user", "content", prompt))
+            : List.of(Map.of("role", "user", "content", prompt));
+
         Map<String, Object> requestBody = Map.of(
             "model", botProperties.openaiModel(),
-            "messages", List.of(
-                Map.of("role", "user", "content",
-                    "Write a short social media post (max 200 characters) about: " + topic + ". Be engaging and conversational.")
-            ),
-            "max_tokens", 200
+            "messages", messages,
+            "max_completion_tokens", 200
         );
 
         try {
@@ -56,7 +75,7 @@ public class OpenAiBotClient {
 
             return parseContent(response);
         } catch (RestClientException e) {
-            log.warn("OpenAiBotClient: failed to generate post for topic '{}': {}", topic, e.getMessage());
+            log.warn("OpenAiBotClient: API call failed: {}", e.getMessage());
             return Optional.empty();
         }
     }
