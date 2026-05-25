@@ -33,6 +33,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' ORDER BY p.createdAt DESC")
     Page<Post> findAllTopLevelPosts(Pageable pageable);
 
+    @Query("SELECT p FROM Post p WHERE p.parentPost IS NULL AND p.deletedAt IS NULL " +
+        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' " +
+        "AND p.account.role.name != 'ROLE_BOT' ORDER BY p.createdAt DESC")
+    Page<Post> findTopLevelPostsByHumans(Pageable pageable);
+
     @Modifying
     @Query("UPDATE Post p SET p.deletedAt = CURRENT_TIMESTAMP WHERE p.account.id = :accountId AND p.deletedAt IS NULL")
     void softDeleteByAccountId(@Param("accountId") Long accountId);

@@ -54,4 +54,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     long countByBannedAtIsNotNull();
 
     List<Account> findByDeletedAtBefore(Instant cutoff);
+
+    @Query("SELECT a FROM Account a WHERE a.role.name = :roleName AND a.deletedAt IS NULL AND a.bannedAt IS NULL")
+    List<Account> findByRoleName(@Param("roleName") String roleName);
 }

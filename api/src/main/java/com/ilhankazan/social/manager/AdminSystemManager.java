@@ -33,6 +33,7 @@ public class AdminSystemManager {
         settings.putIfAbsent(SystemSettingsService.REGISTRATION_ENABLED, true);
         settings.putIfAbsent(SystemSettingsService.VERIFIED_ONLY_POSTING, false);
         settings.putIfAbsent(SystemSettingsService.MODERATION_ENABLED, true);
+        settings.putIfAbsent(SystemSettingsService.BOT_ENABLED, false);
 
         return settings;
     }

@@ -6,6 +6,7 @@ export type SystemSettings = {
   registration_enabled: boolean;
   verified_only_posting: boolean;
   moderation_enabled: boolean;
+  bot_enabled: boolean;
   [key: string]: boolean;
 };
 
