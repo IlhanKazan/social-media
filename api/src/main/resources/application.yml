@@ -72,7 +72,7 @@ app:
   email:
     enabled: ${EMAIL_ENABLED:false}
     provider: resend
-    from-address: ${EMAIL_FROM:noreply@yourdomain.com}
+    from-address: ${EMAIL_FROM:}
     from-name: ${EMAIL_FROM_NAME:SocialHan}
     resend-api-key: ${RESEND_API_KEY:}
     daily-cap: ${EMAIL_DAILY_CAP:90}

@@ -20,12 +20,12 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     @Transactional
-    public Message create(Conversation conversation, Account sender, String content, String imageUrl, Post sharedPost) {
+    public Message create(Conversation conversation, Account sender, String content, String imagePublicId, Post sharedPost) {
         Message message = new Message();
         message.setConversation(conversation);
         message.setSender(sender);
         message.setContent(content);
-        message.setImageUrl(imageUrl);
+        message.setImagePublicId(imagePublicId);
         message.setSharedPost(sharedPost);
         return messageRepository.save(message);
     }

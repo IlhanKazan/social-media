@@ -32,8 +32,8 @@ public class Message {
     @Column(length = 4000)
     private String content;
 
-    @Column(name = "image_url", length = 512)
-    private String imageUrl;
+    @Column(name = "image_public_id", length = 512)
+    private String imagePublicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shared_post_id")
