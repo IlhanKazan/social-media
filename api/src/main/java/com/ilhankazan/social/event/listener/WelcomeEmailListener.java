@@ -23,7 +23,7 @@ public class WelcomeEmailListener {
 
         EmailMessage message = new EmailMessage(
             event.account().getEmail(),
-            "Welcome to Socialhan!",
+            "Welcome to SocialHan!",
             "WELCOME",
             Map.of(
                 "name", event.account().getDisplayName() != null ? event.account().getDisplayName() : event.account().getUsername(),

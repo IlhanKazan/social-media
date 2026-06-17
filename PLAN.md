@@ -1111,6 +1111,39 @@ not gating gates).
 
 **Acceptance:** Both reports exist on `main`. The README's "Security" section links to them. Any HIGH from ZAP is fixed before the next deploy.
 
+### [ ] 29.4 OWASP Top 10 manual audit
+
+A deliberate, checklist-driven pass independent of the automated ZAP scan.
+Produce `docs/security/owasp-audit-<date>.md` recording each item as PASS / FIX /
+N-A with a code reference.
+
+- **A03 Injection (SQL):** confirm every `@Query`/native query binds parameters
+  (no string concatenation); JPA/MapStruct paths are safe by construction. Grep
+  for string-built queries and dynamic `ORDER BY`/`LIKE` patterns. (Echoes 28.4,
+  now formalised with evidence.)
+- **A01 Broken access control / IDOR:** every resource fetched by id verifies
+  ownership/participation (posts, conversations/messages already use
+  `verifyParticipant`; audit admin endpoints, profile edits, repost/quote,
+  report endpoints). Confirm `@PreAuthorize`/manager-layer checks on each.
+- **A07 Auth failures:** rate limits on auth + token flows (done), token entropy
+  + hashing + expiry + single-use (verified for reset/verify), no user
+  enumeration, session revocation on password reset.
+- **A02 Crypto:** JWT signing key strength + fail-fast, random tokens hashed at
+  rest, HTTPS/HSTS, cookie flags (HttpOnly/Secure/SameSite — Phase 32).
+- **A05 Misconfig:** prod CORS lockdown, Swagger disabled in prod, security
+  headers/CSP, error-detail suppression (Phase 28).
+- **A04 Mass assignment:** request DTOs are explicit records — confirm no entity
+  is bound directly from request bodies; no client-settable `role`/`id`/
+  `moderationStatus` fields.
+- **A10 SSRF:** the only outbound fetches are Cloudinary/OpenAI/Resend with
+  fixed hosts; confirm no user-supplied URL is fetched server-side.
+- **XSS:** posts/bios/DMs are rendered as text by React (no
+  `dangerouslySetInnerHTML`); confirm none is introduced. Email HTML interpolates
+  only server-controlled values + URL-encoded tokens.
+
+**Acceptance:** `docs/security/owasp-audit-<date>.md` exists with every Top-10
+category marked PASS/FIX/N-A; all FIX items are resolved before deploy.
+
 ---
 
 ## Phase 30 — Launch
