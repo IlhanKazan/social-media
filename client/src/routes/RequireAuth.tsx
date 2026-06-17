@@ -5,12 +5,11 @@ import { useAuthStore } from '@/stores/auth-store';
 
 export function RequireAuth() {
   const token = useAuthStore((state) => state.token);
-  const refreshToken = useAuthStore((state) => state.refreshToken);
   const tryRefresh = useAuthStore((state) => state.tryRefresh);
   const location = useLocation();
 
   const [status, setStatus] = useState<'checking' | 'done'>(() =>
-    token || !refreshToken ? 'done' : 'checking'
+    token ? 'done' : 'checking'
   );
 
   useEffect(() => {

@@ -13,6 +13,17 @@ export function usePost(id: number) {
   });
 }
 
+export function usePostAncestors(postId: number) {
+  return useQuery({
+    queryKey: ['post', postId, 'ancestors'],
+    queryFn: async () => {
+      const { data } = await api.get<PostResponse[]>(`/posts/${postId}/ancestors`);
+      return data;
+    },
+    enabled: !!postId,
+  });
+}
+
 export function usePostReplies(postId: number) {
   return useInfiniteQuery<PageResponse<PostResponse>>({
     queryKey: ['post', postId, 'replies'],

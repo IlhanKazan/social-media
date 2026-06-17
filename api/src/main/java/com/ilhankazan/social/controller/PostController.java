@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -44,6 +45,13 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(postManager.getById(id));
+    }
+
+    @Operation(summary = "Get a post's ancestor chain", description = "Returns the parent chain (root first) of a post, for rendering a threaded conversation.")
+    @ApiResponse(responseCode = "200", description = "Ancestor chain retrieved (empty for a root post)")
+    @GetMapping("/{id}/ancestors")
+    public ResponseEntity<List<PostResponse>> getAncestors(@PathVariable Long id) {
+        return ResponseEntity.ok(postManager.getAncestors(id));
     }
 
     @Operation(summary = "Update a post", description = "Updates the content or image of an existing post. Only the author can perform this action.")

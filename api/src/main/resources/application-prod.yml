@@ -32,3 +32,12 @@ app:
   cors:
     allowed-origins:
       - ${FRONTEND_ORIGIN:https://invalid-must-be-set}
+  auth:
+    cookie:
+      # SameSite=None because client and api are likely cross-site on Render
+      # (*.onrender.com is a public suffix). Switch to Lax only if both are
+      # served from one registrable domain. CSRF is then covered by the Origin
+      # allowlist check on /auth/refresh and /auth/logout.
+      same-site: ${AUTH_COOKIE_SAMESITE:None}
+      secure: ${AUTH_COOKIE_SECURE:true}
+      domain: ${AUTH_COOKIE_DOMAIN:}

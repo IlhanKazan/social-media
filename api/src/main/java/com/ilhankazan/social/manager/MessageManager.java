@@ -7,13 +7,16 @@ import com.ilhankazan.social.dto.message.MessageResponse;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Conversation;
 import com.ilhankazan.social.entity.Message;
+import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.MessageCreatedEvent;
 import com.ilhankazan.social.event.MessagesReadEvent;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.mapper.MessageMapper;
 import com.ilhankazan.social.service.AccountService;
+import com.ilhankazan.social.service.CloudinaryStorageService;
 import com.ilhankazan.social.service.ConversationService;
 import com.ilhankazan.social.service.MessageService;
+import com.ilhankazan.social.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -22,6 +25,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +39,8 @@ public class MessageManager {
     private final ConversationService conversationService;
     private final MessageService messageService;
     private final AccountService accountService;
+    private final PostService postService;
+    private final CloudinaryStorageService storageService;
     private final MessageMapper messageMapper;
     private final AccountMapper accountMapper;
     private final ApplicationEventPublisher eventPublisher;
@@ -56,6 +63,13 @@ public class MessageManager {
         return str.substring(0, maxWidth - 3) + "...";
     }
 
+    private String previewText(Message message) {
+        if (StringUtils.hasText(message.getContent())) return abbreviate(message.getContent(), 80);
+        if (StringUtils.hasText(message.getImageUrl())) return "📷 Photo";
+        if (message.getSharedPost() != null) return "📎 Shared a post";
+        return "";
+    }
+
     @Transactional
     public ConversationResponse getOrCreateConversation(Long targetAccountId) {
         Account current = getCurrentAccount();
@@ -71,11 +85,33 @@ public class MessageManager {
 
     @Transactional
     public MessageResponse sendMessage(Long conversationId, String content) {
+        return persist(conversationId, content, null, null);
+    }
+
+    @Transactional
+    public MessageResponse sendImageMessage(Long conversationId, MultipartFile file, String caption) {
+        String imageUrl = storageService.uploadFile(file, "dm");
+        return persist(conversationId, caption, imageUrl, null);
+    }
+
+    @Transactional
+    public MessageResponse sharePost(Long conversationId, Long postId, String caption) {
+        Post post = postService.getById(postId);
+        return persist(conversationId, caption, null, post);
+    }
+
+    private MessageResponse persist(Long conversationId, String content, String imageUrl, Post sharedPost) {
         Account current = getCurrentAccount();
         Conversation conversation = conversationService.getById(conversationId);
         verifyParticipant(conversation, current.getId());
 
-        Message message = messageService.create(conversation, current, content);
+        Message message = messageService.create(
+            conversation,
+            current,
+            StringUtils.hasText(content) ? content : null,
+            imageUrl,
+            sharedPost
+        );
         conversationService.updateLastMessageAt(conversationId, message.getCreatedAt());
 
         MessageResponse response = messageMapper.toResponse(message);
@@ -105,7 +141,7 @@ public class MessageManager {
         Map<Long, String> latestMessageMap = latestMessages.stream()
             .collect(Collectors.toMap(
                 m -> m.getConversation().getId(),
-                m -> abbreviate(m.getContent(), 80)
+                this::previewText
             ));
 
         return PageResponse.of(conversations.map(c ->

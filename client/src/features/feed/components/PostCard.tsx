@@ -2,11 +2,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { formatDistanceToNow, formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2, Flag } from 'lucide-react';
+import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2, Flag, Send } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EditPostDialog } from '@/features/post/components/EditPostDialog';
 import { QuoteDialog } from './QuoteDialog';
+import { ShareToDmDialog } from './ShareToDmDialog';
 import { useRepost } from '../hooks/use-repost';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -29,12 +30,17 @@ interface PostCardProps {
   readonly post: PostResponse;
   readonly feedType?: 'POST' | 'REPOST';
   readonly reposter?: PublicAccountResponse;
+  readonly connector?: 'none' | 'top' | 'bottom' | 'both';
 }
 
-export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
+export function PostCard({ post, feedType = 'POST', reposter, connector = 'none' }: PostCardProps) {
+  const hasTopConnector = connector === 'top' || connector === 'both';
+  const hasBottomConnector = connector === 'bottom' || connector === 'both';
+  const showReplyContext = !hasTopConnector && !!post.parentPostId && !!post.parentPostAuthorUsername;
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const account = useAuthStore((state) => state.account);
@@ -137,7 +143,7 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
       <article
         role="button"
         tabIndex={0}
-        className="flex flex-col border-b border-zinc-100 dark:border-zinc-800/50 bg-transparent hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 cursor-pointer transition-colors focus-visible:bg-zinc-50 dark:focus-visible:bg-zinc-900/20 outline-none"
+        className="relative flex flex-col border-b border-zinc-100 dark:border-zinc-800/50 bg-transparent hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 cursor-pointer transition-colors focus-visible:bg-zinc-50 dark:focus-visible:bg-zinc-900/20 outline-none"
         onClick={() => navigate(`/post/${post.id}`)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -146,6 +152,12 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
           }
         }}
       >
+        {hasTopConnector && (
+          <span aria-hidden className="absolute left-[31px] top-0 h-3 w-0.5 bg-zinc-200 dark:bg-zinc-700" />
+        )}
+        {hasBottomConnector && (
+          <span aria-hidden className="absolute left-[31px] top-13 bottom-0 w-0.5 bg-zinc-200 dark:bg-zinc-700" />
+        )}
         {feedType === 'REPOST' && reposter && (
           <div className="flex items-center gap-1.5 px-4 pt-2.5 pb-0.5 text-[13px] font-bold text-muted-foreground">
             <Repeat2 className="h-4 w-4 ml-[36px]" />
@@ -160,9 +172,9 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
         )}
 
         <Card className="border-0 ring-0 rounded-none shadow-none bg-transparent">
-          <CardHeader className={cn("flex flex-col gap-0 p-3 pb-0", (post.parentPostId || feedType === 'REPOST') && "pt-0")}>
+          <CardHeader className={cn("flex flex-col gap-0 p-3 pb-0", (showReplyContext || feedType === 'REPOST') && "pt-0")}>
 
-            {post.parentPostId && post.parentPostAuthorUsername && (
+            {showReplyContext && (
               <button
                 type="button"
                 className="flex items-center gap-1.5 text-[13px] text-muted-foreground ml-[52px] mb-1.5 font-medium z-10 appearance-none bg-transparent border-none p-0 text-left cursor-auto"
@@ -361,10 +373,12 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
 
               <Button
                 variant="ghost"
-                className="h-9 px-3 gap-2 hover:text-blue-500 hover:bg-blue-500/10 rounded-full transition-colors z-10 font-medium"
+                className="group/reply h-9 px-0 gap-1.5 bg-transparent hover:bg-transparent dark:hover:bg-transparent hover:text-blue-500 rounded-full transition-colors z-10 font-medium"
                 onClick={(e) => { e.stopPropagation(); navigate(`/post/${post.id}`); }}
               >
-                <MessageSquare className="h-[18px] w-[18px]" />
+                <span className="grid place-items-center h-9 w-9 rounded-full transition-colors group-hover/reply:bg-blue-500/10">
+                  <MessageSquare className="h-[18px] w-[18px]" />
+                </span>
                 <span className="text-[14px]">{post.replyCount > 0 ? post.replyCount : ''}</span>
               </Button>
 
@@ -374,11 +388,13 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
                     <Button
                       variant="ghost"
                       className={cn(
-                        "h-9 px-3 gap-2 rounded-full transition-colors font-medium outline-none",
-                        post.repostedByMe ? "text-green-500 hover:bg-green-500/10" : "hover:text-green-500 hover:bg-green-500/10 text-muted-foreground"
+                        "group/repost h-9 px-0 gap-1.5 bg-transparent hover:bg-transparent dark:hover:bg-transparent rounded-full transition-colors font-medium outline-none",
+                        post.repostedByMe ? "text-green-500" : "text-muted-foreground hover:text-green-500"
                       )}
                     >
-                      <Repeat2 className="h-[18px] w-[18px]" />
+                      <span className="grid place-items-center h-9 w-9 rounded-full transition-colors group-hover/repost:bg-green-500/10">
+                        <Repeat2 className="h-[18px] w-[18px]" />
+                      </span>
                       <span className="text-[14px]">{post.repostCount > 0 ? post.repostCount : ''}</span>
                     </Button>
                   } />
@@ -405,6 +421,17 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
                       <MessageSquare className="mr-2 h-4 w-4" />
                       <span>Alıntı ile Paylaş</span>
                     </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsShareOpen(true);
+                      }}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      <span>Mesajla Paylaş</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -412,7 +439,7 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
               <Button
                 variant="ghost"
                 className={cn(
-                  "h-9 px-3 gap-2 hover:text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors z-10 font-medium",
+                  "group/like h-9 px-0 gap-1.5 bg-transparent hover:bg-transparent dark:hover:bg-transparent hover:text-rose-500 rounded-full transition-colors z-10 font-medium",
                   post.likedByMe ? "text-rose-500" : "text-muted-foreground"
                 )}
                 onClick={(e) => {
@@ -421,7 +448,9 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
                 }}
                 disabled={toggleLike.isPending}
               >
-                <Heart className={cn("h-[18px] w-[18px]", post.likedByMe && "fill-current")} />
+                <span className="grid place-items-center h-9 w-9 rounded-full transition-colors group-hover/like:bg-rose-500/10">
+                  <Heart className={cn("h-[18px] w-[18px]", post.likedByMe && "fill-current")} />
+                </span>
                 <span className="text-[14px]">{post.likeCount > 0 ? post.likeCount : ''}</span>
               </Button>
 
@@ -433,6 +462,7 @@ export function PostCard({ post, feedType = 'POST', reposter }: PostCardProps) {
       <EditPostDialog post={post} open={isEditOpen} onOpenChange={setIsEditOpen} />
       <ReportDialog postId={post.id} open={isReportOpen} onOpenChange={setIsReportOpen} />
       <QuoteDialog post={post} open={isQuoteOpen} onOpenChange={setIsQuoteOpen} />
+      <ShareToDmDialog post={post} open={isShareOpen} onOpenChange={setIsShareOpen} />
     </>
   );
 }

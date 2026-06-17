@@ -12,10 +12,6 @@ export interface RegisterRequest {
   displayName?: string;
 }
 
-export interface RefreshRequest {
-  refreshToken: string;
-}
-
 export interface AccountSummary {
   id: number;
   username: string;
@@ -28,7 +24,6 @@ export interface AccountSummary {
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
   accessTokenExpiresIn: number;
   refreshTokenExpiresIn: number;
   account: AccountSummary;
@@ -140,11 +135,20 @@ export interface ConversationResponse {
   unreadCount: number;
 }
 
+export interface SharedPostPreview {
+  id: number;
+  author: PublicAccountResponse;
+  contentSnippet: string | null;
+  imageUrl: string | null;
+}
+
 export interface MessageResponse {
   id: number;
   conversationId: number;
   sender: PublicAccountResponse;
-  content: string;
+  content: string | null;
+  imageUrl?: string | null;
+  sharedPost?: SharedPostPreview | null;
   readAt: string | null;
   createdAt: string;
   isOptimistic?: boolean;

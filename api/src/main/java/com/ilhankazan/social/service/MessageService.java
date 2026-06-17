@@ -3,6 +3,7 @@ package com.ilhankazan.social.service;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Conversation;
 import com.ilhankazan.social.entity.Message;
+import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,11 +20,13 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     @Transactional
-    public Message create(Conversation conversation, Account sender, String content) {
+    public Message create(Conversation conversation, Account sender, String content, String imageUrl, Post sharedPost) {
         Message message = new Message();
         message.setConversation(conversation);
         message.setSender(sender);
         message.setContent(content);
+        message.setImageUrl(imageUrl);
+        message.setSharedPost(sharedPost);
         return messageRepository.save(message);
     }
 

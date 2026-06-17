@@ -17,6 +17,15 @@ public class AppProperties {
             List<String> allowedOrigins
     ) {}
 
+    @ConfigurationProperties(prefix = "app.auth.cookie")
+    public record CookieProperties(
+            String name,
+            String path,
+            String sameSite,
+            boolean secure,
+            String domain
+    ) {}
+
     @ConfigurationProperties(prefix = "app.cloudinary")
     public record CloudinaryProperties(
             String cloudName,
@@ -32,6 +41,8 @@ public class AppProperties {
         String fromName,
         String resendApiKey,
         int dailyCap,
-        int monthlyCap
+        int monthlyCap,
+        String appName,
+        String logoUrl
     ) {}
 }

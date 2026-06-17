@@ -4,18 +4,23 @@ import com.ilhankazan.social.dto.common.CursorPageResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.message.ConversationResponse;
 import com.ilhankazan.social.dto.message.MessageResponse;
+import com.ilhankazan.social.dto.message.SharePostRequest;
 import com.ilhankazan.social.manager.MessageManager;
+import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/conversations")
@@ -63,6 +68,30 @@ public class MessageController {
         @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
         log.warn("Deprecated offset-based message pagination used for conversation {}", id);
         return ResponseEntity.ok(messageManager.getMessages(id, page, size));
+    }
+
+    @Operation(summary = "Send an image message", description = "Uploads an image to the conversation and broadcasts it. Optional caption.")
+    @ApiResponse(responseCode = "200", description = "Image message sent")
+    @ApiResponse(responseCode = "403", description = "Access denied (not a participant)")
+    @RateLimit(capacity = 20, minutes = 5)
+    @PostMapping(value = "/{id}/messages/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponse> sendImage(
+        @PathVariable Long id,
+        @RequestParam("file") MultipartFile file,
+        @RequestParam(value = "caption", required = false) String caption) {
+        return ResponseEntity.ok(messageManager.sendImageMessage(id, file, caption));
+    }
+
+    @Operation(summary = "Share a post into a conversation", description = "Sends a post as a shareable preview card. Optional caption.")
+    @ApiResponse(responseCode = "200", description = "Post shared")
+    @ApiResponse(responseCode = "403", description = "Access denied (not a participant)")
+    @ApiResponse(responseCode = "404", description = "Post not found")
+    @RateLimit(capacity = 30, minutes = 5)
+    @PostMapping("/{id}/messages/share")
+    public ResponseEntity<MessageResponse> sharePost(
+        @PathVariable Long id,
+        @Valid @RequestBody SharePostRequest request) {
+        return ResponseEntity.ok(messageManager.sharePost(id, request.postId(), request.caption()));
     }
 
     @Operation(summary = "Mark messages as read", description = "Marks all unread messages from the other participant as read.")
