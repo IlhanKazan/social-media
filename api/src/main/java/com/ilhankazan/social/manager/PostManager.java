@@ -89,6 +89,33 @@ public class PostManager {
         )));
     }
 
+    private List<PostResponse> enrichList(List<Post> posts, Long currentUserId) {
+        if (posts.isEmpty()) {
+            return List.of();
+        }
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        Map<Long, InteractionCounts> countsMap = interactionService.getCountsForPosts(postIds);
+        Map<Long, UserInteractions> userMap = interactionService.getUserInteractionsForPosts(postIds, currentUserId);
+        Map<Long, Long> replyCountsMap = postService.getReplyCounts(postIds);
+        Map<Long, Long> repostCountsMap = repostService.getRepostCounts(postIds);
+        Set<Long> repostedByMeSet = repostService.getRepostedByMe(currentUserId, postIds);
+
+        return posts.stream().map(post -> postMapper.toResponse(
+            post,
+            countsMap.getOrDefault(post.getId(), InteractionCounts.EMPTY),
+            userMap.getOrDefault(post.getId(), UserInteractions.EMPTY),
+            replyCountsMap.getOrDefault(post.getId(), 0L),
+            repostCountsMap.getOrDefault(post.getId(), 0L),
+            repostedByMeSet.contains(post.getId())
+        )).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostResponse> getAncestors(Long id) {
+        Account current = getCurrentAccount();
+        return enrichList(postService.getAncestors(id), current.getId());
+    }
+
     @Transactional
     public PostResponse create(CreatePostRequest request) {
         Account current = getCurrentAccount();

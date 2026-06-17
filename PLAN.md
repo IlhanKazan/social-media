@@ -938,7 +938,14 @@ Two distinct things, sharing a phase because they both produce fake content:
   under a special `ROLE_BOT` so admins can spot bot-authored content if they
   want. Optional, gated by config.
 
-### [ ] 27.1 Mock data seeder (dev only)
+> **Status (2026-06-17): DONE — merged via PR #24.** Implementation note: the
+> bot service ships on **OpenAI** (`OpenAiBotClient`, model `gpt-5.4-mini`), not
+> Gemini. The `gemini-*` config keys below were superseded by `OPENAI_API_KEY`
+> during implementation. Cadence is second-based (`app.bot.cadence-seconds`),
+> not the min/max-minutes scheme originally sketched. See Phase 35 for follow-up
+> tuning (lower post frequency).
+
+### [x] 27.1 Mock data seeder (dev only)
 
 - Add `com.github.javafaker:javafaker:1.0.2` (test scope OR `runtime` scope — but DON'T put on the prod classpath).
 - `db/seed/V<n>__seed_dev_data.sql` is one option. Better: a Java seeder class `dev.MockDataSeeder` that runs once at boot when:
@@ -950,7 +957,7 @@ Two distinct things, sharing a phase because they both produce fake content:
 - Seeder is idempotent — only runs if accounts table is empty.
 - Welcome emails are NEVER sent for seeded users (`UserRegisteredEvent` is bypassed by hitting the repository directly, not `AuthManager.register`).
 
-### [ ] 27.2 Bot service (production-optional)
+### [x] 27.2 Bot service (production-optional)
 
 - Add a new role `ROLE_BOT` in `roles` migration. (Doesn't affect existing rows — bots are created later.)
 - Config:
@@ -1319,7 +1326,7 @@ reference list so nothing slips through before the deploy.
 | 10 | **MEDIUM** | `InteractionType.COMMENT` enum still exists despite V6 removing the DB constraint and column. Any code path that still creates a row with `type=COMMENT` would fail at runtime. The compile-time API surface is wrong. | 5.6.1 |
 | 11 | **MEDIUM** | No request body size cap for non-multipart endpoints. Spring won't reject a 100MB JSON body — it'll deserialize it (and run out of memory before the `@Size(max=500)` check can fire). | 5.6.11 |
 | 12 | **MEDIUM** | No security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP, HSTS). Browsers default-permissively when these are absent. | 28.2 |
-| 13 | **MEDIUM** | The frontend has no CSRF protection in shape but doesn't need it because of the bearer token model — provided no part of the API ever accepts session cookies. Verify that the deployed app never sets a cookie-based auth path during refresh-token rotation. | 28.4 |
+| 13 | **RESOLVED (Phase 32)** | Refresh token moved from `localStorage` to an HttpOnly+Secure cookie. The API stays bearer-only; only `/auth/refresh` + `/auth/logout` read the cookie and are guarded by `SameSite` + an `Origin`/`Referer` allowlist check (`AuthRequestOriginGuard`). | 32.1–32.3 |
 | 14 | **MEDIUM** | `application-test.yml` has hardcoded JWT secret and Cloudinary credentials that look like real values to a quick reader. They aren't, but rename them to `test-only-not-a-real-secret-…` to reduce confusion in a public repo. | 28.6 |
 | 15 | **LOW** | `RateLimitAspect` cache is `ConcurrentHashMap` with no eviction. Memory grows unbounded with unique IPs over time. Replace with Caffeine in Phase 20.1 or add an explicit max size. | 20.1 (extend) |
 | 16 | **LOW** | `CorsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"))` is fine but Phase 21's outbox uses `Idempotency-Key` headers. Add it before email rolls out. | 28.3 |
@@ -1328,5 +1335,267 @@ reference list so nothing slips through before the deploy.
 
 **The five blockers** (must be fixed before flipping the deploy switch): #1, #2, #3, #4, #5.
 Without these, the deploy will either be exploitable or non-functional in production.
+
+---
+
+## Revised Launch Sequencing (2026-06-17)
+
+New scope was added after Phase 27. Decision: **security hardening AND the core
+social features ship before launch; only the mobile app is post-launch.** The
+existing phase numbers are kept (no renumber); the table below is the real
+execution order — follow it, not the numeric order.
+
+| Order | Phase | What | Gate? |
+|-------|-------|------|-------|
+| 1 | 28.5 | Rate-limit verification (last open Phase 28 item) | pre-launch |
+| 2 | **32** | Auth & session hardening (HttpOnly cookies, CSRF, password reset/security fixes) | pre-launch GATE |
+| 3 | **33** | Threaded conversations (Twitter-style reply flow) | pre-launch feature |
+| 4 | **34** | DM media & post sharing (photo in chat + Instagram-style share-to-DM) | pre-launch feature |
+| 5 | **35** | Bot behaviour tuning (post less, jittered cadence) | pre-launch |
+| 6 | **36** | Test coverage expansion + CI gate | pre-launch GATE |
+| 7 | 29 | k6 load test + OWASP ZAP scan (runs last so it covers the new endpoints) | pre-launch GATE |
+| 8 | 30 | Launch (README, ARCHITECTURE, deploy to Render, archive legacy) | — |
+| 9 | 31 | i18n (EN/TR) | post-launch |
+| 10 | **37** | React Native mobile app | post-launch (final) |
+
+---
+
+## Phase 32 — Auth & Session Hardening
+
+**Gate: pre-launch.** Today the access token lives in memory (good) but the
+**refresh token is persisted in `localStorage`** (`client/src/stores/auth-store.ts`,
+`partialize` keeps `refreshToken`) — XSS-stealable. Move the refresh token to an
+HttpOnly cookie. This is the item flagged as finding #13 in the audit table:
+moving any auth to cookies **requires** adding CSRF defence, because cookie auth
+is CSRF-targetable where bearer headers are not.
+
+> **Vite/Render feasibility:** cookies are a browser primitive, fully compatible
+> with Vite — no bundler concern. The real work is `withCredentials` + CORS
+> `allowCredentials` (already set) + correct `SameSite`/`Secure` per environment.
+
+### [x] 32.1 Move refresh token to an HttpOnly cookie
+
+- Backend: `/auth/login`, `/auth/register`, `/auth/refresh` set the refresh token
+  via `Set-Cookie: refresh_token=...; HttpOnly; Secure; SameSite=...; Path=/api/v1/auth; Max-Age=<refresh-ttl>`.
+  Remove `refreshToken` from the JSON response body.
+- `/auth/refresh` reads the cookie (no request body). `/auth/logout` clears the
+  cookie (`Max-Age=0`) **and** keeps the existing server-side revocation
+  (blacklist) path.
+- Keep the **access token in the JSON body, memory-only** (Zustand already keeps
+  it in memory). API calls keep using the `Authorization: Bearer` header — so the
+  bulk of the API surface stays CSRF-free. Only the cookie-authed
+  `/auth/refresh` + `/auth/logout` need CSRF defence (32.2).
+- Frontend: axios `withCredentials: true`; drop `refreshToken` from `partialize`
+  so it is never written to `localStorage`; `tryRefresh()` posts to `/auth/refresh`
+  with no body and relies on the cookie.
+
+### [x] 32.2 CSRF defence for the cookie-authed endpoints
+
+- `/auth/refresh` + `/auth/logout` now authenticate via cookie → CSRF-targetable.
+  Mitigate with `SameSite=Strict` on the refresh cookie + `Path=/api/v1/auth`,
+  and an `Origin`/`Referer` allowlist check on those two handlers.
+- Assert (test) that **no other endpoint** accepts cookie auth — the API stays
+  bearer-only. Update audit finding #13 to "resolved".
+
+### [x] 32.3 Per-environment cookie config (dev + Render)
+
+- Add `app.auth.cookie.{same-site,secure,domain}` properties.
+- Dev (`local`): client `:5173` → api `:8080`. Same registrable host
+  (`localhost`, ports irrelevant to SameSite) → `SameSite=Lax`, `Secure=false`.
+  CORS must echo the exact origin (no `*`) since `allowCredentials=true`.
+- Prod (Render): confirm whether the client and api share a registrable domain.
+  Same site → `SameSite=Lax`. Different site (custom domains) → `SameSite=None; Secure`.
+  Set `Secure=true` always in `prod`.
+
+### [x] 32.4 Password reset flow fixes (Phase 22 follow-up)
+
+- Audit the existing reset flow for: single-use token enforcement, expiry,
+  constant-time token comparison, **no user-enumeration** (forgot-password always
+  returns a generic 200), and a rate limit on the request endpoint.
+- Convert the Turkish strings in `PasswordResetService.java` to English while in
+  the file (overlaps Phase 31.1).
+
+### [ ] 32.5 Security-fix verification sweep
+
+- Re-walk the "Pre-Deploy Security Audit" table; confirm blockers #1–#5 and #9
+  (rate limiting extended to post / image-upload / follow / DM-send) are done in
+  code, not just planned.
+
+**Acceptance:** DevTools → Application shows **no token in Local Storage**; the
+refresh cookie shows `HttpOnly` + `Secure` (prod). Login, silent refresh, and
+logout all work via the cookie. CSRF probe against `/auth/refresh` from a foreign
+origin is rejected.
+
+---
+
+## Phase 33 — Threaded Conversations (Twitter-style reply flow)
+
+**Gate: pre-launch feature.** Posts already self-reference via `parentPostId`
+(`Post.java`). Replies currently require clicking through one by one. Goal: open a
+post and see the whole conversation inline — ancestor chain + focused post +
+direct replies — like Twitter.
+
+### [x] 33.1 Backend — thread endpoint
+
+> Implemented as `GET /posts/{id}/ancestors` (root-first parent chain, depth-capped
+> at 20, moderation/deleted-aware) rather than a combined `/thread` endpoint —
+> existing `getById` + paginated `/replies` are reused. `replyCount` was already in
+> `PostResponse`.
+
+
+- `GET /api/v1/posts/{id}/thread` returns `{ ancestors[], focused, replies (PageResponse) }`.
+  Ancestors = walk `parentPostId` to the root, **depth-capped** (e.g. ≤ 10).
+  Use a recursive CTE or an iterative fetch in the service.
+- Add `replyCount` to `PostResponse` if not already present (needed for the UI
+  affordance).
+
+### [x] 33.2 Frontend — conversation/thread page
+
+- Route `/post/:id`: render the ancestor chain (muted, connected by a vertical
+  line), the focused post emphasised, then the replies list with infinite scroll.
+- Twitter-style connector line linking parent → reply.
+- Inline reply composer pinned above the replies list.
+
+### [x] 33.3 Frontend — reply context in feed
+
+- `PostCard` shows a "Replying to @user" line when `parentPostId` is set.
+
+**Acceptance:** Clicking any post opens a single threaded view showing the full
+conversation without click-through; replies load inline with infinite scroll.
+
+---
+
+## Phase 34 — DM Media & Post Sharing
+
+**Gate: pre-launch feature.** The `Message` entity is text-only today
+(`content`, `length=4000`). Add (a) photo-in-chat via the existing Cloudinary
+service, and (b) Instagram-style "share a post into a DM" with a preview card.
+
+### [x] 34.1 Migration — message attachments
+
+- `V<n>__message_attachments.sql`: add `image_url VARCHAR`, `shared_post_id BIGINT
+  REFERENCES posts(id) ON DELETE SET NULL`; make `content` nullable; add a CHECK
+  that at least one of `content` / `image_url` / `shared_post_id` is non-null.
+- Update `Message` entity + `MessageMapper`.
+
+### [x] 34.2 Backend — send image in a DM
+
+- Reuse `CloudinaryStorageService` (same pattern as post images — read the
+  existing post-image upload flow first and mirror it). `MessageResponse` carries
+  `imageUrl`; the WebSocket broadcast includes it.
+
+### [x] 34.3 Backend — share a post into a DM
+
+- A message with `sharedPostId`. `MessageResponse` includes a `sharedPost`
+  preview (author summary, content snippet, thumbnail). Resolve a deleted shared
+  post gracefully (the `SET NULL` FK).
+
+### [x] 34.4 Frontend — image upload in chat
+
+- Image button in the `ConversationView` composer; local preview before send;
+  render image bubbles in the message list.
+
+### [x] 34.5 Frontend — share-to-DM + preview card
+
+- "Share" action on `PostCard` → pick a conversation → send a post-share message.
+- In chat, render a compact post preview card (avatar, name, snippet, thumbnail)
+  that links to the post's thread (Phase 33).
+
+**Acceptance:** A user can send a photo in a DM and share any post into a
+conversation; the recipient sees the image bubble / post-preview card in real
+time over WebSocket.
+
+---
+
+## Phase 35 — Bot Behaviour Tuning
+
+**Gate: pre-launch (small).** `BotScheduler` runs on a global fixed delay
+(`app.bot.cadence-seconds`, prod 60 / local 180) with `daily-quota` (prod 50 /
+local 20). Bots post too often and in lockstep.
+
+### [ ] 35.1 Lower frequency + jitter per bot
+
+- Reintroduce a **per-bot randomized next-post time** (min/max minutes, the
+  original 27.2 sketch) instead of a single global fixed delay, so bots don't
+  post synchronously.
+- New suggested prod defaults: effectively ~1 post per bot every few hours;
+  `daily-quota` ~8–12.
+
+### [ ] 35.2 Active-hours window (optional)
+
+- Optional `app.bot.active-hours` so bots don't post at 4am.
+
+### [ ] 35.3 Re-verify pipeline
+
+- Confirm moderation + `BOT_POSTED` audit logging still fire after tuning.
+
+**Acceptance:** With defaults, bots post noticeably less and on a jittered, not
+synchronized, cadence.
+
+---
+
+## Phase 36 — Test Coverage Expansion
+
+**Gate: pre-launch GATE.** Raise backend + frontend coverage and gate PRs in CI.
+
+### [ ] 36.1 Backend coverage
+
+- Add JaCoCo (if absent); record the current baseline; set a pragmatic target
+  (e.g. 70% line on `controller`/`manager`/`service`).
+- Integration tests for: auth login/refresh/logout **with cookies** (Phase 32),
+  post create → async moderation flip, the thread endpoint (33), DM media/share
+  (34), and rate limiting (overlaps 29).
+
+### [ ] 36.2 Frontend coverage
+
+- Vitest + React Testing Library + MSW: auth forms (RHF + Zod), feed render,
+  thread view, DM composer.
+
+### [ ] 36.3 CI gate
+
+- GitHub Actions on PR: `mvn verify` (JaCoCo) + `npm run test` + `typecheck` +
+  `lint`. Optionally fail under the coverage threshold.
+
+**Acceptance:** Coverage reports generated in CI; the new features (32–35) have
+tests; CI is green and gates PRs to `main`.
+
+---
+
+## Phase 37 — React Native Mobile App
+
+**Post-launch (final).** Learning goal: a native client reusing the existing REST
++ WebSocket API. Sequenced last on purpose.
+
+> **Auth implication of Phase 32:** native apps can't use the web HttpOnly-cookie
+> refresh. Plan the backend to support **both** flows — cookie refresh for web,
+> and a token/`expo-secure-store` refresh for mobile (e.g. `/auth/refresh` accepts
+> either the cookie or a body token). Decide this in 37.2, don't bolt it on later.
+
+### [ ] 37.1 Scaffold
+
+- Expo (React Native + TypeScript) in a new `mobile/` workspace in the monorepo.
+  Recommend Expo managed workflow for speed.
+
+### [ ] 37.2 Shared contracts + auth strategy
+
+- Reuse the `types/api.ts` contracts (extract to a shared package or copy).
+  Reuse TanStack Query + axios patterns. Secure token storage via
+  `expo-secure-store`. Settle the dual web-cookie / mobile-token refresh design.
+
+### [ ] 37.3 Core screens
+
+- Auth, feed, post detail/thread, compose, profile, DM list + chat. Verify a
+  STOMP-over-WebSocket client works in RN (or pick an RN-compatible one).
+
+### [ ] 37.4 Push notifications (stretch)
+
+- Expo push mapped to the existing notification events.
+
+### [ ] 37.5 Build & distribute
+
+- EAS Build; an internal TestFlight / APK build for the portfolio demo.
+
+**Acceptance:** the RN app runs on a device/simulator, logs in against the
+deployed API, renders the feed, and sends a DM in real time.
 
 ---

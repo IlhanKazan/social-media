@@ -118,7 +118,7 @@ public class AuthManager {
 
             emailService.enqueue(new EmailMessage(
                 account.getEmail(),
-                "Şifre Sıfırlama Talebi",
+                "Reset your Socialhan password",
                 "PASSWORD_RESET",
                 Map.of("resetLink", resetLink)
             ));

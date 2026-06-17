@@ -29,8 +29,15 @@ public class Message {
     @JoinColumn(name = "sender_id", nullable = false)
     private Account sender;
 
-    @Column(nullable = false, length = 4000)
+    @Column(length = 4000)
     private String content;
+
+    @Column(name = "image_url", length = 512)
+    private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shared_post_id")
+    private Post sharedPost;
 
     @Column(name = "read_at")
     private Instant readAt;

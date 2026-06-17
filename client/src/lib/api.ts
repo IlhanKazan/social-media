@@ -6,6 +6,7 @@ const origin = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 export const api = axios.create({
   baseURL: `${origin}/api/v1`,
   timeout: 10000,
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {

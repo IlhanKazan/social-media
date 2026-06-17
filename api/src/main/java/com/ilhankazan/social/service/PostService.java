@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import static java.util.stream.Collectors.toMap;
@@ -102,6 +104,36 @@ public class PostService {
         }
 
         return post;
+    }
+
+    private static final int MAX_ANCESTOR_DEPTH = 20;
+
+    @Transactional(readOnly = true)
+    public List<Post> getAncestors(Long postId) {
+        Post post = getById(postId);
+        List<Post> ancestors = new ArrayList<>();
+        Post current = post;
+        for (int depth = 0; depth < MAX_ANCESTOR_DEPTH; depth++) {
+            Post parent = current.getParentPost();
+            if (parent == null) break;
+            try {
+                if (!isVisibleToCurrentUser(parent)) break;
+            } catch (EntityNotFoundException e) {
+                break;
+            }
+            ancestors.add(parent);
+            current = parent;
+        }
+        Collections.reverse(ancestors);
+        return ancestors;
+    }
+
+    private boolean isVisibleToCurrentUser(Post post) {
+        if (post.getModerationStatus() != ModerationStatus.FLAGGED) return true;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return isAdmin || post.getAccount().getUsername().equals(authentication.getName());
     }
 
     @Transactional

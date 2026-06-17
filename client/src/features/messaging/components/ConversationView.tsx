@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Loader2, Send, ArrowLeft, CheckCheck, Clock } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Loader2, Send, ArrowLeft, CheckCheck, Clock, ImagePlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMessages, useMarkMessagesRead } from '../hooks/use-messages';
+import { useSendDmImage } from '../hooks/use-dm-attachments';
 import { useAuthStore } from '@/stores/auth-store';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useConversations } from '../hooks/use-conversations';
@@ -19,8 +21,17 @@ export function ConversationView() {
   const id = Number(conversationId);
   const account = useAuthStore((state) => state.account);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { publish, isConnected } = useWebSocket();
   const [content, setContent] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const sendImage = useSendDmImage(id);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (file) sendImage.mutate({ file });
+  };
 
   const { data: convData } = useConversations();
   const conversation = convData?.pages.flatMap(p => p.content).find(c => c.id === id);
@@ -134,20 +145,75 @@ export function ConversationView() {
             const showDetails = selectedMessageId === msg.id || (isLatestMessage && isMine && !!msg.readAt);
 
             return (
-              <div key={msg.id} className={cn("flex w-full flex-col", isMine ? "items-end" : "items-start")}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedMessageId(showDetails ? null : msg.id)}
-                  className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2 text-[15px] leading-relaxed cursor-pointer transition-all active:scale-[0.98] text-left border-none outline-none appearance-none",
-                    isMine
-                      ? "bg-primary text-primary-foreground rounded-br-sm"
-                      : "bg-zinc-100 dark:bg-zinc-800/80 rounded-bl-sm",
-                    msg.isOptimistic && "opacity-70"
+              <div key={msg.id} className={cn("flex w-full flex-col gap-1", isMine ? "items-end" : "items-start")}>
+                <div className={cn("flex max-w-[75%] flex-col gap-1", isMine ? "items-end" : "items-start", msg.isOptimistic && "opacity-70")}>
+                  {msg.imageUrl && (
+                    <Dialog>
+                      <DialogTrigger render={
+                        <button
+                          type="button"
+                          className={cn(
+                            "block overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 cursor-zoom-in outline-none",
+                            isMine ? "rounded-br-sm" : "rounded-bl-sm"
+                          )}
+                        >
+                          <img src={msg.imageUrl} alt="" className="max-h-80 w-auto max-w-full object-cover" />
+                        </button>
+                      } />
+                      <DialogContent
+                        className="max-w-none sm:max-w-none w-screen h-[100dvh] p-0 m-0 border-none bg-black/95 shadow-none flex items-center justify-center rounded-none text-white [&>button]:text-white [&>button]:hover:bg-white/20 [&>button]:right-4 [&>button]:top-4"
+                        showCloseButton={true}
+                      >
+                        <DialogTitle className="sr-only">Fotoğraf</DialogTitle>
+                        <img src={msg.imageUrl} alt="" className="max-w-full max-h-full w-auto h-auto object-contain select-none" />
+                      </DialogContent>
+                    </Dialog>
                   )}
-                >
-                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                </button>
+
+                  {msg.sharedPost && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/post/${msg.sharedPost!.id}`)}
+                      className="w-60 text-left rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-background hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors p-2.5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                        <Avatar className="h-5 w-5 shrink-0">
+                          <AvatarImage src={msg.sharedPost.author.profileImageUrl || undefined} />
+                          <AvatarFallback>{msg.sharedPost.author.username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-[13px] truncate">{msg.sharedPost.author.displayName || msg.sharedPost.author.username}</span>
+                        <span className="text-muted-foreground text-[13px] truncate">@{msg.sharedPost.author.username}</span>
+                      </div>
+                      {msg.sharedPost.contentSnippet && (
+                        <p className="text-[13px] leading-snug line-clamp-3 whitespace-pre-wrap">{msg.sharedPost.contentSnippet}</p>
+                      )}
+                      {msg.sharedPost.imageUrl && (
+                        <img src={msg.sharedPost.imageUrl} alt="" className="mt-1.5 rounded-lg w-full max-h-32 object-cover" />
+                      )}
+                    </button>
+                  )}
+
+                  {msg.content && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMessageId(showDetails ? null : msg.id)}
+                      className={cn(
+                        "rounded-2xl px-4 py-2 text-[15px] leading-relaxed cursor-pointer transition-all active:scale-[0.98] text-left border-none outline-none appearance-none",
+                        isMine
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : "bg-zinc-100 dark:bg-zinc-800/80 rounded-bl-sm"
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                    </button>
+                  )}
+
+                  {!msg.content && !msg.imageUrl && !msg.sharedPost && (
+                    <div className="rounded-2xl px-4 py-2 text-[13px] italic text-muted-foreground bg-zinc-100 dark:bg-zinc-800/80">
+                      Bu gönderi artık mevcut değil
+                    </div>
+                  )}
+                </div>
 
                 {isMine && msg.isOptimistic && (
                   <div className="flex items-center gap-1 mt-1 mb-1 text-[11px] text-muted-foreground pr-1">
@@ -181,6 +247,23 @@ export function ConversationView() {
 
       <div className="p-3 border-t bg-background shrink-0 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
         <form onSubmit={handleSend} className="flex items-end gap-2 max-w-4xl mx-auto w-full bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-1 border">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleImageSelect}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 shrink-0 rounded-xl mb-1 ml-1 text-muted-foreground hover:text-primary"
+            disabled={!isConnected || sendImage.isPending}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImagePlus className="h-5 w-5" />
+          </Button>
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}

@@ -8,6 +8,8 @@ public record MessageResponse(
     Long conversationId,
     PublicAccountResponse sender,
     String content,
+    String imageUrl,
+    SharedPostPreview sharedPost,
     Instant readAt,
     Instant createdAt
 ) {}

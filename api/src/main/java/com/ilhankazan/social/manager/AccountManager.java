@@ -152,7 +152,7 @@ public class AccountManager {
 
         emailService.enqueue(new EmailMessage(
             account.getEmail(),
-            "E-posta Doğrulama",
+            "Verify your Socialhan email",
             "EMAIL_VERIFICATION",
             Map.of("verifyLink", verifyLink)
         ));

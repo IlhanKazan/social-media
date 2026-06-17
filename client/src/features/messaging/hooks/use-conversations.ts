@@ -2,7 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { PageResponse, ConversationResponse } from '@/types/api';
 
-export function useConversations() {
+export function useConversations(enabled = true) {
   return useInfiniteQuery<PageResponse<ConversationResponse>>({
     queryKey: ['conversations'],
     queryFn: async ({ pageParam = 0 }) => {
@@ -13,5 +13,6 @@ export function useConversations() {
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
+    enabled,
   });
 }

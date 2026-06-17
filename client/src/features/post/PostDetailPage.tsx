@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, MessageSquareOff } from 'lucide-react';
-import { usePost, usePostReplies } from './hooks/use-post';
+import { usePost, usePostReplies, usePostAncestors } from './hooks/use-post';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { PostCard } from '@/features/feed/components/PostCard';
 import { CreatePost } from '@/features/feed/components/CreatePost';
@@ -14,15 +14,30 @@ export function PostDetailPage() {
   const navigate = useNavigate();
 
   const { data: post, status: postStatus } = usePost(postId);
+  const { data: ancestors } = usePostAncestors(postId);
   const { data: replies, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostReplies(postId);
 
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
+
+  const focusedRef = useRef<HTMLDivElement>(null);
+  const hasScrolled = useRef(false);
+  const ancestorCount = ancestors?.length ?? 0;
 
   useEffect(() => {
     if (isIntersecting && hasNextPage && !isFetchingNextPage) {
       void fetchNextPage();
     }
   }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    hasScrolled.current = false;
+  }, [postId]);
+
+  useEffect(() => {
+    if (hasScrolled.current || ancestorCount === 0 || !focusedRef.current) return;
+    hasScrolled.current = true;
+    focusedRef.current.scrollIntoView({ block: 'start' });
+  }, [ancestorCount, postId]);
 
   if (postStatus === 'pending') {
     return (
@@ -50,7 +65,17 @@ export function PostDetailPage() {
         <h2 className="text-xl font-bold">Gönderi</h2>
       </div>
 
-      <PostCard post={post} />
+      {ancestors?.map((ancestor, index) => (
+        <PostCard
+          key={ancestor.id}
+          post={ancestor}
+          connector={index === 0 ? 'bottom' : 'both'}
+        />
+      ))}
+
+      <div ref={focusedRef} className="scroll-mt-[57px]">
+        <PostCard post={post} connector={ancestorCount > 0 ? 'top' : 'none'} />
+      </div>
 
       <div className="border-t border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10">
         <CreatePost parentPostId={postId} placeholder="Yanıtını gönder..." />

@@ -44,8 +44,16 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         AuthResponse regAuth = objectMapper.readValue(registerResponse.getBody(), AuthResponse.class);
         assertThat(regAuth.accessToken()).isNotBlank();
-        assertThat(regAuth.refreshToken()).isNotBlank();
+        assertThat(regAuth.refreshToken()).as("refresh token must not leak in the body").isNull();
 
+        String registerSetCookie = registerResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        assertThat(registerSetCookie)
+            .as("refresh token must be set as an HttpOnly cookie")
+            .isNotNull()
+            .contains("refresh_token=")
+            .contains("HttpOnly");
+        String registerRefresh = extractRefreshCookieValue(registerSetCookie);
+        assertThat(registerRefresh).isNotBlank();
 
         LoginRequest loginRequest = new LoginRequest(
             "testuser",
@@ -64,7 +72,15 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         AuthResponse loginAuth = objectMapper.readValue(loginResponse.getBody(), AuthResponse.class);
         assertThat(loginAuth.accessToken()).isNotBlank();
+        assertThat(loginAuth.refreshToken()).isNull();
 
-        assertThat(loginAuth.refreshToken()).isNotEqualTo(regAuth.refreshToken());
+        String loginRefresh = extractRefreshCookieValue(loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE));
+        assertThat(loginRefresh).isNotBlank().isNotEqualTo(registerRefresh);
+    }
+
+    private String extractRefreshCookieValue(String setCookieHeader) {
+        assertThat(setCookieHeader).isNotNull();
+        String firstAttribute = setCookieHeader.split(";", 2)[0];
+        return firstAttribute.substring(firstAttribute.indexOf('=') + 1);
     }
 }

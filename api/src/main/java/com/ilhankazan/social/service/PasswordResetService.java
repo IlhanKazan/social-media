@@ -39,10 +39,10 @@ public class PasswordResetService {
         String tokenHash = TokenGenerator.hashToken(plainToken);
 
         PasswordResetToken resetToken = repository.findByTokenHash(tokenHash)
-            .orElseThrow(() -> new IllegalArgumentException("Geçersiz veya süresi dolmuş token."));
+            .orElseThrow(() -> new IllegalArgumentException("Invalid or expired token."));
 
-        if (resetToken.getUsedAt() != null) throw new IllegalArgumentException("Bu token zaten kullanılmış.");
-        if (resetToken.getExpiresAt().isBefore(Instant.now())) throw new IllegalArgumentException("Bu tokenin süresi dolmuş.");
+        if (resetToken.getUsedAt() != null) throw new IllegalArgumentException("This token has already been used.");
+        if (resetToken.getExpiresAt().isBefore(Instant.now())) throw new IllegalArgumentException("This token has expired.");
 
         resetToken.setUsedAt(Instant.now());
         repository.save(resetToken);

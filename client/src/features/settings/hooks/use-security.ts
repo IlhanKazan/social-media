@@ -12,7 +12,7 @@ export function useLogoutAll() {
       await api.post('/auth/logout-all');
     },
     onSuccess: () => {
-      useAuthStore.setState({ token: null, refreshToken: null, account: null });
+      useAuthStore.setState({ token: null, account: null });
       toast.success('Tüm cihazlardan çıkış yapıldı.');
       navigate('/login');
     },
@@ -30,7 +30,7 @@ export function useDeleteAccount() {
       await api.delete('/accounts/me');
     },
     onSuccess: () => {
-      useAuthStore.setState({ token: null, refreshToken: null, account: null });
+      useAuthStore.setState({ token: null, account: null });
       toast.success('Hesabın başarıyla silindi. Seni özleyeceğiz!');
       navigate('/register');
     },
