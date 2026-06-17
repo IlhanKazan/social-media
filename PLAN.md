@@ -1632,3 +1632,89 @@ tests; CI is green and gates PRs to `main`.
 deployed API, renders the feed, and sends a DM in real time.
 
 ---
+
+## Phase 38 — Public (unauthenticated) viewing + soft login wall
+
+**Gate: pre-launch.** Twitter-style: a logged-out visitor can read content; the
+app nudges them to sign up after browsing but never hard-bounces them back.
+
+### [ ] 38.1 Backend — optional-auth read endpoints
+- Today `SecurityConfig` requires auth on `/api/v1/**` (except `/auth/**`, `/ws`,
+  health). Make **read-only** endpoints public: `GET /posts/explore`,
+  `GET /posts/{id}`, `GET /posts/{id}/ancestors`, `GET /posts/{id}/replies`,
+  `GET /posts/{id}/quotes`, public profile (`GET /accounts/by-username/...`),
+  `GET /posts/by-user/...`, search. Keep everything else authed (feed/following,
+  DMs, settings, notifications, all writes, admin).
+- The JWT filter must run as **optional** (resolve a user if a token is present,
+  otherwise continue anonymous) so personalization still works when logged in.
+- When anonymous, `likedByMe`/`repostedByMe`/`isFollowing` resolve to `false`
+  (the enrich paths already default to EMPTY for a null user — verify and pass a
+  null/sentinel current user cleanly).
+- Rate-limit anonymous traffic by IP (reuse `RateLimitAspect`'s IP keying).
+- FLAGGED/soft-deleted content stays hidden for anon exactly as for users.
+
+### [ ] 38.2 Frontend — public routes + soft gate
+- Move read routes (`/post/:id`, `/u/:username`, an explore feed) out from under
+  `RequireAuth`; render them for anyone.
+- A `SoftAuthGate` component: after N viewed posts (or on any write action —
+  like/reply/follow/repost) show a dismissible "Join SocialHan" prompt; **never**
+  redirect away from the content.
+- Logged-out top bar shows Login / Sign up; no DM/notifications/settings.
+
+**Acceptance:** a logged-out user opens a shared post link, reads the thread and
+the author's profile, scrolls the explore feed, and is softly prompted to sign up
+without being kicked out.
+
+---
+
+## Phase 39 — Landing / marketing page
+
+**Gate: pre-launch.** A public `/` for logged-out visitors.
+
+### [ ] 39.1 Landing page
+- Hero (logo, tagline, primary CTA "Sign up" + "Log in"), a short feature list
+  (real-time feed, threads, DMs, image sharing), a screenshot/gif, footer with
+  links to About / Privacy / Terms (Phase 40).
+- Routing: logged-out `/` → landing; logged-in `/` → feed (the existing app).
+- Reuse the brand assets (`/logo.svg`, og-image) and `AuthLayout` styling cues.
+
+**Acceptance:** visiting the root URL logged out shows the landing page with
+working CTAs; logged-in users still land on the feed.
+
+---
+
+## Phase 40 — Legal & compliance (About, Privacy, Terms, consent)
+
+**Gate: pre-launch GATE.** Before real users sign up. **Not legal advice — the
+published texts must be reviewed by a lawyer / KVKK advisor.**
+
+### [ ] 40.1 Public legal pages
+- Static public routes `/about`, `/privacy`, `/terms`; linked from the landing
+  footer, the `AuthLayout`, and the settings page. Source texts in `docs/legal/`.
+
+### [ ] 40.2 Privacy policy + KVKK aydınlatma metni (drafts)
+- Draft Privacy Policy, Terms of Service, and a KVKK **aydınlatma metni**
+  (English + Turkish), covering: data inventory (email, profile, posts, DMs +
+  images, **IPs/audit logs**), purposes + legal basis (KVKK m.5/6), processors
+  and **cross-border transfer** (Cloudinary, Resend, **OpenAI moderation**,
+  Render — US-based), retention, user rights (KVKK m.11 / GDPR), cookies
+  (functional only), security, age limit, contact + complaint channel.
+- Flag the items needing **explicit consent** (açık rıza): sending post content
+  to OpenAI for moderation, any marketing email, cross-border transfer.
+
+### [ ] 40.3 Registration consent + age gate
+- Add a **required** "I agree to the Terms & Privacy Policy" checkbox and an age
+  confirmation to the register form; persist consent version + timestamp on the
+  account. Show the aydınlatma metni link at the point of collection.
+
+### [ ] 40.4 Right-to-erasure verification
+- Audit `useDeleteAccount` / `AccountController` delete: confirm it truly removes
+  or anonymises the user's posts, replies, DMs, follows, **Cloudinary images**,
+  and reconcile audit-log retention with the stated policy. (Right to be
+  forgotten — KVKK/GDPR.)
+
+**Acceptance:** legal pages are reachable and linked; registration blocks without
+consent and stores it; account deletion verifiably clears user data; a visible
+"portfolio/demo project" disclaimer is present.
+
+---
