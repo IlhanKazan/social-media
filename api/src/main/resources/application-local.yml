@@ -17,3 +17,5 @@ app:
     cadence-seconds: 180
     daily-quota: 20
     account-count: 3
+    min-interval-minutes: 2
+    max-interval-minutes: 6

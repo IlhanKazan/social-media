@@ -101,5 +101,10 @@ app:
     openai-api-key: ${OPENAI_API_KEY:}
     openai-model: ${BOT_OPENAI_MODEL:gpt-5.4-mini-2026-03-17}
     cadence-seconds: ${BOT_CADENCE_SECONDS:60}
-    daily-quota: ${BOT_DAILY_QUOTA:50}
+    daily-quota: ${BOT_DAILY_QUOTA:10}
     account-count: ${BOT_ACCOUNT_COUNT:3}
+    min-interval-minutes: ${BOT_MIN_INTERVAL_MINUTES:120}
+    max-interval-minutes: ${BOT_MAX_INTERVAL_MINUTES:360}
+    active-hours-enabled: ${BOT_ACTIVE_HOURS_ENABLED:false}
+    active-hours-start: ${BOT_ACTIVE_HOURS_START:7}
+    active-hours-end: ${BOT_ACTIVE_HOURS_END:23}
