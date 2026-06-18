@@ -1042,10 +1042,11 @@ asset is blocked.
 - Audit `@Transactional` placement: must be on the **manager** layer for orchestrating writes; service can be `@Transactional(readOnly = true)` on read paths.
 - `open-in-view: false` is already set — verify no LazyInitializationException slip through (covered by integration tests in Phase 9.4).
 
-### [ ] 28.5 Rate-limit verification
+### [x] 28.5 Rate-limit verification
 
 - Run a 1-minute curl burst against each rate-limited endpoint, confirm 429 responses arrive at the configured threshold.
 - Confirm the IP-vs-user-id resolution (Phase 5.6.6) works behind Render's proxy: hit twice from the same Render-routed IP under two different bearer tokens, both succeed.
+- Done via `RateLimitIntegrationTest` + `tests/ratelimit/` (burst script + docs). Verification surfaced a bug: the catch-all exception handler turned the limiter's 429 into a 500; fixed with a dedicated `ResponseStatusException` handler in `GlobalExceptionHandler`.
 
 ### [x] 28.6 Logging hygiene
 
