@@ -9,5 +9,10 @@ public record BotProperties(
     String openaiModel,
     int cadenceSeconds,
     int dailyQuota,
-    int accountCount
+    int accountCount,
+    int minIntervalMinutes,
+    int maxIntervalMinutes,
+    boolean activeHoursEnabled,
+    int activeHoursStart,
+    int activeHoursEnd
 ) {}

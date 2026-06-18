@@ -20,11 +20,13 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -45,6 +47,7 @@ public class BotScheduler {
     private final AtomicInteger postsToday = new AtomicInteger(0);
     private volatile Instant quotaWindowStart = startOfTodayUtc();
     private final Random random = new Random();
+    private final Map<Long, Instant> nextEligibleAt = new ConcurrentHashMap<>();
 
     private static final String[] BOT_TOPICS = {
         "technology and software development",
@@ -68,12 +71,26 @@ public class BotScheduler {
 
         resetQuotaIfNewDay();
 
+        if (!withinActiveHours(LocalTime.now(ZoneOffset.UTC).getHour())) {
+            return;
+        }
+
         List<Account> bots = accountRepository.findByRoleName("ROLE_BOT");
         if (bots.isEmpty()) {
             return;
         }
 
-        Account bot = bots.get(random.nextInt(bots.size()));
+        Instant now = Instant.now();
+        List<Account> eligible = bots.stream()
+            .filter(b -> isEligible(b.getId(), now))
+            .toList();
+        if (eligible.isEmpty()) {
+            return;
+        }
+
+        Account bot = eligible.get(random.nextInt(eligible.size()));
+        scheduleNext(bot.getId(), now);
+
         String language = LANGUAGES[random.nextInt(LANGUAGES.length)];
         BotPersonas.Persona persona = BotPersonas.forDisplayName(bot.getDisplayName());
 
@@ -150,6 +167,35 @@ public class BotScheduler {
         } catch (Exception e) {
             log.warn("BotScheduler: failed to like post {} for bot '{}': {}", post.getId(), bot.getUsername(), e.getMessage());
         }
+    }
+
+    boolean isEligible(Long botId, Instant now) {
+        Instant next = nextEligibleAt.get(botId);
+        return next == null || !now.isBefore(next);
+    }
+
+    void scheduleNext(Long botId, Instant from) {
+        nextEligibleAt.put(botId, from.plus(nextIntervalMinutes(), ChronoUnit.MINUTES));
+    }
+
+    long nextIntervalMinutes() {
+        int min = Math.max(1, botProperties.minIntervalMinutes());
+        int max = Math.max(min, botProperties.maxIntervalMinutes());
+        return max > min ? min + random.nextInt(max - min + 1) : min;
+    }
+
+    boolean withinActiveHours(int hourUtc) {
+        if (!botProperties.activeHoursEnabled()) {
+            return true;
+        }
+        int start = botProperties.activeHoursStart();
+        int end = botProperties.activeHoursEnd();
+        if (start == end) {
+            return true;
+        }
+        return start < end
+            ? hourUtc >= start && hourUtc < end
+            : hourUtc >= start || hourUtc < end;
     }
 
     private void resetQuotaIfNewDay() {

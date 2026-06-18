@@ -1547,7 +1547,7 @@ time over WebSocket.
 (`app.bot.cadence-seconds`, prod 60 / local 180) with `daily-quota` (prod 50 /
 local 20). Bots post too often and in lockstep.
 
-### [ ] 35.1 Lower frequency + jitter per bot
+### [x] 35.1 Lower frequency + jitter per bot
 
 - Reintroduce a **per-bot randomized next-post time** (min/max minutes, the
   original 27.2 sketch) instead of a single global fixed delay, so bots don't
@@ -1555,13 +1555,14 @@ local 20). Bots post too often and in lockstep.
 - New suggested prod defaults: effectively ~1 post per bot every few hours;
   `daily-quota` ~8–12.
 
-### [ ] 35.2 Active-hours window (optional)
+### [x] 35.2 Active-hours window (optional)
 
 - Optional `app.bot.active-hours` so bots don't post at 4am.
 
-### [ ] 35.3 Re-verify pipeline
+### [x] 35.3 Re-verify pipeline
 
 - Confirm moderation + `BOT_POSTED` audit logging still fire after tuning.
+- `maybePost` (the `postService.create` -> `PostNeedsModerationEvent` chain and the `BOT_POSTED` audit record) is unchanged by the tuning; only scheduling/eligibility around it changed. New `BotSchedulerTest` covers active-hours, per-bot eligibility, and jitter bounds. Manual: run locally with `app.bot.enabled=true`, observe jittered/desynchronized posts, and confirm a bot post gets a moderation status + audit row.
 
 **Acceptance:** With defaults, bots post noticeably less and on a jittered, not
 synchronized, cadence.
