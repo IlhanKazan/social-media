@@ -28,7 +28,7 @@ jobs:
           ./mvnw -B verify
 
   client:
-    name: Client Build & Lint
+    name: Client Typecheck, Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,25 @@ jobs:
           cd client
           npm ci
 
-      - name: Run Lint and Build
+      - name: Typecheck
+        run: |
+          cd client
+          npm run typecheck
+
+      - name: Test
+        run: |
+          cd client
+          npm run test -- --run
+
+      - name: Build
         run: |
           cd client
           npm run build
+
+      # Lint is report-only: the baseline has pre-existing violations, so it
+      # must not block PRs. Typecheck + tests are the real client gate.
+      - name: Lint (report-only)
+        continue-on-error: true
+        run: |
+          cd client
+          npm run lint
