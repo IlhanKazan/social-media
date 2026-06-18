@@ -25,6 +25,24 @@ public class CloudinaryStorageService {
     );
 
     public String uploadFile(MultipartFile file, String folder) {
+        Map uploadResult = upload(file, folder, false);
+        return uploadResult.get("secure_url").toString();
+    }
+
+    public String uploadAuthenticatedFile(MultipartFile file, String folder) {
+        Map uploadResult = upload(file, folder, true);
+        return uploadResult.get("public_id").toString();
+    }
+
+    public String signedImageUrl(String publicId) {
+        return cloudinary.url()
+            .secure(true)
+            .signed(true)
+            .type("authenticated")
+            .generate(publicId);
+    }
+
+    private Map upload(MultipartFile file, String folder, boolean authenticated) {
         if (file.getSize() > 5 * 1024 * 1024) {
             throw new IllegalArgumentException("Dosya boyutu 5MB'dan büyük olamaz.");
         }
@@ -36,11 +54,15 @@ public class CloudinaryStorageService {
                 throw new IllegalArgumentException("Güvenlik ihlali: Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.");
             }
 
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+            Map options = ObjectUtils.asMap(
                 "folder", "social/" + folder,
                 "public_id", UUID.randomUUID().toString()
-            ));
-            return uploadResult.get("secure_url").toString();
+            );
+            if (authenticated) {
+                options.put("type", "authenticated");
+            }
+
+            return cloudinary.uploader().upload(file.getBytes(), options);
         } catch (IOException e) {
             throw new RuntimeException("Dosya yükleme başarısız", e);
         }

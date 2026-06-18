@@ -101,7 +101,7 @@ public class EmailTemplateRegistry {
     }
 
     private String appName() {
-        return (emailProps.appName() != null && !emailProps.appName().isBlank()) ? emailProps.appName() : "Socialhan";
+        return (emailProps.appName() != null && !emailProps.appName().isBlank()) ? emailProps.appName() : "SocialHan";
     }
 
     private String applyParams(String template, Map<String, String> params) {

@@ -12,8 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EmailTemplateRegistryTest {
 
     private final AppProperties.EmailProperties props = new AppProperties.EmailProperties(
-        true, "resend", "noreply@socialhan.dev", "Socialhan", "", 90, 2800,
-        "Socialhan", "https://example.com/logo.png"
+        true, "resend", "noreply@socialhan.dev", "SocialHan", "", 90, 2800,
+        "SocialHan", "https://example.com/logo.png"
     );
     private final EmailTemplateRegistry registry = new EmailTemplateRegistry(props);
 
@@ -22,7 +22,7 @@ class EmailTemplateRegistryTest {
         Map<String, String> welcomeParams = Map.of("name", "Ada", "link", "https://socialhan.dev");
         String welcome = registry.renderHtml("WELCOME", welcomeParams);
         assertThat(welcome)
-            .contains("Socialhan")
+            .contains("SocialHan")
             .contains("https://example.com/logo.png")
             .contains("https://socialhan.dev")
             .contains("Start posting");
@@ -37,7 +37,7 @@ class EmailTemplateRegistryTest {
         assertThat(alert).contains("Heads up").contains("Maintenance tonight.").doesNotContain("Verify email");
 
         assertThat(registry.renderText("WELCOME", welcomeParams))
-            .contains("Socialhan").contains("https://socialhan.dev");
+            .contains("SocialHan").contains("https://socialhan.dev");
 
         Path dir = Path.of("target/email-previews");
         Files.createDirectories(dir);

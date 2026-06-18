@@ -72,12 +72,12 @@ app:
   email:
     enabled: ${EMAIL_ENABLED:false}
     provider: resend
-    from-address: ${EMAIL_FROM:noreply@yourdomain.com}
-    from-name: ${EMAIL_FROM_NAME:Socialhan}
+    from-address: ${EMAIL_FROM:}
+    from-name: ${EMAIL_FROM_NAME:SocialHan}
     resend-api-key: ${RESEND_API_KEY:}
     daily-cap: ${EMAIL_DAILY_CAP:90}
     monthly-cap: ${EMAIL_MONTHLY_CAP:2800}
-    app-name: ${EMAIL_APP_NAME:Socialhan}
+    app-name: ${EMAIL_APP_NAME:SocialHan}
     logo-url: ${EMAIL_LOGO_URL:}
   moderation:
     enabled: ${MODERATION_ENABLED:true}

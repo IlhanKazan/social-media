@@ -65,7 +65,7 @@ public class MessageManager {
 
     private String previewText(Message message) {
         if (StringUtils.hasText(message.getContent())) return abbreviate(message.getContent(), 80);
-        if (StringUtils.hasText(message.getImageUrl())) return "📷 Photo";
+        if (StringUtils.hasText(message.getImagePublicId())) return "📷 Photo";
         if (message.getSharedPost() != null) return "📎 Shared a post";
         return "";
     }
@@ -90,8 +90,8 @@ public class MessageManager {
 
     @Transactional
     public MessageResponse sendImageMessage(Long conversationId, MultipartFile file, String caption) {
-        String imageUrl = storageService.uploadFile(file, "dm");
-        return persist(conversationId, caption, imageUrl, null);
+        String imagePublicId = storageService.uploadAuthenticatedFile(file, "dm");
+        return persist(conversationId, caption, imagePublicId, null);
     }
 
     @Transactional
@@ -100,7 +100,7 @@ public class MessageManager {
         return persist(conversationId, caption, null, post);
     }
 
-    private MessageResponse persist(Long conversationId, String content, String imageUrl, Post sharedPost) {
+    private MessageResponse persist(Long conversationId, String content, String imagePublicId, Post sharedPost) {
         Account current = getCurrentAccount();
         Conversation conversation = conversationService.getById(conversationId);
         verifyParticipant(conversation, current.getId());
@@ -109,7 +109,7 @@ public class MessageManager {
             conversation,
             current,
             StringUtils.hasText(content) ? content : null,
-            imageUrl,
+            imagePublicId,
             sharedPost
         );
         conversationService.updateLastMessageAt(conversationId, message.getCreatedAt());

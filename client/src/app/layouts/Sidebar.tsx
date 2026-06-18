@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Bell, Mail, User, Settings, LogOut, Zap, Search, ShieldHalf } from 'lucide-react';
+import { Home, Compass, Bell, Mail, User, Settings, LogOut, Search, ShieldHalf } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
@@ -26,10 +26,8 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex sticky top-0 h-[100dvh] w-20 xl:w-64 shrink-0 flex-col items-center py-6 xl:items-stretch xl:px-4">
       <div className="mb-6 flex items-center justify-center xl:justify-start xl:px-2 gap-3 font-bold text-xl tracking-tight text-foreground">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
-          <Zap className="h-5 w-5 fill-current" />
-        </div>
-        <span className="hidden xl:block">MicroBlog</span>
+        <img src="/logo.svg" alt="SocialHan" className="h-8 w-8 shrink-0 rounded-lg shadow-md" />
+        <span className="hidden xl:block">SocialHan</span>
       </div>
 
       <nav className="flex flex-1 flex-col gap-2 w-full px-2 sm:px-0">
