@@ -14,4 +14,4 @@ USER app
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1
-ENTRYPOINT ["java","-XX:+UseZGC","-XX:MaxRAMPercentage=75","-jar","app.jar"]
+ENTRYPOINT ["java", "-XX:+UseSerialGC", "-Xmx256m", "-Xms128m", "-XX:MaxMetaspaceSize=128m", "-Xss512k", "-jar", "app.jar"]
