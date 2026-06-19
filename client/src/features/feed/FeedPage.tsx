@@ -12,6 +12,7 @@ import { Loader2, MessageSquareOff, AlertCircle, Plus } from 'lucide-react';
 import { PostSkeleton } from '@/components/shared/PostSkeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/stores/auth-store';
 import type { PostResponse, PageResponse } from '@/types/api';
 import type { InfiniteData } from '@tanstack/react-query';
 
@@ -93,6 +94,7 @@ interface FeedPageProps {
 export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const account = useAuthStore((state) => state.account);
 
   const following = useFeed();
   const explore = useExploreFeed();
@@ -166,13 +168,16 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
   return (
     <div className="flex flex-col gap-0 pb-4 relative">
       <div className="px-4 py-3 border-b sticky top-0 bg-background/95 backdrop-blur z-50">
-        <h2 className="text-xl font-bold">Akış</h2>
+        <h2 className="text-xl font-bold">{account ? 'Akış' : 'Keşfet'}</h2>
       </div>
 
-      <div className="hidden md:block">
-        <CreatePost />
-      </div>
+      {account && (
+        <div className="hidden md:block">
+          <CreatePost />
+        </div>
+      )}
 
+      {account && (
       <div className="md:hidden fixed bottom-[4.5rem] right-4 z-40">
         <Sheet open={isComposerOpen} onOpenChange={setIsComposerOpen}>
           <SheetTrigger render={
@@ -190,29 +195,36 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
           </SheetContent>
         </Sheet>
       </div>
+      )}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as string)}
-        className="w-full"
-      >
-        <TabsList variant="line" className="w-full border-b rounded-none px-4">
-          <TabsTrigger value="following" className="flex-1">
-            Takip Edilen
-          </TabsTrigger>
-          <TabsTrigger value="explore" className="flex-1">
-            Keşfet
-          </TabsTrigger>
-        </TabsList>
+      {account ? (
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as string)}
+          className="w-full"
+        >
+          <TabsList variant="line" className="w-full border-b rounded-none px-4">
+            <TabsTrigger value="following" className="flex-1">
+              Takip Edilen
+            </TabsTrigger>
+            <TabsTrigger value="explore" className="flex-1">
+              Keşfet
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="following" className="outline-none m-0">
-          {renderTabBody(following, 'Henüz hiç gönderi yok. Birilerini takip etmeye başla!')}
-        </TabsContent>
+          <TabsContent value="following" className="outline-none m-0">
+            {renderTabBody(following, 'Henüz hiç gönderi yok. Birilerini takip etmeye başla!')}
+          </TabsContent>
 
-        <TabsContent value="explore" className="outline-none m-0">
+          <TabsContent value="explore" className="outline-none m-0">
+            {renderTabBody(explore, 'Henüz hiç gönderi yok.')}
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="outline-none m-0">
           {renderTabBody(explore, 'Henüz hiç gönderi yok.')}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }

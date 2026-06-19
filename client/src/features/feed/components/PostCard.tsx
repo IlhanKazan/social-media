@@ -11,6 +11,7 @@ import { ShareToDmDialog } from './ShareToDmDialog';
 import { useRepost } from '../hooks/use-repost';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
+import { useAuthGate } from '@/hooks/use-auth-gate';
 import { Card, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
@@ -44,6 +45,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const account = useAuthStore((state) => state.account);
+  const { requireAuth } = useAuthGate();
   const repostMutation = useRepost();
 
   const isMine = account?.id === post.author.id;
@@ -403,7 +405,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       className="cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
-                        repostMutation.mutate(post.id);
+                        requireAuth(() => repostMutation.mutate(post.id));
                       }}
                       disabled={repostMutation.isPending}
                     >
@@ -415,7 +417,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       className="cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setIsQuoteOpen(true);
+                        requireAuth(() => setIsQuoteOpen(true));
                       }}
                     >
                       <MessageSquare className="mr-2 h-4 w-4" />
@@ -426,7 +428,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       className="cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setIsShareOpen(true);
+                        requireAuth(() => setIsShareOpen(true));
                       }}
                     >
                       <Send className="mr-2 h-4 w-4" />
@@ -444,7 +446,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleLike.mutate();
+                  requireAuth(() => toggleLike.mutate());
                 }}
                 disabled={toggleLike.isPending}
               >

@@ -9,10 +9,12 @@ import { useMessagingWebSocket } from '@/features/messaging/hooks/use-messaging-
 import { RightSidebarSearch } from '@/features/search/components/RightSidebarSearch';
 import { cn } from '@/lib/utils';
 import {SuggestedUsers} from "@/features/profile/components/SuggestedUsers.tsx";
+import { SoftAuthGate } from '@/components/shared/SoftAuthGate';
 
 function LayoutContent() {
   const match = useMatch('/messages/:conversationId');
   const location = useLocation();
+  const account = useAuthStore((state) => state.account);
   const activeConversationId = match?.params.conversationId ? Number(match.params.conversationId) : undefined;
 
   useMessagingWebSocket(activeConversationId);
@@ -42,10 +44,11 @@ function LayoutContent() {
       )}>
         <RightSidebarSearch />
 
-        <SuggestedUsers />
+        {account && <SuggestedUsers />}
       </aside>
 
       <BottomNav />
+      <SoftAuthGate />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { useProfileReplies } from './hooks/use-profile-replies';
 import { useProfileLikes } from './hooks/use-profile-likes';
 import { useCreateConversation } from '@/features/messaging/hooks/use-create-conversation';
 import { useAuthStore } from '@/stores/auth-store';
+import { useAuthGate } from '@/hooks/use-auth-gate';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +23,7 @@ import { PostCard } from '@/features/feed/components/PostCard';
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>();
   const currentUser = useAuthStore((state) => state.account);
+  const { requireAuth } = useAuthGate();
 
   const { data: profile, status: profileStatus } = useProfile(username!);
   const feedQuery = useProfileFeed(username!);
@@ -111,7 +113,7 @@ export function ProfilePage() {
                   variant="outline"
                   size="icon"
                   className="rounded-full"
-                  onClick={() => createConvMutation.mutate(profile.id)}
+                  onClick={() => requireAuth(() => createConvMutation.mutate(profile.id))}
                   disabled={createConvMutation.isPending}
                 >
                   {createConvMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
@@ -119,7 +121,7 @@ export function ProfilePage() {
                 <Button
                   variant={profile.isFollowing ? "outline" : "default"}
                   className="rounded-full font-bold px-6"
-                  onClick={() => followMutation.mutate(profile.isFollowing)}
+                  onClick={() => requireAuth(() => followMutation.mutate(profile.isFollowing))}
                   disabled={followMutation.isPending}
                 >
                   {profile.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}

@@ -5,6 +5,7 @@ import { usePost, usePostReplies, usePostAncestors } from './hooks/use-post';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { PostCard } from '@/features/feed/components/PostCard';
 import { CreatePost } from '@/features/feed/components/CreatePost';
+import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/EmptyState';
 
@@ -12,6 +13,7 @@ export function PostDetailPage() {
   const { id } = useParams();
   const postId = Number(id);
   const navigate = useNavigate();
+  const account = useAuthStore((state) => state.account);
 
   const { data: post, status: postStatus } = usePost(postId);
   const { data: ancestors } = usePostAncestors(postId);
@@ -77,9 +79,11 @@ export function PostDetailPage() {
         <PostCard post={post} connector={ancestorCount > 0 ? 'top' : 'none'} />
       </div>
 
-      <div className="border-t border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10">
-        <CreatePost parentPostId={postId} placeholder="Yanıtını gönder..." />
-      </div>
+      {account && (
+        <div className="border-t border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10">
+          <CreatePost parentPostId={postId} placeholder="Yanıtını gönder..." />
+        </div>
+      )}
 
       <div className="flex flex-col pb-safe">
         {replies?.pages.flatMap((page) => page.content).map((reply) => (

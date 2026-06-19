@@ -58,16 +58,22 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    // Public content — auth-aware AppLayout, viewable logged out.
+    element: <AppLayout />,
+    children: [
+      { index: true, element: withSuspense(<FeedPage />) },
+      { path: '/explore', element: withSuspense(<FeedPage defaultTab="explore" />) },
+      { path: '/post/:id', element: withSuspense(<PostDetailPage />) },
+      { path: '/search', element: withSuspense(<SearchPage />) },
+      { path: 'u/:username', element: withSuspense(<ProfilePage />) },
+    ],
+  },
+  {
     element: <RequireAuth />,
     children: [
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: withSuspense(<FeedPage />) },
-          { path: '/explore', element: withSuspense(<FeedPage defaultTab="explore" />) },
-          { path: '/post/:id', element: withSuspense(<PostDetailPage />) },
-          { path: '/search', element: withSuspense(<SearchPage />) },
-          { path: 'u/:username', element: withSuspense(<ProfilePage />) },
           { path: '/notifications', element: withSuspense(<NotificationsPage />) },
           { path: '/messages', element: withSuspense(<MessagingPage />) },
           { path: '/messages/:conversationId', element: withSuspense(<MessagingPage />) },
