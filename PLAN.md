@@ -1112,7 +1112,11 @@ not gating gates).
 
 **Acceptance:** Both reports exist on `main`. The README's "Security" section links to them. Any HIGH from ZAP is fixed before the next deploy.
 
-### [ ] 29.4 OWASP Top 10 manual audit
+### [x] 29.4 OWASP Top 10 manual audit
+
+Done: `docs/security/owasp-audit-2026-06-19.md` — every 2021 category marked
+PASS/FIX/N-A with code references. No FIX items; one LOW accepted (CSP
+`style-src 'unsafe-inline'`) + NOTEs (CI dependency scanning, CSP tightening).
 
 A deliberate, checklist-driven pass independent of the automated ZAP scan.
 Produce `docs/security/owasp-audit-<date>.md` recording each item as PASS / FIX /
