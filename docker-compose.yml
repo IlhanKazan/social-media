@@ -26,6 +26,28 @@ services:
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
       SPRING_PROFILES_ACTIVE: local
+      # OS env overrides profile yaml via relaxed binding. Set APP_BOT_ENABLED=false
+      # to bring the stack up without bot accounts (lets MockDataSeeder populate).
+      APP_BOT_ENABLED: ${APP_BOT_ENABLED:-true}
     ports: ["8080:8080"]
+
+  # Load testing — runs only with: docker compose --profile loadtest run --rm k6 run /scripts/feed.js
+  k6:
+    image: grafana/k6:latest
+    profiles: ["loadtest"]
+    depends_on: [api]
+    environment:
+      BASE_URL: http://api:8080
+    volumes:
+      - ./tests/load:/scripts
+
+  # Security scanning — runs only with: docker compose --profile security run --rm zap <zap-*.py ...>
+  zap:
+    image: zaproxy/zap-stable:latest
+    profiles: ["security"]
+    depends_on: [api]
+    volumes:
+      - ./docs/security:/zap/wrk:rw
+
 volumes:
   postgres_data:
