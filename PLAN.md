@@ -1749,3 +1749,57 @@ consent and stores it; account deletion verifiably clears user data; a visible
 "portfolio/demo project" disclaimer is present.
 
 ---
+
+## Backlog — quality / hardening follow-ups
+
+Surfaced during Phase 29 (load + security). Not blockers; schedule around launch.
+
+### [ ] B1 Centralize the posting gate (`PostingPolicy`)
+
+The verified-only check is imperative and lives **only** in `PostManager.create`
+(covers posts + replies). `toggleRepost` and `quoteRepost` do **not** apply it —
+so in verified-only mode an unverified user can still repost / quote-repost
+(content creation that bypasses the gate). Fix by extracting a single
+`PostingPolicy` / `PostingGuard` bean (`canPost(account)` → throws
+`PostingRestrictedException`) and invoking it from every write path so none is
+missed. This also makes future rules (bans, mutes, age-gate) compose in one
+testable place.
+- **Mechanism options:** (a) explicit call to the policy bean — most explicit,
+  recommended for a domain rule; (b) `@PreAuthorize("@postingPolicy.canPost(authentication)")`
+  via the already-enabled `@EnableMethodSecurity` — idiomatic for an authz gate;
+  (c) a custom `@RequiresPostingAllowed` aspect mirroring `@RateLimit` — DRY but
+  hides a business rule in an aspect (better reserved for infra concerns).
+- The real win is centralization + closing the repost/quote gap, not the
+  invocation style.
+
+### [ ] B2 Move the rate-limit bucket store to Caffeine (bounded)
+
+`RateLimitAspect.cache` is a plain `ConcurrentHashMap<String,Bucket>` with **no
+eviction** — every distinct `user/ip + endpoint` is a permanent entry, so a flood
+of distinct IPs (or spoofed `X-Forwarded-For`) grows it without bound (slow leak,
+worse on a 512 MB instance). Replace with a Caffeine cache
+(`maximumSize` + `expireAfterAccess`), consistent with the Phase 20 caches
+(consider `bucket4j-caffeine`). Note: in-memory limiting is **per-instance** — if
+we ever run >1 Render instance, global limits need a shared store (Redis); fine
+while single-instance.
+
+### [ ] B3 Render free-tier JVM/memory tuning
+
+Dockerfile runs `-XX:+UseZGC -XX:MaxRAMPercentage=75`. On 512 MB this is risky:
+ZGC targets large heaps and reserves extra off-heap; 75% leaves little for
+metaspace/threads/buffers → OOM-killer risk. Re-tune for the free tier (G1 or
+SerialGC, an explicit lower `-Xmx`, headroom for non-heap). Validate with the k6
+capacity test against the deployed instance.
+
+### [ ] B4 Deep authenticated DAST (ZAP)
+
+The Phase 29.2 authenticated scan is shallow on business logic (rate-limiter +
+bean-validation block deep fuzzing). A showcase-grade run needs ZAP daemon mode +
+recorded/HAR requests + rate-limit relaxation + messages-per-URL coverage
+evidence. Details in `docs/security/known-issues.md`.
+
+### [ ] B5 Re-run k6 against the deployed Render instance
+
+Current k6 numbers are local hardware. Re-run `feed`/`stress`/`write` against the
+deployed (staging) instance for production-representative figures; wire the
+`feed.js` thresholds into CI as an optional gate.
