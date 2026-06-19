@@ -39,6 +39,7 @@ public class AccountController {
     @Operation(summary = "Get public profile", description = "Returns public details of a user by their username.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved profile")
     @ApiResponse(responseCode = "404", description = "User not found")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/{username}")
     public ResponseEntity<PublicAccountResponse> getAccountProfile(@PathVariable String username) {
         return ResponseEntity.ok(accountManager.getPublicProfile(username));
