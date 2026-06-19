@@ -95,7 +95,7 @@ app:
       sexual/minors: 0.0
       violence: 0.7
       violence/graphic: 0.6
-    blocked-terms-path: "api/bad-words.txt"
+    blocked-terms-path: "moderation/bad-words.txt"
   bot:
     enabled: ${BOT_ENABLED:false}
     openai-api-key: ${OPENAI_API_KEY:}

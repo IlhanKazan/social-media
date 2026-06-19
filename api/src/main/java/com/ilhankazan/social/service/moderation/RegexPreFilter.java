@@ -4,15 +4,15 @@ import com.ilhankazan.social.config.ModerationProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -27,20 +27,21 @@ public class RegexPreFilter implements ContentModerator {
 
     @PostConstruct
     public void loadBlockedTerms() {
-        String pathStr = properties.blockedTermsPath();
-        if (pathStr == null || pathStr.isBlank()) {
+        String resourcePath = properties.blockedTermsPath();
+        if (resourcePath == null || resourcePath.isBlank()) {
             log.warn("Blocked terms path is not configured. Regex moderation skipped.");
             return;
         }
 
-        Path path = Paths.get(pathStr);
-        if (!Files.exists(path)) {
-            log.error("Blocked terms file missing: {}", path.toAbsolutePath());
+        ClassPathResource resource = new ClassPathResource(resourcePath);
+        if (!resource.exists()) {
+            log.error("Blocked terms resource not found on classpath: {}", resourcePath);
             return;
         }
 
-        try (Stream<String> lines = Files.lines(path)) {
-            List<String> terms = lines
+        try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+            List<String> terms = reader.lines()
                 .filter(line -> !line.isBlank() && !line.startsWith("#"))
                 .map(String::trim)
                 .map(Pattern::quote)
