@@ -18,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.BadCredentialsException;
+import com.ilhankazan.social.security.AuthCacheResolver;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,7 @@ public class AccountManager {
     private final Environment env;
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthCacheResolver authResolver;
 
     private String currentUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -50,6 +52,11 @@ public class AccountManager {
 
     private Long getCurrentAccountId() {
         return accountService.getAccount(currentUsername()).getId();
+    }
+
+    private Long currentAccountIdOrNull() {
+        String username = authResolver.usernameOrNull();
+        return username == null ? null : accountService.getAccount(username).getId();
     }
 
     public MyAccountResponse getCurrentUser() {
@@ -60,7 +67,7 @@ public class AccountManager {
     @Cacheable(value = "publicProfilesByUsername", key = "#targetUsername + '-' + @auth.user()")
     public PublicAccountResponse getPublicProfile(String targetUsername) {
         Account targetAccount = accountService.getAccount(targetUsername);
-        Long currentUserId = getCurrentAccountId();
+        Long currentUserId = currentAccountIdOrNull();
 
         long followers = followService.getFollowerCount(targetAccount.getId());
         long following = followService.getFollowingCount(targetAccount.getId());
@@ -70,7 +77,7 @@ public class AccountManager {
     }
 
     public PageResponse<PublicAccountResponse> searchAccounts(String query, int page, int size) {
-        Long currentUserId = getCurrentAccountId();
+        Long currentUserId = currentAccountIdOrNull();
         Page<Account> accounts = accountService.searchAccountsRaw(query, page, size);
 
         if (accounts.isEmpty()) {

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import com.ilhankazan.social.security.AuthCacheResolver;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,12 @@ public class PostManager {
     private final RepostService repostService;
     private final AccountMapper accountMapper;
     private final SystemSettingsService systemSettingsService;
+    private final AuthCacheResolver authResolver;
+
+    private Long currentUserIdOrNull() {
+        String username = authResolver.usernameOrNull();
+        return username == null ? null : accountService.getAccount(username).getId();
+    }
 
     private Account getCurrentAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -112,8 +119,7 @@ public class PostManager {
 
     @Transactional(readOnly = true)
     public List<PostResponse> getAncestors(Long id) {
-        Account current = getCurrentAccount();
-        return enrichList(postService.getAncestors(id), current.getId());
+        return enrichList(postService.getAncestors(id), currentUserIdOrNull());
     }
 
     @Transactional
@@ -159,15 +165,13 @@ public class PostManager {
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> searchPosts(String query, int page, int size) {
-        Account current = getCurrentAccount();
         Page<Post> posts = postService.searchPosts(query, PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
     public PostResponse getById(Long id) {
-        Account current = getCurrentAccount();
-        return toEnriched(postService.getById(id), current.getId());
+        return toEnriched(postService.getById(id), currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
@@ -179,40 +183,35 @@ public class PostManager {
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getExplore(int page, int size) {
-        Account current = getCurrentAccount();
         Page<Post> posts = postService.getExploreFeed(PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getProfileFeed(String username, int page, int size) {
-        Account current = getCurrentAccount();
         Account target = accountService.getAccount(username);
         Page<Post> posts = postService.getProfileFeed(target.getId(), PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getReplies(Long id, int page, int size) {
-        Account current = getCurrentAccount();
         Page<Post> posts = postService.getReplies(id, PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getProfileReplies(String username, int page, int size) {
-        Account current = getCurrentAccount();
         Account target = accountService.getAccount(username);
         Page<Post> posts = postService.getRepliesByAccount(target.getId(), PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getProfileLikes(String username, int page, int size) {
-        Account current = getCurrentAccount();
         Account target = accountService.getAccount(username);
         Page<Post> posts = postService.getLikedPostsByAccount(target.getId(), PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
@@ -251,9 +250,8 @@ public class PostManager {
 
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getQuotes(Long postId, int page, int size) {
-        Account current = getCurrentAccount();
         Page<Post> posts = postService.getQuotes(postId, PageRequest.of(page, size));
-        return enrichPage(posts, current.getId());
+        return enrichPage(posts, currentUserIdOrNull());
     }
 
     private PageResponse<FeedItemResponse> enrichFeedPage(Page<FeedItemProjection> projections, Long currentUserId) {
@@ -342,9 +340,8 @@ public class PostManager {
 
     @Transactional(readOnly = true)
     public PageResponse<FeedItemResponse> getProfileFeedUnion(String username, int page, int size) {
-        Account current = getCurrentAccount();
         Account target = accountService.getAccount(username);
         Page<FeedItemProjection> projections = postService.getProfileFeedUnion(target.getId(), PageRequest.of(page, size));
-        return enrichFeedPage(projections, current.getId());
+        return enrichFeedPage(projections, currentUserIdOrNull());
     }
 }

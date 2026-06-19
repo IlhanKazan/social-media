@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,6 +56,21 @@ public class SecurityConfig {
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                // Public read endpoints (anonymous viewing). Personalised/owner GETs
+                // stay authed and are listed FIRST so they win the match.
+                .requestMatchers(HttpMethod.GET,
+                    "/api/v1/posts/feed",
+                    "/api/v1/accounts/me", "/api/v1/accounts/me/**",
+                    "/api/v1/accounts/suggestions").authenticated()
+                .requestMatchers(HttpMethod.GET,
+                    "/api/v1/posts/explore",
+                    "/api/v1/posts/*",
+                    "/api/v1/posts/*/ancestors",
+                    "/api/v1/posts/*/replies",
+                    "/api/v1/posts/*/quotes",
+                    "/api/v1/posts/by-user/**",
+                    "/api/v1/accounts/*",
+                    "/api/v1/search/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -42,6 +42,7 @@ public class PostController {
     @Operation(summary = "Get a specific post", description = "Retrieves a post by its ID.")
     @ApiResponse(responseCode = "200", description = "Post retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Post not found or soft-deleted")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(postManager.getById(id));
@@ -49,6 +50,7 @@ public class PostController {
 
     @Operation(summary = "Get a post's ancestor chain", description = "Returns the parent chain (root first) of a post, for rendering a threaded conversation.")
     @ApiResponse(responseCode = "200", description = "Ancestor chain retrieved (empty for a root post)")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/{id}/ancestors")
     public ResponseEntity<List<PostResponse>> getAncestors(@PathVariable Long id) {
         return ResponseEntity.ok(postManager.getAncestors(id));
@@ -80,6 +82,7 @@ public class PostController {
     }
 
     @Operation(summary = "Get global feed", description = "Returns top-level posts ordered by newest first.")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/explore")
     public ResponseEntity<PageResponse<PostResponse>> getExplore(
         @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -88,6 +91,7 @@ public class PostController {
     }
 
     @Operation(summary = "Get profile feed", description = "Returns a paginated list of posts and reposts for a specific user.")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/by-user/{username}")
     public ResponseEntity<PageResponse<FeedItemResponse>> getProfileFeed(
         @PathVariable String username,
@@ -97,6 +101,7 @@ public class PostController {
     }
 
     @Operation(summary = "Get replies", description = "Returns a paginated list of replies to a specific post.")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/{id}/replies")
     public ResponseEntity<PageResponse<PostResponse>> getReplies(
             @PathVariable Long id,
@@ -106,6 +111,7 @@ public class PostController {
     }
 
     @Operation(summary = "Get user's replies", description = "Returns a paginated list of replies made by a specific user.")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/by-user/{username}/replies")
     public ResponseEntity<PageResponse<PostResponse>> getProfileReplies(
         @PathVariable String username,
@@ -115,6 +121,7 @@ public class PostController {
     }
 
     @Operation(summary = "Get user's liked posts", description = "Returns a paginated list of posts liked by a specific user.")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/by-user/{username}/likes")
     public ResponseEntity<PageResponse<PostResponse>> getProfileLikes(
         @PathVariable String username,
@@ -152,6 +159,7 @@ public class PostController {
     }
 
     @Operation(summary = "Get quotes", description = "Returns a paginated list of posts that quote this post.")
+    @RateLimit(capacity = 120, minutes = 1)
     @GetMapping("/{id}/quotes")
     public ResponseEntity<PageResponse<PostResponse>> getQuotes(
         @PathVariable Long id,
