@@ -1,5 +1,5 @@
 import { NavLink, useMatch } from 'react-router-dom';
-import { Home, Search, Bell, Mail } from 'lucide-react';
+import { Home, Search, Bell, Mail, Compass, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
@@ -12,12 +12,17 @@ export function BottomNav() {
 
   if (match) return null;
 
-  const navItems = [
-    { to: '/', icon: Home },
-    { to: '/search', icon: Search },
-    { to: '/notifications', icon: Bell, badge: unreadCount },
-    { to: '/messages', icon: Mail },
-  ];
+  const navItems: { to: string; icon: typeof Home; badge?: number }[] = account
+    ? [
+        { to: '/', icon: Home },
+        { to: '/search', icon: Search },
+        { to: '/notifications', icon: Bell, badge: unreadCount },
+        { to: '/messages', icon: Mail },
+      ]
+    : [
+        { to: '/explore', icon: Compass },
+        { to: '/search', icon: Search },
+      ];
 
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t border-zinc-100 dark:border-zinc-800/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-14 flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
@@ -41,24 +46,38 @@ export function BottomNav() {
         </NavLink>
       ))}
 
-      <NavLink
-        to={`/u/${account?.username}`}
-        className={({ isActive }) =>
-          cn(
-            "flex h-full flex-1 items-center justify-center transition-opacity",
-            isActive ? "opacity-100" : "opacity-70 hover:opacity-100"
-          )
-        }
-      >
-        {({ isActive }) => (
-          <div className={cn("rounded-full transition-shadow", isActive && "ring-2 ring-primary ring-offset-2 ring-offset-background")}>
-            <Avatar className="h-7 w-7 shrink-0 block">
-              <AvatarImage src={account?.profileImageUrl || undefined} />
-              <AvatarFallback>{account?.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          </div>
-        )}
-      </NavLink>
+      {account ? (
+        <NavLink
+          to={`/u/${account.username}`}
+          className={({ isActive }) =>
+            cn(
+              "flex h-full flex-1 items-center justify-center transition-opacity",
+              isActive ? "opacity-100" : "opacity-70 hover:opacity-100"
+            )
+          }
+        >
+          {({ isActive }) => (
+            <div className={cn("rounded-full transition-shadow", isActive && "ring-2 ring-primary ring-offset-2 ring-offset-background")}>
+              <Avatar className="h-7 w-7 shrink-0 block">
+                <AvatarImage src={account.profileImageUrl || undefined} />
+                <AvatarFallback>{account.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+        </NavLink>
+      ) : (
+        <NavLink
+          to="/login"
+          className={({ isActive }) =>
+            cn(
+              "relative flex h-full flex-1 items-center justify-center transition-colors",
+              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )
+          }
+        >
+          <User className="h-6 w-6" />
+        </NavLink>
+      )}
     </nav>
   );
 }

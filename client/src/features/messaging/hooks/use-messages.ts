@@ -1,5 +1,6 @@
 import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth-store';
 import type { CursorPageResponse, MessageResponse } from '@/types/api';
 
 export function useMessages(conversationId: number | undefined) {
@@ -37,6 +38,7 @@ export function useMarkMessagesRead() {
 }
 
 export function useUnreadMessageCount() {
+  const token = useAuthStore((state) => state.token);
   return useQuery({
     queryKey: ['messages', 'unread-count'],
     queryFn: async () => {
@@ -44,5 +46,6 @@ export function useUnreadMessageCount() {
       return data;
     },
     refetchInterval: 30000,
+    enabled: !!token,
   });
 }
