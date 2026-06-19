@@ -1078,7 +1078,13 @@ Both produce reports that go in `docs/`. Neither runs in CI (per the user's
 preference — these are deliberate manual checks before each major release,
 not gating gates).
 
-### [ ] 29.1 k6 load test
+### [x] 29.1 k6 load test
+
+Done: three scenarios via the `loadtest` compose profile against the local stack (reports `docs/load-*-2026-06-19.html`, how-to in `tests/load/README.md`). Auth strategy works around the rate limiter (read: one `setup()` login; write: a 20-user token pool via distinct `X-Forwarded-For`).
+- `feed.js` (smoke): 50 VUs, `GET /posts/explore` — p95 ≈ 25ms, 0% errors.
+- `stress.js` (capacity): ramping-arrival-rate to 900 req/s — **knee ≈ 490 req/s** at 0% errors; p95 9ms→513ms as load climbs; saturates past target (596 dropped iterations).
+- `write.js` (multi-user write): 720 posts created (create p95 ≈ 68ms), then the per-user limiter returns 429 under load (by design).
+- Caveat: numbers are local hardware, **not** Render free tier — re-run against the deployed instance for representative figures.
 
 - `tests/load/feed.js` — primary scenario: 50 virtual users, ramp 30s, sustain 60s, ramp-down 10s. Each VU: log in once, then loop on `GET /api/v1/posts/feed` with realistic 2–8s think time.
 - Thresholds:
@@ -1093,7 +1099,10 @@ not gating gates).
 - Output artifact: `docs/load-test-<date>.html` (k6's HTML report).
 - README in `tests/load/` documenting how to run and interpret.
 
-### [ ] 29.2 OWASP ZAP baseline scan
+### [x] 29.2 OWASP ZAP baseline scan
+
+Done via the `security` compose profile. **Baseline** (passive): 66 PASS, 0 FAIL. **Authenticated API active scan** (`zap-api-scan.py` against `/v3/api-docs` with the bearer token injected via a replacer rule): 118 PASS, 0 FAIL — SQLi, XSS, Log4Shell, Spring4Shell, RCE, SSTI, injection, path-traversal all clean on the reachable surface. Two INFO warnings accepted (actuator `/health` exposure; non-storable 403 root). Reports: `docs/security/zap-baseline-2026-06-19.html`, `docs/security/zap-api-2026-06-19.html`.
+- **Honest coverage caveat:** business-logic coverage is shallow — the rate limiter (429) and bean-validation (400) block ZAP from deeply fuzzing `/api/v1/*` (evidence: 0 posts created during the scan). This is a "no obvious vulns in standard attack classes" signal, not a full authenticated pentest. Deep-DAST follow-up (daemon mode + recorded requests + rate-limit relaxation + messages-per-URL evidence) recorded in `known-issues.md`.
 
 - Run via Docker: `docker run -v $(pwd)/docs:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:8080 -r zap-baseline-<date>.html`.
 - Authenticated scan (more revealing): write a small ZAP context file with login credentials for a seed account; then `zap-full-scan.py` (only against staging — never prod).
@@ -1103,7 +1112,9 @@ not gating gates).
   - LOW/INFO → ignore unless related to a real attack vector.
 - Output: HTML report committed to `docs/security/zap-<date>.html`.
 
-### [ ] 29.3 Documentation in `docs/`
+### [x] 29.3 Documentation in `docs/`
+
+Done: k6 + both ZAP HTML reports committed under `docs/`; `docs/security/threat-model.md` (trust boundaries, asset inventory, threat→mitigation table) written; `known-issues.md` updated with the triaged ZAP INFO items.
 
 - `docs/load-test-<date>.html` (k6 output)
 - `docs/security/zap-<date>.html` (ZAP output)
