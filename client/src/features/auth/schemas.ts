@@ -11,7 +11,13 @@ export const registerSchema = z.object({
   email: z.string().email('Geçerli bir e-posta girin').max(254),
   displayName: z.string().max(50).optional(),
   password: z.string().min(6, 'Şifre en az 6 karakter olmalı').max(72),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
+  acceptedTerms: z.boolean().refine((v) => v === true, {
+    message: 'Devam etmek için Şartlar ve Gizlilik Politikası\'nı kabul etmelisin',
+  }),
+  confirmedAge: z.boolean().refine((v) => v === true, {
+    message: '13 yaş ve üzerinde olduğunu onaylamalısın',
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Şifreler eşleşmiyor",
   path: ["confirmPassword"],

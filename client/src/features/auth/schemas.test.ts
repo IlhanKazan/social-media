@@ -18,6 +18,8 @@ describe('auth schemas', () => {
       email: 'neo@example.com',
       password: 'secret1',
       confirmPassword: 'secret1',
+      acceptedTerms: true,
+      confirmedAge: true,
     };
     expect(registerSchema.safeParse(base).success).toBe(true);
     expect(registerSchema.safeParse({ ...base, username: 'ne' }).success).toBe(false);
@@ -26,12 +28,27 @@ describe('auth schemas', () => {
     expect(registerSchema.safeParse({ ...base, password: 'short' }).success).toBe(false);
   });
 
+  it('register requires consent and age confirmation', () => {
+    const base = {
+      username: 'neo_99',
+      email: 'neo@example.com',
+      password: 'secret1',
+      confirmPassword: 'secret1',
+      acceptedTerms: true,
+      confirmedAge: true,
+    };
+    expect(registerSchema.safeParse({ ...base, acceptedTerms: false }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, confirmedAge: false }).success).toBe(false);
+  });
+
   it('register rejects mismatched passwords', () => {
     const result = registerSchema.safeParse({
       username: 'neo',
       email: 'neo@example.com',
       password: 'secret1',
       confirmPassword: 'secret2',
+      acceptedTerms: true,
+      confirmedAge: true,
     });
     expect(result.success).toBe(false);
   });
