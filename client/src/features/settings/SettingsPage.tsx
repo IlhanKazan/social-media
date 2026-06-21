@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import type { MyAccountResponse } from '@/types/api';
 import { useState } from "react";
+import { Link } from 'react-router-dom';
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -302,6 +303,23 @@ export function SettingsPage() {
               </Dialog>
             </div>
           </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-3">
+          <div>
+            <h3 className="text-lg font-bold">Yasal</h3>
+            <p className="text-sm text-muted-foreground">Politikalar ve proje hakkında bilgi.</p>
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link to="/about" className="text-primary hover:underline">Hakkında</Link>
+            <Link to="/privacy" className="text-primary hover:underline">Gizlilik Politikası</Link>
+            <Link to="/terms" className="text-primary hover:underline">Kullanım Şartları</Link>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir.
+          </p>
         </section>
 
       </div>

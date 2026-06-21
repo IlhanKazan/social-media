@@ -14,7 +14,7 @@ export function BottomNav() {
 
   const navItems: { to: string; icon: typeof Home; badge?: number }[] = account
     ? [
-        { to: '/', icon: Home },
+        { to: '/home', icon: Home },
         { to: '/search', icon: Search },
         { to: '/notifications', icon: Bell, badge: unreadCount },
         { to: '/messages', icon: Mail },

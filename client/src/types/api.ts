@@ -10,6 +10,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   displayName?: string;
+  acceptedTerms: boolean;
+  confirmedAge: boolean;
 }
 
 export interface AccountSummary {

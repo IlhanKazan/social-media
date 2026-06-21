@@ -16,7 +16,7 @@ export function Sidebar() {
 
   const navItems: { name: string; to: string; icon: typeof Home; badge?: number }[] = account
     ? [
-        { name: 'Akış', to: '/', icon: Home },
+        { name: 'Akış', to: '/home', icon: Home },
         { name: 'Ara', to: '/search', icon: Search },
         { name: 'Keşfet', to: '/explore', icon: Compass },
         { name: 'Bildirimler', to: '/notifications', icon: Bell, badge: unreadCount },

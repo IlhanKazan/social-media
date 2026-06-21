@@ -18,7 +18,7 @@ export function RegisterPage() {
 
   const { register, handleSubmit, formState: { errors }, setError } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { username: '', email: '', password: '', displayName: '' },
+    defaultValues: { username: '', email: '', password: '', displayName: '', acceptedTerms: false, confirmedAge: false },
   });
 
   const mutation = useMutation<AuthResponse, AxiosError<ErrorResponse>, Omit<RegisterInput, 'confirmPassword'>>({
@@ -28,7 +28,7 @@ export function RegisterPage() {
     },
     onSuccess: (data) => {
       login(data);
-      navigate('/');
+      navigate('/home');
     },
     onError: (error) => {
       if (error.response?.data?.fieldErrors) {
@@ -127,6 +127,41 @@ export function RegisterPage() {
           {errors.confirmPassword && (
             <p className="text-xs font-medium text-destructive">{errors.confirmPassword.message}</p>
           )}
+        </div>
+
+        <div className="space-y-3 pt-1">
+          <div className="space-y-1">
+            <label className="flex items-start gap-3 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary"
+                {...register('acceptedTerms')}
+              />
+              <span>
+                <Link to="/terms" target="_blank" className="font-medium text-primary hover:underline">Kullanım Şartları</Link>
+                {' '}ve{' '}
+                <Link to="/privacy" target="_blank" className="font-medium text-primary hover:underline">Gizlilik Politikası</Link>
+                {"'nı okudum ve kabul ediyorum."}
+              </span>
+            </label>
+            {errors.acceptedTerms && (
+              <p className="text-xs font-medium text-destructive">{errors.acceptedTerms.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <label className="flex items-start gap-3 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary"
+                {...register('confirmedAge')}
+              />
+              <span>13 yaşında veya daha büyük olduğumu onaylıyorum.</span>
+            </label>
+            {errors.confirmedAge && (
+              <p className="text-xs font-medium text-destructive">{errors.confirmedAge.message}</p>
+            )}
+          </div>
         </div>
 
         {errors.root && (

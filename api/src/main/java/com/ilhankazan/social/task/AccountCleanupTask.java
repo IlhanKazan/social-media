@@ -4,6 +4,7 @@ package com.ilhankazan.social.task;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.repository.AccountRepository;
+import com.ilhankazan.social.repository.MessageRepository;
 import com.ilhankazan.social.repository.PostRepository;
 import com.ilhankazan.social.service.CloudinaryStorageService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class AccountCleanupTask {
 
     private final AccountRepository accountRepository;
     private final PostRepository postRepository;
+    private final MessageRepository messageRepository;
     private final CloudinaryStorageService storageService;
 
     @Scheduled(cron = "0 0 4 * * *")
@@ -41,6 +43,11 @@ public class AccountCleanupTask {
             List<Post> userPostsWithImages = postRepository.findPostsWithImagesByAccountId(account.getId());
             for (Post post : userPostsWithImages) {
                 storageService.deleteFileByUrl(post.getImageUrl());
+            }
+
+            // DM rows cascade away with the account, so their Cloudinary assets must be purged first.
+            for (String publicId : messageRepository.findDmImagePublicIdsForParticipant(account.getId())) {
+                storageService.deleteByPublicId(publicId);
             }
 
             accountRepository.delete(account);

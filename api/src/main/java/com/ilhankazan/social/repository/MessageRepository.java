@@ -46,4 +46,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT COUNT(m) FROM Message m WHERE (m.conversation.participantA.id = :userId OR m.conversation.participantB.id = :userId) AND m.sender.id != :userId AND m.readAt IS NULL")
     int countTotalUnreadMessagesForUser(@Param("userId") Long userId);
+
+    @Query("SELECT m.imagePublicId FROM Message m WHERE m.imagePublicId IS NOT NULL "
+        + "AND (m.conversation.participantA.id = :accountId OR m.conversation.participantB.id = :accountId)")
+    List<String> findDmImagePublicIdsForParticipant(@Param("accountId") Long accountId);
 }

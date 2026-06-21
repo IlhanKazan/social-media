@@ -23,7 +23,7 @@ class PostIntegrationTest extends BaseIntegrationTest {
     private ObjectMapper objectMapper;
 
     private String getAccessToken(String username) throws Exception {
-        RegisterRequest registerReq = new RegisterRequest(username, username + "@example.com", "Pass123!", username);
+        RegisterRequest registerReq = new RegisterRequest(username, username + "@example.com", "Pass123!", username, true, true);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Forwarded-For", java.util.UUID.randomUUID().toString());
