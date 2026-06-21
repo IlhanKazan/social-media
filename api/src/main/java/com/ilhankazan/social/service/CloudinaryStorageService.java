@@ -81,4 +81,15 @@ public class CloudinaryStorageService {
             log.error("Failed to delete image from Cloudinary: {}", imageUrl, e);
         }
     }
+
+    public void deleteByPublicId(String publicId) {
+        if (publicId == null || publicId.isBlank()) return;
+
+        try {
+            // DM images are stored as authenticated assets, so destroy must target that delivery type.
+            cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("type", "authenticated"));
+        } catch (Exception e) {
+            log.error("Failed to delete authenticated image from Cloudinary: {}", publicId, e);
+        }
+    }
 }
