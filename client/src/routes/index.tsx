@@ -35,6 +35,7 @@ const AdminModerationPage = lazy(() => import('@/features/admin/AdminModerationP
 const AdminReportsPage = lazy(() => import('@/features/admin/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
 const AdminUsersPage = lazy(() => import('@/features/admin/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
 const AdminSystemSettingsPage = lazy(() => import('@/features/admin/AdminSystemSettingsPage').then(m => ({ default: m.AdminSystemSettingsPage })));
+const AdminMaintenancePage = lazy(() => import('@/features/admin/AdminMaintenancePage').then(m => ({ default: m.AdminMaintenancePage })));
 const AdminAuditLogPage = lazy(() => import('@/features/admin/AdminAuditLogPage').then(m => ({ default: m.AdminAuditLogPage })));
 
 const PageLoader = () => (
@@ -108,6 +109,7 @@ export const router = createBrowserRouter([
               { path: 'reports', element: withSuspense(<AdminReportsPage />) },
               { path: 'users', element: withSuspense(<AdminUsersPage />) },
               { path: 'settings', element: withSuspense(<AdminSystemSettingsPage />) },
+              { path: 'maintenance', element: withSuspense(<AdminMaintenancePage />) },
               { path: 'audit-log', element: withSuspense(<AdminAuditLogPage />) },
             ],
           },
