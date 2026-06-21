@@ -22,7 +22,7 @@ class NotificationIntegrationTest extends BaseIntegrationTest {
     private ObjectMapper objectMapper;
 
     private AuthResponse registerAndGetAuth(String username) throws Exception {
-        RegisterRequest req = new RegisterRequest(username, username + "@example.com", "Pass123!", username);
+        RegisterRequest req = new RegisterRequest(username, username + "@example.com", "Pass123!", username, true, true);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Forwarded-For", java.util.UUID.randomUUID().toString());

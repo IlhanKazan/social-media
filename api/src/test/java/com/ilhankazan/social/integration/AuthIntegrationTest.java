@@ -25,7 +25,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
             "testuser",
             "testuser@example.com",
             "Password123!",
-            "Test User"
+            "Test User",
+            true,
+            true
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -76,6 +78,29 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         String loginRefresh = extractRefreshCookieValue(loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE));
         assertThat(loginRefresh).isNotBlank().isNotEqualTo(registerRefresh);
+    }
+
+    @Test
+    void shouldRejectRegistrationWithoutConsent() {
+        RegisterRequest noConsent = new RegisterRequest(
+            "noconsent",
+            "noconsent@example.com",
+            "Password123!",
+            "No Consent",
+            false,
+            true
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Forwarded-For", java.util.UUID.randomUUID().toString());
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+            "/api/v1/auth/register",
+            new HttpEntity<>(noConsent, headers),
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     private String extractRefreshCookieValue(String setCookieHeader) {

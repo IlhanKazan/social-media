@@ -61,7 +61,7 @@ class ModerationIntegrationTest extends BaseIntegrationTest {
     }
 
     private String registerAndGetToken(String username) throws Exception {
-        RegisterRequest request = new RegisterRequest(username, username + "@example.com", "Pass123!", username);
+        RegisterRequest request = new RegisterRequest(username, username + "@example.com", "Pass123!", username, true, true);
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Forwarded-For", UUID.randomUUID().toString());
         ResponseEntity<String> response = restTemplate.exchange(

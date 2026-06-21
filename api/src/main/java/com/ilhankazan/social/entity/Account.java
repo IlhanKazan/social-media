@@ -56,6 +56,12 @@ public class Account extends BaseEntity {
     @Column(name = "banned_reason", length = 500)
     private String bannedReason;
 
+    @Column(name = "consent_version", length = 20)
+    private String consentVersion;
+
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
+
     public boolean isBanned() {
         return bannedAt != null;
     }

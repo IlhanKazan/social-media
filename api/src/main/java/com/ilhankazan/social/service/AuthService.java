@@ -12,9 +12,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    public static final String CONSENT_VERSION = "2026-06-1";
 
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
@@ -39,6 +43,8 @@ public class AuthService {
         account.setPassword(passwordEncoder.encode(password));
         account.setDisplayName(displayName != null ? displayName : username);
         account.setRole(userRole);
+        account.setConsentVersion(CONSENT_VERSION);
+        account.setTermsAcceptedAt(Instant.now());
 
         return accountRepository.save(account);
     }
