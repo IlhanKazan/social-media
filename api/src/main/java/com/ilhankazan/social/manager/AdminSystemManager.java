@@ -34,6 +34,7 @@ public class AdminSystemManager {
         settings.putIfAbsent(SystemSettingsService.VERIFIED_ONLY_POSTING, false);
         settings.putIfAbsent(SystemSettingsService.MODERATION_ENABLED, true);
         settings.putIfAbsent(SystemSettingsService.BOT_ENABLED, false);
+        settings.putIfAbsent(SystemSettingsService.READ_ONLY_MODE, false);
 
         return settings;
     }
