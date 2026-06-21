@@ -1,11 +1,10 @@
 package com.ilhankazan.social.security;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -21,13 +20,10 @@ import java.time.Duration;
 
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class RateLimitAspect {
 
-    // Bounded so a flood of distinct (or spoofed X-Forwarded-For) IPs can't grow the store without limit.
-    private final Cache<String, Bucket> cache = Caffeine.newBuilder()
-        .maximumSize(50_000)
-        .expireAfterAccess(Duration.ofMinutes(15))
-        .build();
+    private final RateLimitStore rateLimitStore;
 
     @Around("@annotation(rateLimit)")
     public Object enforceRateLimit(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
@@ -49,7 +45,7 @@ public class RateLimitAspect {
 
         String key = keyPrefix + "-" + joinPoint.getSignature().getName();
 
-        Bucket bucket = cache.get(key, k -> {
+        Bucket bucket = rateLimitStore.bucket(key, k -> {
             Bandwidth limit = Bandwidth.classic(
                 rateLimit.capacity(),
                 Refill.greedy(rateLimit.capacity(), Duration.ofMinutes(rateLimit.minutes()))
