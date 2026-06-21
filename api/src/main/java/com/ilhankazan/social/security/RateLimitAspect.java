@@ -1,5 +1,7 @@
 package com.ilhankazan.social.security;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
@@ -16,14 +18,16 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Aspect
 @Component
 public class RateLimitAspect {
 
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    // Bounded so a flood of distinct (or spoofed X-Forwarded-For) IPs can't grow the store without limit.
+    private final Cache<String, Bucket> cache = Caffeine.newBuilder()
+        .maximumSize(50_000)
+        .expireAfterAccess(Duration.ofMinutes(15))
+        .build();
 
     @Around("@annotation(rateLimit)")
     public Object enforceRateLimit(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
@@ -45,7 +49,7 @@ public class RateLimitAspect {
 
         String key = keyPrefix + "-" + joinPoint.getSignature().getName();
 
-        Bucket bucket = cache.computeIfAbsent(key, k -> {
+        Bucket bucket = cache.get(key, k -> {
             Bandwidth limit = Bandwidth.classic(
                 rateLimit.capacity(),
                 Refill.greedy(rateLimit.capacity(), Duration.ofMinutes(rateLimit.minutes()))
