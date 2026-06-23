@@ -1164,7 +1164,7 @@ category marked PASS/FIX/N-A; all FIX items are resolved before deploy.
 
 ## Phase 30 — Launch
 
-### [ ] 30.1 Root README.md
+### [x] 30.1 Root README.md
 Sections:
 - Hero: project name, screenshot/gif, live link
 - Overview: what + why
@@ -1175,7 +1175,7 @@ Sections:
 - Architecture: link to ARCHITECTURE.md
 - Acknowledgements: link to the 2024 legacy version
 
-### [ ] 30.2 ARCHITECTURE.md
+### [x] 30.2 ARCHITECTURE.md
 - Mermaid diagram of: client ↔ api ↔ postgres + cloudinary, with WebSocket overlay
 - Module boundaries explanation
 - Why monorepo, why monolith
@@ -1669,7 +1669,7 @@ deployed API, renders the feed, and sends a DM in real time.
 **Gate: pre-launch.** Twitter-style: a logged-out visitor can read content; the
 app nudges them to sign up after browsing but never hard-bounces them back.
 
-### [ ] 38.1 Backend — optional-auth read endpoints
+### [x] 38.1 Backend — optional-auth read endpoints
 - Today `SecurityConfig` requires auth on `/api/v1/**` (except `/auth/**`, `/ws`,
   health). Make **read-only** endpoints public: `GET /posts/explore`,
   `GET /posts/{id}`, `GET /posts/{id}/ancestors`, `GET /posts/{id}/replies`,
@@ -1684,7 +1684,7 @@ app nudges them to sign up after browsing but never hard-bounces them back.
 - Rate-limit anonymous traffic by IP (reuse `RateLimitAspect`'s IP keying).
 - FLAGGED/soft-deleted content stays hidden for anon exactly as for users.
 
-### [ ] 38.2 Frontend — public routes + soft gate
+### [x] 38.2 Frontend — public routes + soft gate
 - Move read routes (`/post/:id`, `/u/:username`, an explore feed) out from under
   `RequireAuth`; render them for anyone.
 - A `SoftAuthGate` component: after N viewed posts (or on any write action —
@@ -1702,7 +1702,7 @@ without being kicked out.
 
 **Gate: pre-launch.** A public `/` for logged-out visitors.
 
-### [ ] 39.1 Landing page
+### [x] 39.1 Landing page
 - Hero (logo, tagline, primary CTA "Sign up" + "Log in"), a short feature list
   (real-time feed, threads, DMs, image sharing), a screenshot/gif, footer with
   links to About / Privacy / Terms (Phase 40).
@@ -1719,11 +1719,11 @@ working CTAs; logged-in users still land on the feed.
 **Gate: pre-launch GATE.** Before real users sign up. **Not legal advice — the
 published texts must be reviewed by a lawyer / KVKK advisor.**
 
-### [ ] 40.1 Public legal pages
+### [x] 40.1 Public legal pages
 - Static public routes `/about`, `/privacy`, `/terms`; linked from the landing
   footer, the `AuthLayout`, and the settings page. Source texts in `docs/legal/`.
 
-### [ ] 40.2 Privacy policy + KVKK aydınlatma metni (drafts)
+### [x] 40.2 Privacy policy + KVKK aydınlatma metni (drafts)
 - Draft Privacy Policy, Terms of Service, and a KVKK **aydınlatma metni**
   (English + Turkish), covering: data inventory (email, profile, posts, DMs +
   images, **IPs/audit logs**), purposes + legal basis (KVKK m.5/6), processors
@@ -1733,12 +1733,12 @@ published texts must be reviewed by a lawyer / KVKK advisor.**
 - Flag the items needing **explicit consent** (açık rıza): sending post content
   to OpenAI for moderation, any marketing email, cross-border transfer.
 
-### [ ] 40.3 Registration consent + age gate
+### [x] 40.3 Registration consent + age gate
 - Add a **required** "I agree to the Terms & Privacy Policy" checkbox and an age
   confirmation to the register form; persist consent version + timestamp on the
   account. Show the aydınlatma metni link at the point of collection.
 
-### [ ] 40.4 Right-to-erasure verification
+### [x] 40.4 Right-to-erasure verification
 - Audit `useDeleteAccount` / `AccountController` delete: confirm it truly removes
   or anonymises the user's posts, replies, DMs, follows, **Cloudinary images**,
   and reconcile audit-log retention with the stated policy. (Right to be
@@ -1772,7 +1772,7 @@ testable place.
 - The real win is centralization + closing the repost/quote gap, not the
   invocation style.
 
-### [ ] B2 Move the rate-limit bucket store to Caffeine (bounded)
+### [x] B2 Move the rate-limit bucket store to Caffeine (bounded)
 
 `RateLimitAspect.cache` is a plain `ConcurrentHashMap<String,Bucket>` with **no
 eviction** — every distinct `user/ip + endpoint` is a permanent entry, so a flood
@@ -1783,7 +1783,7 @@ worse on a 512 MB instance). Replace with a Caffeine cache
 we ever run >1 Render instance, global limits need a shared store (Redis); fine
 while single-instance.
 
-### [ ] B3 Render free-tier JVM/memory tuning
+### [x] B3 Render free-tier JVM/memory tuning
 
 Dockerfile runs `-XX:+UseZGC -XX:MaxRAMPercentage=75`. On 512 MB this is risky:
 ZGC targets large heaps and reserves extra off-heap; 75% leaves little for
