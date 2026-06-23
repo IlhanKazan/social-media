@@ -3,6 +3,7 @@ package com.ilhankazan.social.manager;
 import com.ilhankazan.social.dto.account.ChangePasswordRequest;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
+import com.ilhankazan.social.dto.account.TotpSetupResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.entity.Account;
@@ -19,6 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.BadCredentialsException;
 import com.ilhankazan.social.security.AuthCacheResolver;
+import com.ilhankazan.social.security.SecretCipher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,9 @@ public class AccountManager {
     private final PasswordEncoder passwordEncoder;
     private final AuthCacheResolver authResolver;
     private final MfaEmailService mfaEmailService;
+    private final TotpService totpService;
+    private final MfaRecoveryService mfaRecoveryService;
+    private final SecretCipher secretCipher;
 
     private String currentUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -216,7 +221,7 @@ public class AccountManager {
     public void startEmailMfaSetup() {
         Account account = accountService.getAccount(currentUsername());
         if (!account.isEmailVerified()) {
-            throw new IllegalStateException("İki adımlı doğrulamayı açmadan önce e-postanı doğrulamalısın.");
+            throw new IllegalArgumentException("İki adımlı doğrulamayı açmadan önce e-posta adresini doğrulamalısın.");
         }
         mfaEmailService.issueCode(account);
     }
@@ -241,6 +246,51 @@ public class AccountManager {
         account.setMfaEmailEnabled(false);
         accountService.saveRaw(account);
         auditLogService.record("MFA_EMAIL_DISABLED", "ACCOUNT", account.getId(), null);
+    }
+
+    @Transactional
+    public TotpSetupResponse startTotpSetup() {
+        Account account = accountService.getAccount(currentUsername());
+        String secret = totpService.generateSecret();
+        account.setMfaTotpSecret(secretCipher.encrypt(secret));
+        account.setMfaTotpEnabled(false);
+        account.setMfaTotpLastStep(null);
+        accountService.saveRaw(account);
+        return new TotpSetupResponse(secret, totpService.qrDataUri(account.getEmail(), secret));
+    }
+
+    @Transactional
+    public List<String> enableTotp(String code) {
+        Account account = accountService.getAccount(currentUsername());
+        if (account.getMfaTotpSecret() == null) {
+            throw new IllegalArgumentException("Önce authenticator kurulumunu başlat.");
+        }
+        String secret = secretCipher.decrypt(account.getMfaTotpSecret());
+        long lastStep = account.getMfaTotpLastStep() == null ? -1 : account.getMfaTotpLastStep();
+        long step = totpService.verifyAndGetStep(secret, code, lastStep);
+        if (step < 0) {
+            throw new BadCredentialsException("Kod geçersiz. Authenticator uygulamandaki güncel kodu gir.");
+        }
+        account.setMfaTotpEnabled(true);
+        account.setMfaTotpLastStep(step);
+        accountService.saveRaw(account);
+        List<String> recoveryCodes = mfaRecoveryService.regenerate(account);
+        auditLogService.record("MFA_TOTP_ENABLED", "ACCOUNT", account.getId(), null);
+        return recoveryCodes;
+    }
+
+    @Transactional
+    public void disableTotp(String password) {
+        Account account = accountService.getAccount(currentUsername());
+        if (!passwordEncoder.matches(password, account.getPassword())) {
+            throw new BadCredentialsException("Şifre hatalı.");
+        }
+        account.setMfaTotpEnabled(false);
+        account.setMfaTotpSecret(null);
+        account.setMfaTotpLastStep(null);
+        accountService.saveRaw(account);
+        mfaRecoveryService.clear(account.getId());
+        auditLogService.record("MFA_TOTP_DISABLED", "ACCOUNT", account.getId(), null);
     }
 
 }

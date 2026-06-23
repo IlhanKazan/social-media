@@ -55,6 +55,9 @@ app:
     secret: ${JWT_SECRET:dev-secret-must-be-at-least-32-bytes-long-please-change}
     access-ttl-ms: ${JWT_ACCESS_TTL_MS:900000}        # 15 min
     refresh-ttl-ms: ${JWT_REFRESH_TTL_MS:2592000000}  # 30 days
+  mfa:
+    # 32-byte AES key (base64). Dev default decodes to a known test key; MUST be overridden in prod.
+    enc-key: ${MFA_ENC_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
   auth:
     cookie:
       name: ${AUTH_COOKIE_NAME:refresh_token}

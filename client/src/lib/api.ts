@@ -24,7 +24,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // A 401 from an auth endpoint (login, mfa/verify, ...) is a credential/code error,
+    // not an expired session — let the caller handle it instead of refreshing/redirecting.
+    const isAuthEndpoint = (originalRequest?.url ?? '').includes('/auth/');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       if (!refreshPromise) {

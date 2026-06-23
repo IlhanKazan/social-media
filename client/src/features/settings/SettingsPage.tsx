@@ -17,6 +17,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { MfaSection } from './components/MfaSection';
+import { TotpSection } from './components/TotpSection';
 import {
   Dialog,
   DialogContent,
@@ -217,7 +218,8 @@ export function SettingsPage() {
             <h3 className="text-lg font-bold">Güvenlik</h3>
             <p className="text-sm text-muted-foreground">Hesabına ikinci bir doğrulama katmanı ekle.</p>
           </div>
-          <MfaSection enabled={account?.mfaEmailEnabled ?? false} />
+          <MfaSection enabled={account?.mfaEmailEnabled ?? false} emailVerified={account?.emailVerified ?? false} />
+          <TotpSection enabled={account?.mfaTotpEnabled ?? false} />
         </section>
 
         <Separator />

@@ -15,5 +15,6 @@ public record MyAccountResponse(
     String role,
     boolean emailVerified,
     boolean mfaEmailEnabled,
+    boolean mfaTotpEnabled,
     Instant joinedAt
 ) {}
