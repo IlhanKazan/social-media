@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import type { AuthResponse, ErrorResponse } from '@/types/api';
+import type { LoginResponse, ErrorResponse } from '@/types/api';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -23,13 +23,22 @@ export function LoginPage() {
     defaultValues: { identifier: '', password: '' },
   });
 
-  const mutation = useMutation<AuthResponse, AxiosError<ErrorResponse>, LoginInput>({
+  const mutation = useMutation<LoginResponse, AxiosError<ErrorResponse>, LoginInput>({
     mutationFn: async (data) => {
-      const res = await api.post<AuthResponse>('/auth/login', data);
+      const res = await api.post<LoginResponse>('/auth/login', data);
       return res.data;
     },
     onSuccess: (data) => {
-      login(data);
+      if (data.status === 'MFA_REQUIRED') {
+        navigate('/mfa', { state: { mfaToken: data.mfaToken, methods: data.methods, from } });
+        return;
+      }
+      login({
+        accessToken: data.accessToken!,
+        accessTokenExpiresIn: data.accessTokenExpiresIn!,
+        refreshTokenExpiresIn: data.refreshTokenExpiresIn!,
+        account: data.account!,
+      });
       navigate(from, { replace: true });
     },
     onError: (error) => {

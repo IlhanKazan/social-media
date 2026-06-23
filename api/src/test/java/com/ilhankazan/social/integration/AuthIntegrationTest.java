@@ -72,9 +72,10 @@ class AuthIntegrationTest extends BaseIntegrationTest {
             .as("Login failed! Body: " + loginResponse.getBody())
             .isEqualTo(HttpStatus.OK);
 
-        AuthResponse loginAuth = objectMapper.readValue(loginResponse.getBody(), AuthResponse.class);
-        assertThat(loginAuth.accessToken()).isNotBlank();
-        assertThat(loginAuth.refreshToken()).isNull();
+        var loginBody = objectMapper.readTree(loginResponse.getBody());
+        assertThat(loginBody.get("status").asText()).isEqualTo("AUTHENTICATED");
+        assertThat(loginBody.get("accessToken").asText()).isNotBlank();
+        assertThat(loginBody.has("refreshToken")).as("refresh token must not leak in the body").isFalse();
 
         String loginRefresh = extractRefreshCookieValue(loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE));
         assertThat(loginRefresh).isNotBlank().isNotEqualTo(registerRefresh);

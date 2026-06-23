@@ -65,6 +65,13 @@ public class Account extends BaseEntity {
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 
+    @Column(name = "mfa_email_enabled", nullable = false)
+    private boolean mfaEmailEnabled = false;
+
+    public boolean isMfaEnabled() {
+        return mfaEmailEnabled;
+    }
+
     public boolean isBanned() {
         return bannedAt != null;
     }

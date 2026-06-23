@@ -10,11 +10,20 @@ public final class TokenGenerator {
 
     private TokenGenerator() {}
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     public static String generateSecureToken() {
-        SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[32]; // 256-bit
-        random.nextBytes(bytes);
+        RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public static String generateNumericCode(int digits) {
+        StringBuilder sb = new StringBuilder(digits);
+        for (int i = 0; i < digits; i++) {
+            sb.append(RANDOM.nextInt(10));
+        }
+        return sb.toString();
     }
 
     public static String hashToken(String token) {

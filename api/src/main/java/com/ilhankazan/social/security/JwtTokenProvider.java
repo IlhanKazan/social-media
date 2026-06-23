@@ -38,6 +38,27 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    private static final long MFA_CHALLENGE_TTL_MS = 5 * 60 * 1000L;
+
+    public String generateMfaToken(Long accountId) {
+        return Jwts.builder()
+                .subject(String.valueOf(accountId))
+                .id(UUID.randomUUID().toString())
+                .claim("purpose", "mfa")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + MFA_CHALLENGE_TTL_MS))
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public Long parseMfaToken(String token) {
+        Claims claims = validateToken(token);
+        if (!"mfa".equals(claims.get("purpose", String.class))) {
+            throw new io.jsonwebtoken.JwtException("Not an MFA challenge token");
+        }
+        return Long.valueOf(claims.getSubject());
+    }
+
     public String generateRefreshToken(String username) {
         return Jwts.builder()
                 .subject(username)

@@ -1,6 +1,8 @@
 package com.ilhankazan.social.controller;
 
 import com.ilhankazan.social.dto.account.ChangePasswordRequest;
+import com.ilhankazan.social.dto.account.MfaDisableRequest;
+import com.ilhankazan.social.dto.account.MfaEnableRequest;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
@@ -114,6 +116,30 @@ public class AccountController {
     @PutMapping("/me/password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         accountManager.changePassword(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Start email 2FA setup", description = "Sends a one-time code to confirm enabling email two-factor authentication.")
+    @PostMapping("/me/mfa/email/setup")
+    @RateLimit(capacity = 3, minutes = 10)
+    public ResponseEntity<Void> startEmailMfaSetup() {
+        accountManager.startEmailMfaSetup();
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Enable email 2FA", description = "Confirms the code and enables email two-factor authentication.")
+    @PostMapping("/me/mfa/email/enable")
+    @RateLimit(capacity = 5, minutes = 10)
+    public ResponseEntity<Void> enableEmailMfa(@Valid @RequestBody MfaEnableRequest request) {
+        accountManager.enableEmailMfa(request.code());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Disable email 2FA", description = "Disables email two-factor authentication after re-entering the password.")
+    @DeleteMapping("/me/mfa/email")
+    @RateLimit(capacity = 5, minutes = 10)
+    public ResponseEntity<Void> disableEmailMfa(@Valid @RequestBody MfaDisableRequest request) {
+        accountManager.disableEmailMfa(request.password());
         return ResponseEntity.noContent().build();
     }
 

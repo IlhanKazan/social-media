@@ -14,5 +14,6 @@ public record MyAccountResponse(
     int coverPosition,
     String role,
     boolean emailVerified,
+    boolean mfaEmailEnabled,
     Instant joinedAt
 ) {}

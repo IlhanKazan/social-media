@@ -31,6 +31,18 @@ export interface AuthResponse {
   account: AccountSummary;
 }
 
+export type MfaMethod = 'EMAIL';
+
+export interface LoginResponse {
+  status: 'AUTHENTICATED' | 'MFA_REQUIRED';
+  accessToken?: string;
+  accessTokenExpiresIn?: number;
+  refreshTokenExpiresIn?: number;
+  account?: AccountSummary;
+  mfaToken?: string;
+  methods?: MfaMethod[];
+}
+
 // ─── Account ─────────────────────────────────────────────────────────────────
 
 export interface MyAccountResponse {
@@ -45,6 +57,7 @@ export interface MyAccountResponse {
   coverPosition: number;
   role: string;
   emailVerified: boolean;
+  mfaEmailEnabled: boolean;
   joinedAt: string;
 }
 

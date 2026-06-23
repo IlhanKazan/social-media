@@ -45,6 +45,7 @@ public class AccountManager {
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
     private final AuthCacheResolver authResolver;
+    private final MfaEmailService mfaEmailService;
 
     private String currentUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -209,6 +210,37 @@ public class AccountManager {
         refreshTokenService.revokeAllForAccount(account.getId());
 
         auditLogService.record("PASSWORD_CHANGED", "ACCOUNT", account.getId(), null);
+    }
+
+    @Transactional
+    public void startEmailMfaSetup() {
+        Account account = accountService.getAccount(currentUsername());
+        if (!account.isEmailVerified()) {
+            throw new IllegalStateException("İki adımlı doğrulamayı açmadan önce e-postanı doğrulamalısın.");
+        }
+        mfaEmailService.issueCode(account);
+    }
+
+    @Transactional
+    public void enableEmailMfa(String code) {
+        Account account = accountService.getAccount(currentUsername());
+        if (!mfaEmailService.verify(account.getId(), code)) {
+            throw new BadCredentialsException("Kod geçersiz veya süresi dolmuş.");
+        }
+        account.setMfaEmailEnabled(true);
+        accountService.saveRaw(account);
+        auditLogService.record("MFA_EMAIL_ENABLED", "ACCOUNT", account.getId(), null);
+    }
+
+    @Transactional
+    public void disableEmailMfa(String password) {
+        Account account = accountService.getAccount(currentUsername());
+        if (!passwordEncoder.matches(password, account.getPassword())) {
+            throw new BadCredentialsException("Şifre hatalı.");
+        }
+        account.setMfaEmailEnabled(false);
+        accountService.saveRaw(account);
+        auditLogService.record("MFA_EMAIL_DISABLED", "ACCOUNT", account.getId(), null);
     }
 
 }

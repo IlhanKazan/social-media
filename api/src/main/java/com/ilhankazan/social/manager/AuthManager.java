@@ -3,7 +3,10 @@ package com.ilhankazan.social.manager;
 import com.ilhankazan.social.config.AppProperties;
 import com.ilhankazan.social.dto.auth.AuthResponse;
 import com.ilhankazan.social.dto.auth.LoginRequest;
+import com.ilhankazan.social.dto.auth.LoginResult;
 import com.ilhankazan.social.dto.auth.RegisterRequest;
+import io.jsonwebtoken.JwtException;
+import org.springframework.security.authentication.BadCredentialsException;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.event.LoginSuccessEvent;
 import com.ilhankazan.social.event.UserRegisteredEvent;
@@ -44,6 +47,7 @@ public class AuthManager {
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetService passwordResetService;
     private final SystemSettingsService systemSettingsService;
+    private final MfaEmailService mfaEmailService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -61,10 +65,47 @@ public class AuthManager {
     }
 
     @Transactional
-    public AuthResponse login(LoginRequest request, String ipAddress, String userAgent) {
+    public LoginResult login(LoginRequest request, String ipAddress, String userAgent) {
         Account account = authService.authenticate(request.identifier(), request.password());
+        if (account.isMfaEnabled()) {
+            mfaEmailService.issueCode(account);
+            return LoginResult.mfa(jwtTokenProvider.generateMfaToken(account.getId()), List.of("EMAIL"));
+        }
+        eventPublisher.publishEvent(new LoginSuccessEvent(account, ipAddress, userAgent));
+        return LoginResult.authenticated(buildInitialAuthResponse(account, ipAddress, userAgent));
+    }
+
+    @Transactional
+    public AuthResponse verifyMfa(String mfaToken, String method, String code, String ipAddress, String userAgent) {
+        Long accountId = parseMfaTokenOrThrow(mfaToken);
+        Account account = accountService.getAccountById(accountId);
+
+        boolean ok = "EMAIL".equalsIgnoreCase(method) && mfaEmailService.verify(accountId, code);
+        if (!ok) {
+            auditLogService.record("MFA_FAILED", "ACCOUNT", accountId, Map.of("method", String.valueOf(method)));
+            throw new BadCredentialsException("Invalid or expired verification code.");
+        }
+
+        auditLogService.record("MFA_VERIFIED", "ACCOUNT", accountId, Map.of("method", method));
         eventPublisher.publishEvent(new LoginSuccessEvent(account, ipAddress, userAgent));
         return buildInitialAuthResponse(account, ipAddress, userAgent);
+    }
+
+    @Transactional
+    public void resendMfaCode(String mfaToken) {
+        Long accountId = parseMfaTokenOrThrow(mfaToken);
+        Account account = accountService.getAccountById(accountId);
+        if (account.isMfaEnabled()) {
+            mfaEmailService.issueCode(account);
+        }
+    }
+
+    private Long parseMfaTokenOrThrow(String mfaToken) {
+        try {
+            return jwtTokenProvider.parseMfaToken(mfaToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new BadCredentialsException("MFA session is invalid or has expired.");
+        }
     }
 
     public AuthResponse refresh(String refreshToken, String ipAddress, String userAgent) {
