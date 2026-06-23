@@ -46,7 +46,7 @@ public interface PostMapper {
 
         if (isDeleted || ((isFlagged || isInactive) && !isAuthor)) {
             var dummyAuthor = new PublicAccountResponse(
-                0L, "gizli", "Gizlenmiş Kullanıcı", null, null, null, 0L, 0L, false, false, Instant.now()
+                0L, "gizli", "Gizlenmiş Kullanıcı", null, null, null, 50, 0L, 0L, false, false, Instant.now()
             );
 
             return new PostResponse(

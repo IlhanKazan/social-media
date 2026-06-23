@@ -9,6 +9,7 @@ public record PublicAccountResponse(
     String bio,
     String profileImageUrl,
     String coverImageUrl,
+    int coverPosition,
     long followerCount,
     long followingCount,
     boolean isFollowing,

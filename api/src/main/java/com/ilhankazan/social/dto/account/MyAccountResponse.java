@@ -11,6 +11,7 @@ public record MyAccountResponse(
     String bio,
     String profileImageUrl,
     String coverImageUrl,
+    int coverPosition,
     String role,
     boolean emailVerified,
     Instant joinedAt

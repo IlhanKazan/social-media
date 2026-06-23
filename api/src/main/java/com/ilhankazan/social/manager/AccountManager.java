@@ -112,7 +112,8 @@ public class AccountManager {
     @CacheEvict(value = {"publicProfilesByUsername", "suggestions"}, allEntries = true)
     @Transactional
     public MyAccountResponse updateProfile(UpdateProfileRequest request) {
-        Account account = accountService.updateProfile(currentUsername(), request.displayName(), request.bio());
+        Account account = accountService.updateProfile(
+            currentUsername(), request.displayName(), request.bio(), request.coverPosition());
         return accountMapper.toMyResponse(account);
     }
 
@@ -126,6 +127,20 @@ public class AccountManager {
     public String updateCover(MultipartFile file) {
         Account account = accountService.updateCover(currentUsername(), file);
         return account.getCoverImageUrl();
+    }
+
+    @CacheEvict(value = {"publicProfilesByUsername", "suggestions"}, allEntries = true)
+    @Transactional
+    public MyAccountResponse deleteAvatar() {
+        Account account = accountService.deleteAvatar(currentUsername());
+        return accountMapper.toMyResponse(account);
+    }
+
+    @CacheEvict(value = {"publicProfilesByUsername", "suggestions"}, allEntries = true)
+    @Transactional
+    public MyAccountResponse deleteCover() {
+        Account account = accountService.deleteCover(currentUsername());
+        return accountMapper.toMyResponse(account);
     }
 
     @Cacheable(value = "suggestions", key = "@auth.user()")

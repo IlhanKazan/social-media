@@ -1,6 +1,8 @@
 package com.ilhankazan.social.dto.account;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Request payload to update user profile details")
@@ -11,5 +13,10 @@ public record UpdateProfileRequest(
 
     @Schema(description = "New bio", example = "Building real-time event-driven systems with Spring Boot & Go.")
     @Size(max = 160, message = "Bio cannot exceed 160 characters")
-    String bio
+    String bio,
+
+    @Schema(description = "Vertical focal point of the cover image, 0 (top) to 100 (bottom)", example = "50")
+    @Min(value = 0, message = "Cover position must be between 0 and 100")
+    @Max(value = 100, message = "Cover position must be between 0 and 100")
+    Integer coverPosition
 ) {}
