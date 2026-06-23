@@ -9,7 +9,6 @@ import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.PostCreatedEvent;
 import com.ilhankazan.social.event.RepostCreatedEvent;
-import com.ilhankazan.social.exception.PostingRestrictedException;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.mapper.PostMapper;
 import com.ilhankazan.social.repository.projection.FeedItemProjection;
@@ -42,7 +41,7 @@ public class PostManager {
     private final CloudinaryStorageService storageService;
     private final RepostService repostService;
     private final AccountMapper accountMapper;
-    private final SystemSettingsService systemSettingsService;
+    private final PostingPolicy postingPolicy;
     private final AuthCacheResolver authResolver;
 
     private Long currentUserIdOrNull() {
@@ -125,15 +124,7 @@ public class PostManager {
     @Transactional
     public PostResponse create(CreatePostRequest request) {
         Account current = getCurrentAccount();
-
-        boolean verifiedOnly = systemSettingsService.getBooleanSetting(
-            SystemSettingsService.VERIFIED_ONLY_POSTING,
-            false
-        );
-
-        if (verifiedOnly && !current.isEmailVerified()) {
-            throw new PostingRestrictedException("Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir.");
-        }
+        postingPolicy.requireCanPost(current);
 
         Post post = postService.create(current.getId(), request.content(), request.imageUrl(), request.parentPostId());
 
@@ -222,6 +213,7 @@ public class PostManager {
     @Transactional
     public boolean toggleRepost(Long postId) {
         Account current = getCurrentAccount();
+        postingPolicy.requireCanPost(current);
         Post post = postService.getById(postId);
         boolean isReposted = repostService.toggleRepost(current, post);
 
@@ -241,6 +233,7 @@ public class PostManager {
     @Transactional
     public PostResponse quoteRepost(Long quotedPostId, CreateQuoteRepostRequest request) {
         Account current = getCurrentAccount();
+        postingPolicy.requireCanPost(current);
         Post post = postService.createQuote(current.getId(), quotedPostId, request.content(), request.imageUrl());
 
         PostResponse response = postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L, 0L, false);
