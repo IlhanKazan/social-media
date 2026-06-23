@@ -31,7 +31,7 @@ export interface AuthResponse {
   account: AccountSummary;
 }
 
-export type MfaMethod = 'EMAIL';
+export type MfaMethod = 'EMAIL' | 'TOTP' | 'RECOVERY';
 
 export interface LoginResponse {
   status: 'AUTHENTICATED' | 'MFA_REQUIRED';
@@ -41,6 +41,11 @@ export interface LoginResponse {
   account?: AccountSummary;
   mfaToken?: string;
   methods?: MfaMethod[];
+}
+
+export interface TotpSetupResponse {
+  secret: string;
+  qrDataUri: string;
 }
 
 // ─── Account ─────────────────────────────────────────────────────────────────
@@ -57,6 +62,7 @@ export interface MyAccountResponse {
   role: string;
   emailVerified: boolean;
   mfaEmailEnabled: boolean;
+  mfaTotpEnabled: boolean;
   joinedAt: string;
 }
 

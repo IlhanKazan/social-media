@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ShieldCheck, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useStartEmailMfaSetup, useEnableEmailMfa, useDisableEmailMfa } from '../hooks/use-mfa';
 
-export function MfaSection({ enabled }: { enabled: boolean }) {
+export function MfaSection({ enabled, emailVerified }: { enabled: boolean; emailVerified: boolean }) {
   const [confirming, setConfirming] = useState(false);
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -49,11 +50,22 @@ export function MfaSection({ enabled }: { enabled: boolean }) {
           </Button>
         </form>
       ) : !confirming ? (
-        <div>
+        <div className="space-y-2">
+          {!emailVerified && (
+            <p className="text-sm text-amber-600 dark:text-amber-500">
+              Bunu açmak için önce e-posta adresini doğrulamalısın (yukarıdaki "Hesap Doğrulama").
+            </p>
+          )}
           <Button
             variant="outline"
             disabled={start.isPending}
-            onClick={() => start.mutate(undefined, { onSuccess: () => setConfirming(true) })}
+            onClick={() => {
+              if (!emailVerified) {
+                toast.error('Önce e-posta adresini doğrulamalısın.');
+                return;
+              }
+              start.mutate(undefined, { onSuccess: () => setConfirming(true) });
+            }}
           >
             {start.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Etkinleştir'}
           </Button>
