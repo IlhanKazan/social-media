@@ -1,5 +1,5 @@
 import { NavLink, useMatch } from 'react-router-dom';
-import { Home, Search, Bell, Mail, Compass, User } from 'lucide-react';
+import { Home, Search, Bell, Mail, Compass, LogIn } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
@@ -75,7 +75,7 @@ export function BottomNav() {
             )
           }
         >
-          <User className="h-6 w-6" />
+          <LogIn className="h-6 w-6" />
         </NavLink>
       )}
     </nav>
