@@ -65,8 +65,17 @@ public class Account extends BaseEntity {
     @Column(name = "mfa_email_enabled", nullable = false)
     private boolean mfaEmailEnabled = false;
 
+    @Column(name = "mfa_totp_secret")
+    private String mfaTotpSecret;
+
+    @Column(name = "mfa_totp_enabled", nullable = false)
+    private boolean mfaTotpEnabled = false;
+
+    @Column(name = "mfa_totp_last_step")
+    private Long mfaTotpLastStep;
+
     public boolean isMfaEnabled() {
-        return mfaEmailEnabled;
+        return mfaEmailEnabled || mfaTotpEnabled;
     }
 
     public boolean isBanned() {

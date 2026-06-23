@@ -9,6 +9,7 @@ import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.BadCredentialsException;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.event.LoginSuccessEvent;
+import com.ilhankazan.social.security.SecretCipher;
 import com.ilhankazan.social.event.UserRegisteredEvent;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.repository.PasswordResetTokenRepository;
@@ -48,6 +49,9 @@ public class AuthManager {
     private final PasswordResetService passwordResetService;
     private final SystemSettingsService systemSettingsService;
     private final MfaEmailService mfaEmailService;
+    private final TotpService totpService;
+    private final MfaRecoveryService mfaRecoveryService;
+    private final SecretCipher secretCipher;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -68,8 +72,19 @@ public class AuthManager {
     public LoginResult login(LoginRequest request, String ipAddress, String userAgent) {
         Account account = authService.authenticate(request.identifier(), request.password());
         if (account.isMfaEnabled()) {
-            mfaEmailService.issueCode(account);
-            return LoginResult.mfa(jwtTokenProvider.generateMfaToken(account.getId()), List.of("EMAIL"));
+            List<String> methods = new java.util.ArrayList<>();
+            if (account.isMfaTotpEnabled()) {
+                methods.add("TOTP");
+            }
+            if (account.isMfaEmailEnabled()) {
+                methods.add("EMAIL");
+            }
+            // Auto-send the email code only when email is the sole factor; with TOTP present
+            // the user opts into email (which triggers a send), so TOTP logins cost zero emails.
+            if (account.isMfaEmailEnabled() && !account.isMfaTotpEnabled()) {
+                mfaEmailService.issueCode(account);
+            }
+            return LoginResult.mfa(jwtTokenProvider.generateMfaToken(account.getId()), methods);
         }
         eventPublisher.publishEvent(new LoginSuccessEvent(account, ipAddress, userAgent));
         return LoginResult.authenticated(buildInitialAuthResponse(account, ipAddress, userAgent));
@@ -80,7 +95,12 @@ public class AuthManager {
         Long accountId = parseMfaTokenOrThrow(mfaToken);
         Account account = accountService.getAccountById(accountId);
 
-        boolean ok = "EMAIL".equalsIgnoreCase(method) && mfaEmailService.verify(accountId, code);
+        boolean ok = switch (method == null ? "" : method.toUpperCase()) {
+            case "EMAIL" -> account.isMfaEmailEnabled() && mfaEmailService.verify(accountId, code);
+            case "TOTP" -> verifyTotp(account, code);
+            case "RECOVERY" -> account.isMfaEnabled() && mfaRecoveryService.consume(accountId, code);
+            default -> false;
+        };
         if (!ok) {
             auditLogService.record("MFA_FAILED", "ACCOUNT", accountId, Map.of("method", String.valueOf(method)));
             throw new BadCredentialsException("Invalid or expired verification code.");
@@ -98,6 +118,21 @@ public class AuthManager {
         if (account.isMfaEnabled()) {
             mfaEmailService.issueCode(account);
         }
+    }
+
+    private boolean verifyTotp(Account account, String code) {
+        if (!account.isMfaTotpEnabled() || account.getMfaTotpSecret() == null) {
+            return false;
+        }
+        String secret = secretCipher.decrypt(account.getMfaTotpSecret());
+        long lastStep = account.getMfaTotpLastStep() == null ? -1 : account.getMfaTotpLastStep();
+        long step = totpService.verifyAndGetStep(secret, code, lastStep);
+        if (step < 0) {
+            return false;
+        }
+        account.setMfaTotpLastStep(step);
+        accountService.saveRaw(account);
+        return true;
     }
 
     private Long parseMfaTokenOrThrow(String mfaToken) {

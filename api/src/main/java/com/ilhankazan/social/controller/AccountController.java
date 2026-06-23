@@ -5,6 +5,7 @@ import com.ilhankazan.social.dto.account.MfaDisableRequest;
 import com.ilhankazan.social.dto.account.MfaEnableRequest;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
+import com.ilhankazan.social.dto.account.TotpSetupResponse;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.dto.auth.VerifyEmailRequest;
 import com.ilhankazan.social.manager.AccountManager;
@@ -126,6 +127,28 @@ public class AccountController {
     @RateLimit(capacity = 5, minutes = 10)
     public ResponseEntity<Void> disableEmailMfa(@Valid @RequestBody MfaDisableRequest request) {
         accountManager.disableEmailMfa(request.password());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Start authenticator setup", description = "Generates a TOTP secret and returns it with a scannable QR image.")
+    @PostMapping("/me/mfa/totp/setup")
+    @RateLimit(capacity = 5, minutes = 10)
+    public ResponseEntity<TotpSetupResponse> startTotpSetup() {
+        return ResponseEntity.ok(accountManager.startTotpSetup());
+    }
+
+    @Operation(summary = "Enable authenticator 2FA", description = "Confirms a TOTP code, enables it, and returns one-time recovery codes.")
+    @PostMapping("/me/mfa/totp/enable")
+    @RateLimit(capacity = 5, minutes = 10)
+    public ResponseEntity<List<String>> enableTotp(@Valid @RequestBody MfaEnableRequest request) {
+        return ResponseEntity.ok(accountManager.enableTotp(request.code()));
+    }
+
+    @Operation(summary = "Disable authenticator 2FA", description = "Disables authenticator 2FA after re-entering the password and wipes recovery codes.")
+    @DeleteMapping("/me/mfa/totp")
+    @RateLimit(capacity = 5, minutes = 10)
+    public ResponseEntity<Void> disableTotp(@Valid @RequestBody MfaDisableRequest request) {
+        accountManager.disableTotp(request.password());
         return ResponseEntity.noContent().build();
     }
 

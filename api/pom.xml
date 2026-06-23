@@ -157,6 +157,13 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- TOTP (authenticator app) support + QR generation -->
+    <dependency>
+      <groupId>dev.samstevens.totp</groupId>
+      <artifactId>totp</artifactId>
+      <version>1.7.1</version>
+    </dependency>
+
     <!-- Source: https://mvnrepository.com/artifact/org.testcontainers/junit-jupiter -->
     <dependency>
       <groupId>org.testcontainers</groupId>
