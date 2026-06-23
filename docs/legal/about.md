@@ -13,4 +13,4 @@ messages and image sharing — a 2026 ground-up rewrite of a 2024 portfolio proj
 showcase a production-grade, real-time application end to end.
 
 ## İletişim · Contact
-ilhan.kazan23@gmail.com
+ilhan.kazan3664@gmail.com

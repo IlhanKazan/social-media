@@ -9,9 +9,9 @@ export function PrivacyPage() {
 
       <LegalSection title="Veri sorumlusu">
         <p>
-          Bu metin, SocialHan demo uygulamasını yürüten geliştirici (bundan sonra "biz") tarafından,
-          6698 sayılı KVKK ve GDPR ilkeleri doğrultusunda hazırlanmıştır. İletişim:{' '}
-          <a className="text-primary hover:underline" href="mailto:ilhan.kazan23@gmail.com">ilhan.kazan23@gmail.com</a>.
+          Bu metin, SocialHan'ı yürüten geliştirici tarafından 6698 sayılı KVKK ve GDPR ilkeleri
+          doğrultusunda hazırlanmıştır. İletişim:{' '}
+          <a className="text-primary hover:underline" href="mailto:ilhan.kazan3664@gmail.com">ilhan.kazan3664@gmail.com</a>.
         </p>
       </LegalSection>
 
