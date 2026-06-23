@@ -43,6 +43,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt)) {
                 Claims claims = jwtTokenProvider.validateToken(jwt);
+
+                // A purpose-scoped MFA challenge token must never authenticate an API request.
+                if ("mfa".equals(claims.get("purpose", String.class))) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 String username = claims.getSubject();
                 Long accountId = claims.get("accountId", Long.class);
 

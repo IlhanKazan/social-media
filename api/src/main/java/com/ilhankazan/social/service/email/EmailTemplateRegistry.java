@@ -46,6 +46,14 @@ public class EmailTemplateRegistry {
                 "<p style=\"" + P + "\">{{message}}</p>",
                 null, null
             );
+            case "MFA_CODE" -> layout(
+                "Your " + app + " verification code.",
+                "Your verification code",
+                "<p style=\"" + P + "\">Use this code to finish signing in. It expires in {{minutes}} minutes.</p>"
+                    + "<p style=\"font:600 32px/1.2 -apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:6px;margin:24px 0;text-align:center\">{{code}}</p>"
+                    + "<p style=\"" + P_MUTED + "\">If you didn't try to sign in, change your password — someone may know it.</p>",
+                null, null
+            );
             default -> layout(app, app, "<p style=\"" + P + "\">{{message}}</p>", null, null);
         };
         return applyParams(html, params);
@@ -58,6 +66,7 @@ public class EmailTemplateRegistry {
             case "PASSWORD_RESET" -> "Reset your " + app + " password\n\nWe received a request to reset your password. Open this link to choose a new one (expires in 30 minutes):\n{{resetLink}}\n\nIf you didn't request this, ignore this email — your password won't change.";
             case "EMAIL_VERIFICATION" -> "Verify your " + app + " email\n\nConfirm your email address:\n{{verifyLink}}";
             case "ADMIN_ALERT" -> "{{title}}\n\n{{message}}";
+            case "MFA_CODE" -> "Your " + app + " verification code: {{code}}\n\nIt expires in {{minutes}} minutes. If you didn't try to sign in, change your password.";
             default -> "{{message}}";
         };
         return applyParams(text, params);

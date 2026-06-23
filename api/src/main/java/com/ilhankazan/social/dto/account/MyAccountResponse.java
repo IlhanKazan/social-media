@@ -13,5 +13,6 @@ public record MyAccountResponse(
     String coverImageUrl,
     String role,
     boolean emailVerified,
+    boolean mfaEmailEnabled,
     Instant joinedAt
 ) {}

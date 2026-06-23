@@ -45,9 +45,33 @@ public class AuthController {
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     @PostMapping("/login")
     @RateLimit(capacity = 5, minutes = 1)
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         String userAgent = httpRequest.getHeader("User-Agent");
-        return tokenResponse(HttpStatus.OK, authManager.login(request, clientIp(httpRequest), userAgent));
+        LoginResult result = authManager.login(request, clientIp(httpRequest), userAgent);
+        if (result.mfaRequired()) {
+            return ResponseEntity.ok(LoginResponse.mfaRequired(result.mfaToken(), result.methods()));
+        }
+        return authenticatedResponse(HttpStatus.OK, result.auth());
+    }
+
+    @Operation(summary = "Verify MFA", description = "Completes a login that requires a second factor and issues tokens.")
+    @ApiResponse(responseCode = "200", description = "Second factor accepted")
+    @ApiResponse(responseCode = "401", description = "Invalid or expired code/session")
+    @PostMapping("/mfa/verify")
+    @RateLimit(capacity = 10, minutes = 5)
+    public ResponseEntity<LoginResponse> verifyMfa(@Valid @RequestBody MfaVerifyRequest request, HttpServletRequest httpRequest) {
+        String userAgent = httpRequest.getHeader("User-Agent");
+        AuthResponse auth = authManager.verifyMfa(request.mfaToken(), request.method(), request.code(), clientIp(httpRequest), userAgent);
+        return authenticatedResponse(HttpStatus.OK, auth);
+    }
+
+    @Operation(summary = "Resend MFA email code", description = "Re-sends the email one-time code for an in-progress MFA login.")
+    @ApiResponse(responseCode = "204", description = "Code re-sent if the session is valid")
+    @PostMapping("/mfa/resend")
+    @RateLimit(capacity = 3, minutes = 5)
+    public ResponseEntity<Void> resendMfa(@Valid @RequestBody MfaResendRequest request) {
+        authManager.resendMfaCode(request.mfaToken());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Refresh tokens", description = "Rotates the refresh token (read from the HttpOnly cookie) and issues a new access token. Invalidates the old refresh token.")
@@ -124,6 +148,13 @@ public class AuthController {
         return ResponseEntity.status(status)
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(withoutRefreshToken(resp));
+    }
+
+    private ResponseEntity<LoginResponse> authenticatedResponse(HttpStatus status, AuthResponse resp) {
+        ResponseCookie cookie = authCookieFactory.build(resp.refreshToken());
+        return ResponseEntity.status(status)
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(LoginResponse.authenticated(resp));
     }
 
     private AuthResponse withoutRefreshToken(AuthResponse resp) {
