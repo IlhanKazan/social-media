@@ -49,13 +49,16 @@ public class AccountService {
 
     @CacheEvict(value = "accountsByUsername", key = "#username")
     @Transactional
-    public Account updateProfile(String username, String displayName, String bio) {
+    public Account updateProfile(String username, String displayName, String bio, Integer coverPosition) {
         Account account = getAccount(username);
         if (displayName != null) {
             account.setDisplayName(displayName);
         }
         if (bio != null) {
             account.setBio(bio);
+        }
+        if (coverPosition != null) {
+            account.setCoverPosition(coverPosition);
         }
         return accountRepository.save(account);
     }
@@ -81,6 +84,25 @@ public class AccountService {
         Account account = getAccount(username);
         String imageUrl = storageService.uploadFile(file, "covers");
         account.setCoverImageUrl(imageUrl);
+        return accountRepository.save(account);
+    }
+
+    @CacheEvict(value = "accountsByUsername", key = "#username")
+    @Transactional
+    public Account deleteAvatar(String username) {
+        Account account = getAccount(username);
+        storageService.deleteFileByUrl(account.getProfileImageUrl());
+        account.setProfileImageUrl(null);
+        return accountRepository.save(account);
+    }
+
+    @CacheEvict(value = "accountsByUsername", key = "#username")
+    @Transactional
+    public Account deleteCover(String username) {
+        Account account = getAccount(username);
+        storageService.deleteFileByUrl(account.getCoverImageUrl());
+        account.setCoverImageUrl(null);
+        account.setCoverPosition(50);
         return accountRepository.save(account);
     }
 

@@ -71,6 +71,20 @@ public class AccountController {
         return ResponseEntity.ok(accountManager.updateCover(file));
     }
 
+    @Operation(summary = "Remove avatar", description = "Removes the user's profile image.")
+    @ApiResponse(responseCode = "200", description = "Avatar successfully removed")
+    @DeleteMapping("/me/avatar")
+    public ResponseEntity<MyAccountResponse> deleteAvatar() {
+        return ResponseEntity.ok(accountManager.deleteAvatar());
+    }
+
+    @Operation(summary = "Remove cover image", description = "Removes the user's cover image and resets its position.")
+    @ApiResponse(responseCode = "200", description = "Cover image successfully removed")
+    @DeleteMapping("/me/cover")
+    public ResponseEntity<MyAccountResponse> deleteCover() {
+        return ResponseEntity.ok(accountManager.deleteCover());
+    }
+
     @Operation(summary = "Delete account", description = "Soft deletes the current user's account and cascades to posts/interactions.")
     @ApiResponse(responseCode = "204", description = "Account successfully deleted")
     @DeleteMapping("/me")

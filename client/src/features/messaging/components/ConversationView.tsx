@@ -69,6 +69,7 @@ export function ConversationView() {
         profileImageUrl: account!.profileImageUrl ?? undefined,
         bio: undefined,
         coverImageUrl: undefined,
+        coverPosition: 50,
         emailVerified: false,
         followerCount: 0,
         followingCount: 0,

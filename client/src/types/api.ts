@@ -42,6 +42,7 @@ export interface MyAccountResponse {
   bio?: string;
   profileImageUrl?: string;
   coverImageUrl?: string;
+  coverPosition: number;
   role: string;
   emailVerified: boolean;
   joinedAt: string;
@@ -54,6 +55,7 @@ export interface PublicAccountResponse {
   bio?: string;
   profileImageUrl?: string;
   coverImageUrl?: string;
+  coverPosition: number;
   followerCount: number;
   followingCount: number;
   isFollowing: boolean;
@@ -64,6 +66,7 @@ export interface PublicAccountResponse {
 export interface UpdateProfileRequest {
   displayName?: string;
   bio?: string;
+  coverPosition?: number;
 }
 
 // ─── Post ─────────────────────────────────────────────────────────────────────

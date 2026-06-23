@@ -85,7 +85,12 @@ export function ProfilePage() {
     <div className="flex flex-col min-h-screen">
       <div className="h-32 sm:h-48 w-full bg-zinc-200 dark:bg-zinc-800 relative">
         {profile.coverImageUrl && (
-          <img src={profile.coverImageUrl} alt="Cover" className="w-full h-full object-cover" />
+          <img
+            src={profile.coverImageUrl}
+            alt="Cover"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: `50% ${profile.coverPosition}%` }}
+          />
         )}
 
         {isOwnProfile && (
