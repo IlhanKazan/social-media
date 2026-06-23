@@ -20,25 +20,25 @@ export function AuthLayout() {
         <div className="relative flex h-full flex-col justify-end p-16 text-white">
           <div className="max-w-md space-y-6">
             <div className="inline-flex rounded-full bg-zinc-800/50 px-4 py-1.5 text-sm font-medium text-zinc-300 backdrop-blur-sm border border-zinc-700/50">
-              Versiyon 2026 Rebirth
+              Gerçek zamanlı sosyal ağ
             </div>
             <h2 className="text-5xl font-bold leading-tight tracking-tighter">
               Düşüncelerini anında dünyayla paylaş.
             </h2>
             <p className="text-xl text-zinc-400 font-light leading-relaxed">
-              Modern mimari, sıfır gecikme ve gerçek zamanlı etkileşim.
-              Eski projeni unutan, geleceğin sosyal ağını bugün deneyimle.
+              Gönderiler, konu zincirleri ve direkt mesajlar; hepsi anlık.
+              Sade, hızlı ve modern bir sosyal deneyim.
             </p>
           </div>
-          <div className="mt-12 flex items-center gap-4 text-zinc-500 border-t border-zinc-800 pt-8">
-            <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-10 w-10 rounded-full border-2 border-zinc-950 bg-zinc-800 flex items-center justify-center text-xs">
-                  U{i}
-                </div>
-              ))}
-            </div>
-            <span className="text-sm italic">Binlerce geliştirici tarafından test edildi.</span>
+          <div className="mt-12 flex flex-wrap gap-2 border-t border-zinc-800 pt-8">
+            {['Gerçek zamanlı akış', 'Direkt mesajlar', 'Konu zincirleri'].map((feature) => (
+              <span
+                key={feature}
+                className="rounded-full border border-zinc-700/50 bg-zinc-800/40 px-3 py-1 text-sm text-zinc-400"
+              >
+                {feature}
+              </span>
+            ))}
           </div>
         </div>
       </div>

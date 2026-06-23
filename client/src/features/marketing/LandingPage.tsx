@@ -28,14 +28,14 @@ export function LandingPage() {
         <section className="mx-auto max-w-5xl px-6 pb-16 pt-12 sm:pt-20">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-6 inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-4 py-1.5 text-sm font-medium text-muted-foreground dark:border-zinc-800 dark:bg-zinc-900">
-              Versiyon 2026 Rebirth
+              Gerçek zamanlı sosyal ağ
             </div>
             <h1 className="text-4xl font-bold leading-tight tracking-tighter text-foreground sm:text-6xl">
               Düşüncelerini anında dünyayla paylaş.
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg font-light leading-relaxed text-muted-foreground">
-              Modern mimari, sıfır gecikme ve gerçek zamanlı etkileşim.
-              Geleceğin sosyal ağını bugün deneyimle.
+              Gönderiler, konu zincirleri ve direkt mesajlar; hepsi anlık.
+              Sade, hızlı ve modern bir sosyal deneyim.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button className="h-12 w-full gap-2 px-8 text-base sm:w-auto" render={<Link to="/register" />}>
