@@ -5,7 +5,8 @@ const origin = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 export const api = axios.create({
   baseURL: `${origin}/api/v1`,
-  timeout: 10000,
+  // Render free tier cold starts can take 30-60s; a short timeout aborts those requests.
+  timeout: 30000,
   withCredentials: true,
 });
 
