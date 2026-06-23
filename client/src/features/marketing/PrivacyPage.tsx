@@ -50,8 +50,9 @@ export function PrivacyPage() {
         </p>
         <LegalList
           items={[
-            'Render — uygulama barındırma.',
+            'Render — uygulama (API) barındırma.',
             'Supabase — PostgreSQL veritabanı barındırma.',
+            'Netlify — ön yüz (web arayüzü) barındırma ve içerik dağıtım ağı (CDN).',
             'Cloudinary — görsel depolama ve sunumu.',
             'Resend — işlemsel e-posta gönderimi (ör. şifre sıfırlama).',
             'OpenAI — gönderi içeriğinin otomatik moderasyonu.',
@@ -96,7 +97,7 @@ export function PrivacyPage() {
         <p>
           SocialHan is a portfolio/demo project. We process account data (username, email, hashed
           password), profile data, content, direct messages with images, and technical logs (IP for
-          security/audit). Processors are US-based (Render, Supabase, Cloudinary, Resend, OpenAI), so
+          security/audit). Processors are US-based (Render, Supabase, Netlify, Cloudinary, Resend, OpenAI), so
           data is transferred abroad. Sending post content to OpenAI for moderation, cross-border
           transfer, and any marketing email require your explicit consent, collected at registration.
           On account deletion, content is soft-deleted then permanently removed after 30 days,
