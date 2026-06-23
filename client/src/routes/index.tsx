@@ -9,6 +9,7 @@ import { AdminRoute } from '@/routes/AdminRoute';
 // Auth pages — small, load eagerly (needed before JS hydration completes)
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
+import { MfaChallengePage } from '@/features/auth/MfaChallengePage';
 
 // Everything else — lazy loaded per route
 const FeedPage = lazy(() => import('@/features/feed/FeedPage').then(m => ({ default: m.FeedPage })));
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
+      { path: '/mfa', element: <MfaChallengePage /> },
       { path: 'forgot-password', element: withSuspense(<ForgotPasswordPage />) },
       { path: 'reset-password', element: withSuspense(<ResetPasswordPage />) },
       { path: 'verify-email', element: withSuspense(<VerifyEmailPage />) },

@@ -16,6 +16,7 @@ import { useChangePassword } from './hooks/use-settings';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { MfaSection } from './components/MfaSection';
 import {
   Dialog,
   DialogContent,
@@ -207,6 +208,16 @@ export function SettingsPage() {
               </Button>
             </div>
           </form>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold">Güvenlik</h3>
+            <p className="text-sm text-muted-foreground">Hesabına ikinci bir doğrulama katmanı ekle.</p>
+          </div>
+          <MfaSection enabled={account?.mfaEmailEnabled ?? false} />
         </section>
 
         <Separator />
