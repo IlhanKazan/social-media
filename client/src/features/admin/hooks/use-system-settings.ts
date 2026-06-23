@@ -7,6 +7,7 @@ export type SystemSettings = {
   verified_only_posting: boolean;
   moderation_enabled: boolean;
   bot_enabled: boolean;
+  read_only_mode: boolean;
   [key: string]: boolean;
 };
 

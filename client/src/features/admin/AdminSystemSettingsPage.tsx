@@ -1,4 +1,4 @@
-import { Loader2, ShieldAlert, UserPlus, FileText, Bot } from 'lucide-react';
+import { Loader2, ShieldAlert, UserPlus, FileText, Bot, Lock } from 'lucide-react';
 import { useSystemSettings, useUpdateSystemSetting } from './hooks/use-system-settings';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -51,6 +51,12 @@ export function AdminSystemSettingsPage() {
       title: 'Bot Sistemi',
       description: 'Yapay zeka bot hesaplarının otomatik gönderi paylaşmasını etkinleştirin.',
       icon: Bot,
+    },
+    {
+      key: 'read_only_mode',
+      title: 'Bakım Modu (Salt Okunur)',
+      description: 'Aktif edildiğinde kullanıcılar yazma işlemi yapamaz (gönderi, mesaj vb.); okuma açık kalır.',
+      icon: Lock,
     },
   ];
 

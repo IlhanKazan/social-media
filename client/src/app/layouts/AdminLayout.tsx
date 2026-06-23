@@ -1,6 +1,6 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
-import { LayoutDashboard, Settings, Users, ShieldAlert, LogOut, ArrowLeft, Activity, Filter } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, ShieldAlert, LogOut, ArrowLeft, Activity, Filter, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -14,6 +14,7 @@ export function AdminLayout() {
     { name: 'Raporlar', to: '/admin/reports', icon: ShieldAlert, end: false },
     { name: 'Kullanıcılar', to: '/admin/users', icon: Users, end: false },
     { name: 'Sistem Ayarları', to: '/admin/settings', icon: Settings, end: false },
+    { name: 'Bakım', to: '/admin/maintenance', icon: Wrench, end: false },
     { name: 'Audit Log', to: '/admin/audit-log', icon: Activity, end: false },
   ];
 

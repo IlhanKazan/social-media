@@ -1,6 +1,7 @@
 package com.ilhankazan.social.config;
 
 import com.ilhankazan.social.security.JwtAuthenticationFilter;
+import com.ilhankazan.social.security.ReadOnlyModeFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ReadOnlyModeFilter readOnlyModeFilter;
     private final AppProperties.CorsProperties corsProps;
 
     @Bean
@@ -55,6 +57,7 @@ public class SecurityConfig {
                 // SockJS handshake is permitAll here; STOMP-level auth is enforced by WebSocketAuthInterceptor
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 // Public read endpoints (anonymous viewing). Personalised/owner GETs
                 // stay authed and are listed FIRST so they win the match.
@@ -73,7 +76,8 @@ public class SecurityConfig {
                     "/api/v1/search/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(readOnlyModeFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
