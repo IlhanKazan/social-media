@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentType } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { RequireAuth } from './RequireAuth';
 import { RootIndex } from './RootIndex';
@@ -11,33 +11,53 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { MfaChallengePage } from '@/features/auth/MfaChallengePage';
 
+// Lazy import that survives deploys: if a chunk 404s (filename changed by a new build),
+// force one full reload to pull the fresh index.html + assets instead of crashing.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function lazyWithReload<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      const mod = await factory();
+      sessionStorage.removeItem('chunkReloaded');
+      return mod;
+    } catch (err) {
+      if (!sessionStorage.getItem('chunkReloaded')) {
+        sessionStorage.setItem('chunkReloaded', '1');
+        window.location.reload();
+        return await new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    }
+  });
+}
+
 // Everything else — lazy loaded per route
-const FeedPage = lazy(() => import('@/features/feed/FeedPage').then(m => ({ default: m.FeedPage })));
-const ProfilePage = lazy(() => import('@/features/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
-const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
-const MessagingPage = lazy(() => import('@/features/messaging/MessagingPage').then(m => ({ default: m.MessagingPage })));
-const PostDetailPage = lazy(() => import('@/features/post/PostDetailPage').then(m => ({ default: m.PostDetailPage })));
-const SearchPage = lazy(() => import('@/features/search/SearchPage').then(m => ({ default: m.SearchPage })));
-const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const ForgotPasswordPage = lazy(() => import('@/features/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
-const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
-const VerifyEmailPage = lazy(() => import('@/features/auth/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
+const FeedPage = lazyWithReload(() => import('@/features/feed/FeedPage').then(m => ({ default: m.FeedPage })));
+const ProfilePage = lazyWithReload(() => import('@/features/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const NotificationsPage = lazyWithReload(() => import('@/features/notifications/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const MessagingPage = lazyWithReload(() => import('@/features/messaging/MessagingPage').then(m => ({ default: m.MessagingPage })));
+const PostDetailPage = lazyWithReload(() => import('@/features/post/PostDetailPage').then(m => ({ default: m.PostDetailPage })));
+const SearchPage = lazyWithReload(() => import('@/features/search/SearchPage').then(m => ({ default: m.SearchPage })));
+const SettingsPage = lazyWithReload(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const ForgotPasswordPage = lazyWithReload(() => import('@/features/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazyWithReload(() => import('@/features/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
+const VerifyEmailPage = lazyWithReload(() => import('@/features/auth/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
 
 // Legal / marketing — separate chunk
-const LegalLayout = lazy(() => import('@/features/marketing/LegalLayout').then(m => ({ default: m.LegalLayout })));
-const AboutPage = lazy(() => import('@/features/marketing/AboutPage').then(m => ({ default: m.AboutPage })));
-const PrivacyPage = lazy(() => import('@/features/marketing/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
-const TermsPage = lazy(() => import('@/features/marketing/TermsPage').then(m => ({ default: m.TermsPage })));
+const LegalLayout = lazyWithReload(() => import('@/features/marketing/LegalLayout').then(m => ({ default: m.LegalLayout })));
+const AboutPage = lazyWithReload(() => import('@/features/marketing/AboutPage').then(m => ({ default: m.AboutPage })));
+const PrivacyPage = lazyWithReload(() => import('@/features/marketing/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazyWithReload(() => import('@/features/marketing/TermsPage').then(m => ({ default: m.TermsPage })));
 
 // Admin panel — separate chunk, never loaded for regular users
-const AdminLayout = lazy(() => import('@/app/layouts/AdminLayout').then(m => ({ default: m.AdminLayout })));
-const AdminDashboardPage = lazy(() => import('@/features/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
-const AdminModerationPage = lazy(() => import('@/features/admin/AdminModerationPage').then(m => ({ default: m.AdminModerationPage })));
-const AdminReportsPage = lazy(() => import('@/features/admin/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
-const AdminUsersPage = lazy(() => import('@/features/admin/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
-const AdminSystemSettingsPage = lazy(() => import('@/features/admin/AdminSystemSettingsPage').then(m => ({ default: m.AdminSystemSettingsPage })));
-const AdminMaintenancePage = lazy(() => import('@/features/admin/AdminMaintenancePage').then(m => ({ default: m.AdminMaintenancePage })));
-const AdminAuditLogPage = lazy(() => import('@/features/admin/AdminAuditLogPage').then(m => ({ default: m.AdminAuditLogPage })));
+const AdminLayout = lazyWithReload(() => import('@/app/layouts/AdminLayout').then(m => ({ default: m.AdminLayout })));
+const AdminDashboardPage = lazyWithReload(() => import('@/features/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const AdminModerationPage = lazyWithReload(() => import('@/features/admin/AdminModerationPage').then(m => ({ default: m.AdminModerationPage })));
+const AdminReportsPage = lazyWithReload(() => import('@/features/admin/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
+const AdminUsersPage = lazyWithReload(() => import('@/features/admin/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
+const AdminSystemSettingsPage = lazyWithReload(() => import('@/features/admin/AdminSystemSettingsPage').then(m => ({ default: m.AdminSystemSettingsPage })));
+const AdminMaintenancePage = lazyWithReload(() => import('@/features/admin/AdminMaintenancePage').then(m => ({ default: m.AdminMaintenancePage })));
+const AdminAuditLogPage = lazyWithReload(() => import('@/features/admin/AdminAuditLogPage').then(m => ({ default: m.AdminAuditLogPage })));
 
 const PageLoader = () => (
   <div className="flex h-screen items-center justify-center">
