@@ -7,7 +7,7 @@
 > hukuki tavsiye niteliği taşımaz.
 
 ## Veri sorumlusu
-SocialHan demo uygulamasını yürüten geliştirici. İletişim: ilhan.kazan23@gmail.com
+SocialHan demo uygulamasını yürüten geliştirici. İletişim: ilhan.kazan3664@gmail.com
 
 ## İşlenen veriler
 - Hesap: kullanıcı adı, e-posta, şifre (yalnızca BCrypt hash).
@@ -40,7 +40,7 @@ denetim kayıtları anonimleştirilerek bir süre tutulabilir.
 
 ## Haklarınız (KVKK m.11 / GDPR)
 Erişim, düzeltme, silme ve işlemeye itiraz. Hesap, uygulama içi Ayarlar > Hesabımı Sil
-ile doğrudan silinebilir; talep ve şikayetler için: ilhan.kazan23@gmail.com
+ile doğrudan silinebilir; talep ve şikayetler için: ilhan.kazan3664@gmail.com
 
 ## Çerezler ve güvenlik
 Yalnızca işlevsel çerez: oturum için HttpOnly yenileme tokenı. Reklam/takip çerezi yok.

@@ -30,7 +30,7 @@ export function AboutPage() {
 
       <LegalSection title="İletişim · Contact">
         <p>
-          Sorular ve talepler için: <a className="text-primary hover:underline" href="mailto:ilhan.kazan23@gmail.com">ilhan.kazan23@gmail.com</a>
+          Sorular ve talepler için: <a className="text-primary hover:underline" href="mailto:ilhan.kazan3664@gmail.com">ilhan.kazan3664@gmail.com</a>
         </p>
       </LegalSection>
     </article>
