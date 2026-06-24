@@ -7,6 +7,12 @@ import { useNotificationStore } from "@/stores/notification-store.ts";
 const authUrl = (path: string) =>
   `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/api/v1/auth${path}`;
 
+// Single-flight: the refresh token is single-use and rotated server-side, so two
+// concurrent /refresh calls with the same cookie trip reuse-detection and kill the
+// whole session. Every caller (interceptor, route guard, StrictMode double-invoke)
+// shares this one in-flight promise.
+let refreshInFlight: Promise<boolean> | null = null;
+
 interface AuthState {
   token: string | null;
   account: AccountSummary | null;
@@ -44,20 +50,28 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('auth-storage');
         window.location.href = '/login';
       },
-      tryRefresh: async () => {
-        try {
-          const { data } = await axios.post<AuthResponse>(
-            authUrl('/refresh'),
-            null,
-            { withCredentials: true }
-          );
-          set({ token: data.accessToken, account: data.account });
-          return true;
-        } catch {
-          set({ token: null, account: null });
-          localStorage.removeItem('auth-storage');
-          return false;
-        }
+      tryRefresh: () => {
+        if (refreshInFlight) return refreshInFlight;
+
+        refreshInFlight = (async () => {
+          try {
+            const { data } = await axios.post<AuthResponse>(
+              authUrl('/refresh'),
+              null,
+              { withCredentials: true }
+            );
+            set({ token: data.accessToken, account: data.account });
+            return true;
+          } catch {
+            set({ token: null, account: null });
+            localStorage.removeItem('auth-storage');
+            return false;
+          }
+        })().finally(() => {
+          refreshInFlight = null;
+        });
+
+        return refreshInFlight;
       },
     }),
     {
