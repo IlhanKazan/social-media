@@ -1,14 +1,14 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 
 export function AuthLayout() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="flex flex-col justify-center bg-background px-8 py-12 sm:px-12 lg:px-20 xl:px-32">
         <div className="mx-auto w-full max-w-sm">
-          <div className="mb-12 flex items-center gap-3 font-bold text-2xl tracking-tight text-foreground">
+          <Link to="/" className="mb-12 inline-flex items-center gap-3 font-bold text-2xl tracking-tight text-foreground transition-opacity hover:opacity-80">
             <img src="/logo.svg" alt="SocialHan" className="h-10 w-10 rounded-xl shadow-lg shadow-primary/20" />
             SocialHan
-          </div>
+          </Link>
           <Outlet />
         </div>
       </div>

@@ -18,8 +18,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-let refreshPromise: Promise<boolean> | null = null;
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -32,13 +30,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
-      if (!refreshPromise) {
-        refreshPromise = useAuthStore.getState().tryRefresh().finally(() => {
-          refreshPromise = null;
-        });
-      }
-
-      const refreshed = await refreshPromise;
+      // tryRefresh is single-flight; concurrent 401s share one rotation.
+      const refreshed = await useAuthStore.getState().tryRefresh();
 
       if (refreshed) {
         const newToken = useAuthStore.getState().token;
