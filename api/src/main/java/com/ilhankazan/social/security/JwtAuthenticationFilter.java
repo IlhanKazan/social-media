@@ -4,6 +4,7 @@ import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,6 +75,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (JwtException ex) {
+            // Expired/invalid access tokens are normal: the request falls through unauthenticated
+            // (401 downstream) and the client refreshes. Not an error, and not worth a stack trace.
+            logger.debug("Rejected JWT: " + ex.getMessage());
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);
         }
