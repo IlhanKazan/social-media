@@ -16,10 +16,10 @@ HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1
 ENTRYPOINT ["java", \
   "-XX:+UseSerialGC", \
-  "-Xmx192m", "-Xms64m", \
-  "-XX:MaxMetaspaceSize=128m", \
-  "-XX:ReservedCodeCacheSize=64m", \
-  "-XX:MaxDirectMemorySize=48m", \
+  "-Xmx160m", "-Xms64m", \
+  "-XX:MaxMetaspaceSize=192m", \
+  "-XX:ReservedCodeCacheSize=48m", \
+  "-XX:MaxDirectMemorySize=32m", \
   "-Xss512k", \
   "-XX:+ExitOnOutOfMemoryError", \
   "-jar", "app.jar"]
