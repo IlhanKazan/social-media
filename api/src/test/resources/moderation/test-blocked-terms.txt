@@ -1,0 +1,3 @@
+# benign fixtures for RegexPreFilterTest — deliberately not the production list
+spam
+scam
