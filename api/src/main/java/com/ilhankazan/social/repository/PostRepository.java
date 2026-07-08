@@ -19,22 +19,22 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(value = "SELECT p.* FROM posts p WHERE (p.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR p.account_id = :userId) " +
-        "AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'",
+        "AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND " + PostVisibility.PUBLIC_SQL,
         countQuery = "SELECT count(*) FROM posts p WHERE (p.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR p.account_id = :userId) " +
-            "AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'",
+            "AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND " + PostVisibility.PUBLIC_SQL,
         nativeQuery = true)
     Page<Post> findFollowingFeed(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.parentPost.id = :parentPostId AND p.deletedAt IS NULL " +
-        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' ORDER BY p.createdAt ASC")
+        "AND " + PostVisibility.PUBLIC_JPQL + " ORDER BY p.createdAt ASC")
     Page<Post> findReplies(@Param("parentPostId") Long parentPostId, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.parentPost IS NULL AND p.deletedAt IS NULL " +
-        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' ORDER BY p.createdAt DESC")
+        "AND " + PostVisibility.PUBLIC_JPQL + " ORDER BY p.createdAt DESC")
     Page<Post> findAllTopLevelPosts(Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.parentPost IS NULL AND p.deletedAt IS NULL " +
-        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' " +
+        "AND " + PostVisibility.PUBLIC_JPQL + " " +
         "AND p.account.role.name != 'ROLE_BOT' ORDER BY p.createdAt DESC")
     Page<Post> findTopLevelPostsByHumans(Pageable pageable);
 
@@ -48,7 +48,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     }
 
     @Query("SELECT p.parentPost.id AS postId, COUNT(p) AS count FROM Post p WHERE p.parentPost.id IN :postIds AND p.deletedAt IS NULL " +
-        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' GROUP BY p.parentPost.id")
+        "AND " + PostVisibility.PUBLIC_JPQL + " GROUP BY p.parentPost.id")
     List<PostCountRow> countRepliesForPosts(@Param("postIds") List<Long> postIds);
 
     @Modifying
@@ -56,20 +56,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void softDeleteRepliesByParentId(@Param("parentPostId") Long parentPostId);
 
     @Query("SELECT p FROM Post p WHERE LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%')) AND p.deletedAt IS NULL " +
-        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' ORDER BY p.createdAt DESC")
+        "AND " + PostVisibility.PUBLIC_JPQL + " ORDER BY p.createdAt DESC")
     Page<Post> searchPosts(@Param("query") String query, Pageable pageable);
 
     @Query("SELECT p FROM Post p JOIN Interaction i ON i.post = p " +
         "LEFT JOIN p.parentPost parent " +
         "WHERE i.account.id = :accountId AND i.type = com.ilhankazan.social.entity.InteractionType.LIKE " +
         "AND p.deletedAt IS NULL AND i.deletedAt IS NULL " +
-        "AND (p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' OR p.account.id = :currentUserId) " +
-        "AND (parent IS NULL OR (parent.deletedAt IS NULL AND parent.adminStatus = 'ACTIVE' AND (parent.moderationStatus IN ('PENDING', 'CLEAN') OR parent.account.id = :currentUserId))) " +
+        "AND (" + PostVisibility.OWNER_LENIENT_JPQL + ") " +
+        "AND (parent IS NULL OR (parent.deletedAt IS NULL AND " + PostVisibility.OWNER_PARENT_JPQL + ")) " +
         "ORDER BY i.createdAt DESC")
     Page<Post> findLikedPostsByAccountId(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.quotedPost.id = :quotedPostId AND p.deletedAt IS NULL " +
-        "AND p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE' ORDER BY p.createdAt DESC")
+        "AND " + PostVisibility.PUBLIC_JPQL + " ORDER BY p.createdAt DESC")
     Page<Post> findQuotes(@Param("quotedPostId") Long quotedPostId, Pageable pageable);
 
     @Query(value = """
@@ -78,21 +78,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             FROM posts p
             WHERE (p.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR p.account_id = :userId)
               AND p.parent_post_id IS NULL AND p.deleted_at IS NULL
-              AND p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'
+              AND """ + " " + PostVisibility.PUBLIC_SQL + """
             UNION ALL
             SELECT r.post_id AS "postId", CAST('REPOST' AS VARCHAR) AS "type", r.created_at AS "actionAt", r.account_id AS "actorId"
             FROM reposts r
             JOIN posts p ON r.post_id = p.id
             WHERE (r.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR r.account_id = :userId)
               AND r.deleted_at IS NULL
-              AND p.deleted_at IS NULL AND p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'
+              AND p.deleted_at IS NULL AND """ + " " + PostVisibility.PUBLIC_SQL + """
         ) AS combined_feed
         ORDER BY "actionAt" DESC
     """, countQuery = """
         SELECT COUNT(*) FROM (
-            SELECT p.id FROM posts p WHERE (p.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR p.account_id = :userId) AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'
+            SELECT p.id FROM posts p WHERE (p.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR p.account_id = :userId) AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND """ + " " + PostVisibility.PUBLIC_SQL + """
             UNION ALL
-            SELECT r.post_id FROM reposts r JOIN posts p ON r.post_id = p.id WHERE (r.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR r.account_id = :userId) AND r.deleted_at IS NULL AND p.deleted_at IS NULL AND p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'
+            SELECT r.post_id FROM reposts r JOIN posts p ON r.post_id = p.id WHERE (r.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR r.account_id = :userId) AND r.deleted_at IS NULL AND p.deleted_at IS NULL AND """ + " " + PostVisibility.PUBLIC_SQL + """
         ) AS count_feed
     """, nativeQuery = true)
     Page<FeedItemProjection> getFollowingFeedUnion(@Param("userId") Long userId, Pageable pageable);
@@ -103,14 +103,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findPendingPostsOlderThan(@Param("cutoff") Instant cutoff, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.account.id = :accountId AND p.parentPost IS NULL " +
-        "AND p.deletedAt IS NULL AND p.adminStatus = 'ACTIVE' " +
-        "AND (p.moderationStatus IN ('PENDING', 'CLEAN') OR p.account.id = :currentUserId)")
+        "AND p.deletedAt IS NULL AND " + PostVisibility.OWNER_JPQL)
     Page<Post> findByAccountIdAndParentPostIsNull(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
 
     @Query("SELECT p FROM Post p JOIN p.parentPost parent " +
         "WHERE p.account.id = :accountId AND p.deletedAt IS NULL AND parent.deletedAt IS NULL " +
-        "AND ( (p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE') OR p.account.id = :currentUserId ) " +
-        "AND ( (parent.moderationStatus IN ('PENDING', 'CLEAN') AND parent.adminStatus = 'ACTIVE') OR parent.account.id = :currentUserId ) " +
+        "AND ( " + PostVisibility.OWNER_LENIENT_JPQL + " ) " +
+        "AND ( " + PostVisibility.OWNER_LENIENT_PARENT_JPQL + " ) " +
         "ORDER BY p.createdAt DESC")
     Page<Post> findRepliesByAccountId(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
 
@@ -119,20 +118,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             SELECT p.id AS "postId", CAST('POST' AS VARCHAR) AS "type", p.created_at AS "actionAt", p.account_id AS "actorId"
             FROM posts p
             WHERE p.account_id = :accountId AND p.parent_post_id IS NULL AND p.deleted_at IS NULL
-              AND p.admin_status = 'ACTIVE' AND (p.moderation_status IN ('PENDING', 'CLEAN') OR p.account_id = :currentUserId)
+              AND """ + " " + PostVisibility.OWNER_SQL + """
             UNION ALL
             SELECT r.post_id AS "postId", CAST('REPOST' AS VARCHAR) AS "type", r.created_at AS "actionAt", r.account_id AS "actorId"
             FROM reposts r
             JOIN posts p ON r.post_id = p.id
             WHERE r.account_id = :accountId AND r.deleted_at IS NULL
-              AND p.deleted_at IS NULL AND p.admin_status = 'ACTIVE' AND (p.moderation_status IN ('PENDING', 'CLEAN') OR p.account_id = :currentUserId)
+              AND p.deleted_at IS NULL AND """ + " " + PostVisibility.OWNER_SQL + """
         ) AS combined_feed
         ORDER BY "actionAt" DESC
     """, countQuery = """
         SELECT COUNT(*) FROM (
-            SELECT p.id FROM posts p WHERE p.account_id = :accountId AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND p.admin_status = 'ACTIVE' AND (p.moderation_status IN ('PENDING', 'CLEAN') OR p.account_id = :currentUserId)
+            SELECT p.id FROM posts p WHERE p.account_id = :accountId AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND """ + " " + PostVisibility.OWNER_SQL + """
             UNION ALL
-            SELECT r.post_id FROM reposts r JOIN posts p ON r.post_id = p.id WHERE r.account_id = :accountId AND r.deleted_at IS NULL AND p.deleted_at IS NULL AND p.admin_status = 'ACTIVE' AND (p.moderation_status IN ('PENDING', 'CLEAN') OR p.account_id = :currentUserId)
+            SELECT r.post_id FROM reposts r JOIN posts p ON r.post_id = p.id WHERE r.account_id = :accountId AND r.deleted_at IS NULL AND p.deleted_at IS NULL AND """ + " " + PostVisibility.OWNER_SQL + """
         ) AS count_feed
     """, nativeQuery = true)
     Page<FeedItemProjection> getProfileFeedUnion(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
