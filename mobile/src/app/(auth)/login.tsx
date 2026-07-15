@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput } from 'react-native';
 
 import { api } from '@/lib/api';
 import { loginSchema, type LoginFormValues } from '@/features/auth/login-schema';
@@ -27,7 +28,10 @@ export default function LoginScreen() {
     },
     onSuccess: async (data) => {
       if (data.status === 'MFA_REQUIRED') {
-        setServerError('This account has MFA enabled; the MFA screen lands in M3.');
+        router.push({
+          pathname: '/mfa',
+          params: { mfaToken: data.mfaToken, methods: (data.methods ?? []).join(',') },
+        });
         return;
       }
       await useAuthStore.getState().login(data as AuthResponse);
@@ -103,6 +107,17 @@ export default function LoginScreen() {
           {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
         </Text>
       </Pressable>
+
+      <Link href="/forgot-password" asChild>
+        <Pressable className="mt-5">
+          <Text className="text-center text-primary">Forgot password?</Text>
+        </Pressable>
+      </Link>
+      <Link href="/register" asChild>
+        <Pressable className="mt-3">
+          <Text className="text-center text-primary">No account? Sign up</Text>
+        </Pressable>
+      </Link>
     </KeyboardAvoidingView>
   );
 }
