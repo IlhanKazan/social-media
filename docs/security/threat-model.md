@@ -27,7 +27,7 @@ automated ZAP scan reports.
 
 | Asset | Protection |
 |-------|------------|
-| Passwords | BCrypt(10) hashes; never logged |
+| Passwords | BCrypt(12) hashes; never logged |
 | Access tokens (JWT) | Short-lived, signed (HS256, ≥32-byte secret, fail-fast in prod) |
 | Refresh tokens | `HttpOnly`+`Secure`+`SameSite` cookie; SHA-256 hashed at rest; rotated; family revoked on reuse |
 | User data (profiles, posts, DMs) | Authn required; ownership/participation enforced at the manager layer |
