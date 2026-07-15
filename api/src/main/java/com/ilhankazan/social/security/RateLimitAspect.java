@@ -34,13 +34,8 @@ public class RateLimitAspect {
         if (auth != null && auth.isAuthenticated() && !auth.getPrincipal().equals("anonymousUser")) {
             keyPrefix = "user:" + auth.getName();
         } else {
-            String ip = request.getHeader("X-Forwarded-For");
-            if (ip == null || ip.isEmpty()) {
-                ip = request.getRemoteAddr();
-            } else {
-                ip = ip.split(",")[0].trim();
-            }
-            keyPrefix = "ip:" + ip;
+            // X-Forwarded-For is client-controlled; forward-headers-strategy resolves the real IP into remoteAddr.
+            keyPrefix = "ip:" + request.getRemoteAddr();
         }
 
         String key = keyPrefix + "-" + joinPoint.getSignature().getName();

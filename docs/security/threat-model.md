@@ -42,7 +42,7 @@ automated ZAP scan reports.
 | **IDOR / broken access control** | Guessing another user's resource id | Manager-layer ownership checks via the authenticated principal; DM `verifyParticipant`; `/admin/**` requires `ROLE_ADMIN` |
 | **XSS** | Malicious post/bio/DM content | React escapes by default; no `dangerouslySetInnerHTML`; CSP restricts `script-src` to `'self'` |
 | **CSRF** | Forged state-changing request | Stateless JWT (no ambient session for normal calls); cookie-based refresh/logout additionally guarded by an Origin allowlist check |
-| **Credential stuffing / brute force** | Automated login/reset attempts | Bucket4j rate limits on auth + token endpoints (429); no user enumeration on password reset (always 204) |
+| **Credential stuffing / brute force** | Automated login/reset attempts | Bucket4j rate limits on auth + token endpoints (429), keyed by proxy-resolved `remoteAddr` (`X-Forwarded-For` is ignored, so the bucket cannot be reset by forging headers); in-memory per instance, so the limit does not aggregate across horizontally scaled instances; no user enumeration on password reset (always 204) |
 | **SQL injection** | Crafted input in queries | JPA/MapStruct parameterized queries only; no string-built SQL or dynamic `ORDER BY` |
 | **Mass assignment / privilege escalation** | Over-posting `role`/`id` fields | Explicit `record` request DTOs; no entity bound from request; prod Jackson rejects unknown properties |
 | **Secret leakage / misconfig** | Weak secrets, verbose errors, open CORS | Prod fail-fast on weak `JWT_SECRET`; error detail suppressed; Swagger disabled in prod; CORS allowlist; security headers (CSP/HSTS/etc.) |

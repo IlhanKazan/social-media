@@ -167,10 +167,7 @@ public class AuthController {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (StringUtils.hasText(forwarded)) {
-            return forwarded.split(",")[0].trim();
-        }
+        // X-Forwarded-For is client-controlled; forward-headers-strategy resolves the real IP into remoteAddr.
         return request.getRemoteAddr();
     }
 }

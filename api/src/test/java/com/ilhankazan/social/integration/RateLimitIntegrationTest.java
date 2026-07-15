@@ -14,8 +14,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RateLimitIntegrationTest extends BaseIntegrationTest {
@@ -25,17 +23,16 @@ class RateLimitIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void loginReturns429OnceCapacityIsExceeded() {
-        String ip = "198.51.100.10";
         LoginRequest credentials = new LoginRequest("ghost-login-user", "Password123!");
 
         for (int attempt = 1; attempt <= 5; attempt++) {
-            ResponseEntity<String> response = postLogin(credentials, ip);
+            ResponseEntity<String> response = postLogin(credentials, null);
             assertThat(response.getStatusCode())
                 .as("attempt %d should be allowed through (within capacity 5/min)", attempt)
                 .isNotEqualTo(HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        ResponseEntity<String> blocked = postLogin(credentials, ip);
+        ResponseEntity<String> blocked = postLogin(credentials, null);
         assertThat(blocked.getStatusCode())
             .as("6th login within the window must be rate limited")
             .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
@@ -46,46 +43,46 @@ class RateLimitIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void authenticatedRequestsAreKeyedByUserNotByIp() throws Exception {
-        String sharedIp = "192.0.2.50";
         String tokenA = registerAndGetToken("ratelimit-user-a");
         String tokenB = registerAndGetToken("ratelimit-user-b");
 
-        assertThat(createPost(tokenA, sharedIp).getStatusCode())
-            .as("user A first post from shared IP")
+        assertThat(createPost(tokenA).getStatusCode())
+            .as("user A first post")
             .isEqualTo(HttpStatus.CREATED);
-        assertThat(createPost(tokenB, sharedIp).getStatusCode())
-            .as("user B must not be throttled by user A sharing the same proxy IP")
+        assertThat(createPost(tokenB).getStatusCode())
+            .as("user B must not be throttled by user A sharing the same source IP")
             .isEqualTo(HttpStatus.CREATED);
     }
 
     @Test
-    void ipBucketUsesOnlyTheFirstForwardedForEntry() {
+    void spoofedForwardedForCannotResetTheBucket() {
         LoginRequest credentials = new LoginRequest("ghost-xff-user", "Password123!");
 
         for (int attempt = 1; attempt <= 5; attempt++) {
-            ResponseEntity<String> response = postLogin(credentials, "203.0.113.7, 70.0.0." + attempt);
+            ResponseEntity<String> response = postLogin(credentials, "203.0.113." + attempt);
             assertThat(response.getStatusCode())
-                .as("attempt %d shares the first XFF hop and stays within capacity", attempt)
+                .as("attempt %d stays within capacity regardless of the forged header", attempt)
                 .isNotEqualTo(HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        ResponseEntity<String> blocked = postLogin(credentials, "203.0.113.7, 80.0.0.2");
+        ResponseEntity<String> blocked = postLogin(credentials, "198.51.100.99");
         assertThat(blocked.getStatusCode())
-            .as("same first XFF hop, different downstream hops, must hit the same bucket")
+            .as("rotating X-Forwarded-For must not reset the bucket; keying uses remoteAddr")
             .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
     }
 
     private ResponseEntity<String> postLogin(LoginRequest credentials, String forwardedFor) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Forwarded-For", forwardedFor);
+        if (forwardedFor != null) {
+            headers.add("X-Forwarded-For", forwardedFor);
+        }
         return restTemplate.exchange(
             "/api/v1/auth/login", HttpMethod.POST, new HttpEntity<>(credentials, headers), String.class);
     }
 
-    private ResponseEntity<String> createPost(String token, String forwardedFor) {
+    private ResponseEntity<String> createPost(String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
-        headers.add("X-Forwarded-For", forwardedFor);
         CreatePostRequest request = new CreatePostRequest("rate-limit keying check", null, null);
         return restTemplate.exchange(
             "/api/v1/posts", HttpMethod.POST, new HttpEntity<>(request, headers), String.class);
@@ -93,10 +90,8 @@ class RateLimitIntegrationTest extends BaseIntegrationTest {
 
     private String registerAndGetToken(String username) throws Exception {
         RegisterRequest request = new RegisterRequest(username, username + "@example.com", "Pass123!", username, true, true);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Forwarded-For", UUID.randomUUID().toString());
         ResponseEntity<String> response = restTemplate.exchange(
-            "/api/v1/auth/register", HttpMethod.POST, new HttpEntity<>(request, headers), String.class);
+            "/api/v1/auth/register", HttpMethod.POST, new HttpEntity<>(request, new HttpHeaders()), String.class);
         assertThat(response.getStatusCode())
             .as("register helper failed: %s", response.getBody())
             .isEqualTo(HttpStatus.CREATED);
