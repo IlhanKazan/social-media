@@ -14,16 +14,10 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://social-api.onrender.com"
       }
     },
     "production": {
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://social-api.onrender.com"
-      }
+      "autoIncrement": true
     }
   },
   "submit": {

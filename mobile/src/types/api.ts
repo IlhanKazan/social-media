@@ -26,6 +26,7 @@ export interface AccountSummary {
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken?: string;  // present only for X-Client-Platform: mobile requests
   accessTokenExpiresIn: number;
   refreshTokenExpiresIn: number;
   account: AccountSummary;
@@ -36,6 +37,7 @@ export type MfaMethod = 'EMAIL' | 'TOTP' | 'RECOVERY';
 export interface LoginResponse {
   status: 'AUTHENTICATED' | 'MFA_REQUIRED';
   accessToken?: string;
+  refreshToken?: string;  // present only for X-Client-Platform: mobile requests
   accessTokenExpiresIn?: number;
   refreshTokenExpiresIn?: number;
   account?: AccountSummary;

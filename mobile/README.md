@@ -5,22 +5,21 @@ React Native (Expo) client for SocialHan. The plan and phase breakdown live in
 
 ## Stack
 
-Expo SDK 56 (dev client, not Expo Go), expo-router, NativeWind v4,
-TanStack Query v5, Zustand, axios, react-hook-form + zod.
+Expo SDK 56, expo-router, NativeWind v4, TanStack Query v5, Zustand, axios,
+react-hook-form + zod.
 
-## Development
+## Development (Expo Go)
+
+Everything up to push notifications runs in the Expo Go app — no native build
+needed. Install Expo Go on the device, then:
 
 ```bash
 npm install
-cp .env.example .env        # set EXPO_PUBLIC_API_URL to your LAN IP
-npm start                   # metro bundler (requires the dev client on device)
+cp .env.example .env        # set EXPO_PUBLIC_API_URL (LAN IP for local api, or the prod domain)
+npm start                   # scan the QR with Expo Go (same Wi-Fi network)
 npm run typecheck
 ```
 
-The first dev client build (once per native-dependency change):
-
-```bash
-eas build --profile development --platform android
-```
-
-`google-services.json` (Firebase, phase M6) is gitignored — never commit it.
+Native Firebase push (phase M6) is the first thing that requires a dev-client
+build (`eas build --profile development --platform android`); until then stay
+on Expo Go. `google-services.json` is gitignored — never commit it.

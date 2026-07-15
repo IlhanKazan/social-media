@@ -1,7 +1,15 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Bell, Home, Mail, User } from 'lucide-react-native';
 
+import { useAuthStore } from '@/stores/auth-store';
+
 export default function TabsLayout() {
+  const token = useAuthStore((s) => s.token);
+
+  if (!token) {
+    return <Redirect href="/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{

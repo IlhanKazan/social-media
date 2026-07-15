@@ -5,6 +5,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 
+import { SessionGate } from '@/components/session-gate';
 import { queryClient } from '@/lib/query-client';
 
 export default function RootLayout() {
@@ -13,9 +14,12 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <SessionGate>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(auth)" />
+          </Stack>
+        </SessionGate>
         <StatusBar style="auto" />
       </ThemeProvider>
     </QueryClientProvider>
