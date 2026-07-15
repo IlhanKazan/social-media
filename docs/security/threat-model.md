@@ -52,8 +52,8 @@ automated ZAP scan reports.
 ## Residual risks / follow-ups
 
 - CSP allows `style-src 'unsafe-inline'` (Tailwind) — accepted; tighten post-launch.
-- No automated dependency (CVE) scanning in CI yet — add Dependabot / OWASP
-  Dependency-Check.
+- Dependency scanning: Dependabot covers Maven, npm, and GitHub Actions
+  weekly. OWASP Dependency-Check in CI is still a possible addition.
 - DM-photo signed URLs have no hard expiry — accepted posture (see
   `known-issues.md`).
 - Post images and profile fields (bio / avatar / cover) are **not yet
