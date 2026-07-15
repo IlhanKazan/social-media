@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +51,13 @@ public class MessageService {
     @Transactional(readOnly = true)
     public int countUnread(Long conversationId, Long userId) {
         return messageRepository.countUnreadMessages(conversationId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> countUnreadForConversations(List<Long> conversationIds, Long userId) {
+        if (conversationIds.isEmpty()) return Map.of();
+        return messageRepository.countUnreadMessagesForConversations(conversationIds, userId).stream()
+            .collect(toMap(row -> (Long) row[0], row -> ((Long) row[1]).intValue()));
     }
 
     @Transactional(readOnly = true)

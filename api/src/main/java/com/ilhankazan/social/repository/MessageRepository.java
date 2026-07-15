@@ -35,6 +35,16 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     int countUnreadMessages(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
 
     @Query("""
+        SELECT m.conversation.id, COUNT(m) FROM Message m
+        WHERE m.conversation.id IN :conversationIds
+          AND m.sender.id != :userId
+          AND m.readAt IS NULL
+        GROUP BY m.conversation.id
+    """)
+    List<Object[]> countUnreadMessagesForConversations(@Param("conversationIds") List<Long> conversationIds,
+                                                       @Param("userId") Long userId);
+
+    @Query("""
         SELECT m FROM Message m
         WHERE m.conversation.id = :conversationId
           AND (:before IS NULL OR m.id < :before)

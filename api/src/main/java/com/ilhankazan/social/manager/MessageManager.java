@@ -80,7 +80,8 @@ public class MessageManager {
         }
 
         Conversation conversation = conversationService.getOrCreate(current, target);
-        return toConversationResponse(conversation, current.getId(), null);
+        int unreadCount = messageService.countUnread(conversation.getId(), current.getId());
+        return toConversationResponse(conversation, current.getId(), null, unreadCount);
     }
 
     @Transactional
@@ -133,7 +134,7 @@ public class MessageManager {
         );
 
         if (conversations.isEmpty()) {
-            return PageResponse.of(conversations.map(c -> toConversationResponse(c, current.getId(), null)));
+            return PageResponse.of(conversations.map(c -> toConversationResponse(c, current.getId(), null, 0)));
         }
 
         List<Long> conversationIds = conversations.stream().map(Conversation::getId).toList();
@@ -143,9 +144,11 @@ public class MessageManager {
                 m -> m.getConversation().getId(),
                 this::previewText
             ));
+        Map<Long, Integer> unreadCounts = messageService.countUnreadForConversations(conversationIds, current.getId());
 
         return PageResponse.of(conversations.map(c ->
-            toConversationResponse(c, current.getId(), latestMessageMap.get(c.getId()))
+            toConversationResponse(c, current.getId(), latestMessageMap.get(c.getId()),
+                unreadCounts.getOrDefault(c.getId(), 0))
         ));
     }
 
@@ -180,12 +183,10 @@ public class MessageManager {
         ));
     }
 
-    private ConversationResponse toConversationResponse(Conversation conversation, Long currentAccountId, String lastMessageContent) {
+    private ConversationResponse toConversationResponse(Conversation conversation, Long currentAccountId, String lastMessageContent, int unreadCount) {
         Account otherParticipant = conversation.getParticipantA().getId().equals(currentAccountId)
             ? conversation.getParticipantB()
             : conversation.getParticipantA();
-
-        int unreadCount = messageService.countUnread(conversation.getId(), currentAccountId);
 
         return new ConversationResponse(
             conversation.getId(),
