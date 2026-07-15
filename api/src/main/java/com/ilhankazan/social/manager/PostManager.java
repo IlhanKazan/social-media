@@ -1,5 +1,6 @@
 package com.ilhankazan.social.manager;
 
+import com.ilhankazan.social.config.AppProperties;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.interaction.InteractionCounts;
@@ -43,6 +44,15 @@ public class PostManager {
     private final AccountMapper accountMapper;
     private final PostingPolicy postingPolicy;
     private final AuthCacheResolver authResolver;
+    private final AppProperties.CloudinaryProperties cloudinaryProperties;
+
+    private void requireAllowedImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return;
+        String allowedPrefix = "https://res.cloudinary.com/" + cloudinaryProperties.cloudName() + "/";
+        if (!imageUrl.startsWith(allowedPrefix)) {
+            throw new IllegalArgumentException("Image URL must come from the image upload endpoint");
+        }
+    }
 
     private Long currentUserIdOrNull() {
         String username = authResolver.usernameOrNull();
@@ -125,6 +135,7 @@ public class PostManager {
     public PostResponse create(CreatePostRequest request) {
         Account current = getCurrentAccount();
         postingPolicy.requireCanPost(current);
+        requireAllowedImageUrl(request.imageUrl());
 
         Post post = postService.create(current.getId(), request.content(), request.imageUrl(), request.parentPostId());
 
@@ -136,6 +147,7 @@ public class PostManager {
     @Transactional
     public PostResponse update(Long id, UpdatePostRequest request) {
         Account current = getCurrentAccount();
+        requireAllowedImageUrl(request.imageUrl());
         Post post = postService.update(current.getId(), id, request.content(), request.imageUrl());
         return toEnriched(post, current.getId());
     }
@@ -240,6 +252,7 @@ public class PostManager {
     public PostResponse quoteRepost(Long quotedPostId, CreateQuoteRepostRequest request) {
         Account current = getCurrentAccount();
         postingPolicy.requireCanPost(current);
+        requireAllowedImageUrl(request.imageUrl());
         Post post = postService.createQuote(current.getId(), quotedPostId, request.content(), request.imageUrl());
 
         PostResponse response = postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L, 0L, false);

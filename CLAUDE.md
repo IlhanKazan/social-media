@@ -54,7 +54,7 @@ new frontend, new everything.
 - date-fns (relative timestamps)
 
 **Infra**
-- Docker (multi-stage builds, distroless runtime)
+- Docker (multi-stage builds, eclipse-temurin 21 JRE runtime)
 - Docker Compose for local dev
 - Render.com for hosting (Web Service for api, Static Site for client, managed Postgres)
 - GitHub Actions for CI

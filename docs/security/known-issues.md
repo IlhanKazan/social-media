@@ -23,7 +23,10 @@ add-on.
 
 Post images and avatars are **public content** and are delivered over standard
 unsigned `secure_url`s with an unguessable `UUID` `public_id` (no enumeration). No
-change planned — these are meant to be publicly viewable.
+change planned — these are meant to be publicly viewable. Post `imageUrl` values
+are validated server-side to belong to this project's Cloudinary account
+(`https://res.cloudinary.com/<cloud-name>/...`), so arbitrary external URLs and
+`data:` URIs are rejected at create/update.
 
 ## Content moderation: fail-closed on text, image/profile moderation deferred
 
