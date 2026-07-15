@@ -13,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -245,24 +247,24 @@ public class PostService {
     }
 
     @Transactional
-    public Post updateModerationResult(Long postId, com.ilhankazan.social.entity.ModerationStatus status, String provider, java.util.Map<String, Double> categories) {
+    public Post updateModerationResult(Long postId, ModerationStatus status, String provider, Map<String, Double> categories) {
         Post post = postRepository.findById(postId)
             .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         post.setModerationStatus(status);
         post.setModerationProvider(provider);
         post.setModerationCategories(categories);
-        post.setModeratedAt(java.time.Instant.now());
+        post.setModeratedAt(Instant.now());
         return postRepository.save(post);
     }
 
     @Transactional(readOnly = true)
-    public long countFlaggedPostsSince(java.time.Instant since) {
-        return postRepository.countByModerationStatusAndCreatedAtAfter(com.ilhankazan.social.entity.ModerationStatus.FLAGGED, since);
+    public long countFlaggedPostsSince(Instant since) {
+        return postRepository.countByModerationStatusAndCreatedAtAfter(ModerationStatus.FLAGGED, since);
     }
 
     @Transactional(readOnly = true)
-    public List<Post> getPendingPostsOlderThan(java.time.Instant cutoff, int limit) {
-        return postRepository.findPendingPostsOlderThan(cutoff, org.springframework.data.domain.PageRequest.of(0, limit));
+    public List<Post> getPendingPostsOlderThan(Instant cutoff, int limit) {
+        return postRepository.findPendingPostsOlderThan(cutoff, PageRequest.of(0, limit));
     }
 
     static final String FALLBACK_FLAG_PROVIDER = "FALLBACK_FLAG";
@@ -276,7 +278,7 @@ public class PostService {
         if (post.getModerationAttempts() >= MAX_MODERATION_ATTEMPTS) {
             post.setModerationStatus(ModerationStatus.FLAGGED);
             post.setModerationProvider(FALLBACK_FLAG_PROVIDER);
-            post.setModeratedAt(java.time.Instant.now());
+            post.setModeratedAt(Instant.now());
         }
         postRepository.save(post);
         return post.getModerationStatus();

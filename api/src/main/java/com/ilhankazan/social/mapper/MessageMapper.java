@@ -10,6 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 @Mapper(componentModel = "spring", uses = {AccountMapper.class})
 public abstract class MessageMapper {
@@ -29,6 +30,19 @@ public abstract class MessageMapper {
     @Named("signImage")
     protected String signImage(String publicId) {
         return publicId == null ? null : storageService.signedImageUrl(publicId);
+    }
+
+    public String previewText(Message message) {
+        if (StringUtils.hasText(message.getContent())) return abbreviate(message.getContent(), 80);
+        if (StringUtils.hasText(message.getImagePublicId())) return "📷 Photo";
+        if (message.getSharedPost() != null) return "📎 Shared a post";
+        return "";
+    }
+
+    private String abbreviate(String str, int maxWidth) {
+        if (str == null) return null;
+        if (str.length() <= maxWidth) return str;
+        return str.substring(0, maxWidth - 3) + "...";
     }
 
     protected SharedPostPreview toPreview(Post post) {

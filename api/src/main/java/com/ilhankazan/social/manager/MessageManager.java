@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,19 +56,6 @@ public class MessageManager {
             !conversation.getParticipantB().getId().equals(accountId)) {
             throw new AccessDeniedException("You are not a participant in this conversation");
         }
-    }
-
-    private String abbreviate(String str, int maxWidth) {
-        if (str == null) return null;
-        if (str.length() <= maxWidth) return str;
-        return str.substring(0, maxWidth - 3) + "...";
-    }
-
-    private String previewText(Message message) {
-        if (StringUtils.hasText(message.getContent())) return abbreviate(message.getContent(), 80);
-        if (StringUtils.hasText(message.getImagePublicId())) return "📷 Photo";
-        if (message.getSharedPost() != null) return "📎 Shared a post";
-        return "";
     }
 
     @Transactional
@@ -141,7 +129,7 @@ public class MessageManager {
         Map<Long, String> latestMessageMap = latestMessages.stream()
             .collect(Collectors.toMap(
                 m -> m.getConversation().getId(),
-                this::previewText
+                messageMapper::previewText
             ));
 
         return PageResponse.of(conversations.map(c ->
@@ -176,7 +164,7 @@ public class MessageManager {
         eventPublisher.publishEvent(new MessagesReadEvent(
             conversationId,
             otherParticipant.getUsername(),
-            java.time.Instant.now()
+            Instant.now()
         ));
     }
 

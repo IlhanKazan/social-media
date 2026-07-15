@@ -19,6 +19,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -61,7 +62,7 @@ public class RefreshTokenService {
             reuseLogger.warn("Refresh token reuse detected! account_id={} family_id={} ip_address={} user_agent={} presented_at={}",
                 existing.getAccount().getId(), existing.getFamilyId(), ipAddress, userAgent, Instant.now());
 
-            auditLogService.record("TOKEN_REUSE_DETECTED", "ACCOUNT", existing.getAccount().getId(), java.util.Map.of("family_id", existing.getFamilyId()));
+            auditLogService.record("TOKEN_REUSE_DETECTED", "ACCOUNT", existing.getAccount().getId(), Map.of("family_id", existing.getFamilyId()));
 
             throw new TokenReuseDetectedException("Token reuse detected. All sessions for this device have been revoked.");
         }
