@@ -36,8 +36,8 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Validation error or username/email already exists")
     @PostMapping("/register")
     @RateLimit(capacity = 5, minutes = 1)
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return tokenResponse(HttpStatus.CREATED, authManager.register(request));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
+        return tokenResponse(HttpStatus.CREATED, authManager.register(request), isMobileClient(httpRequest));
     }
 
     @Operation(summary = "Login to account", description = "Authenticates user and issues an access token. The refresh token is set as an HttpOnly cookie and starts a new token family.")
@@ -51,7 +51,7 @@ public class AuthController {
         if (result.mfaRequired()) {
             return ResponseEntity.ok(LoginResponse.mfaRequired(result.mfaToken(), result.methods()));
         }
-        return authenticatedResponse(HttpStatus.OK, result.auth());
+        return authenticatedResponse(HttpStatus.OK, result.auth(), isMobileClient(httpRequest));
     }
 
     @Operation(summary = "Verify MFA", description = "Completes a login that requires a second factor and issues tokens.")
@@ -62,7 +62,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> verifyMfa(@Valid @RequestBody MfaVerifyRequest request, HttpServletRequest httpRequest) {
         String userAgent = httpRequest.getHeader("User-Agent");
         AuthResponse auth = authManager.verifyMfa(request.mfaToken(), request.method(), request.code(), clientIp(httpRequest), userAgent);
-        return authenticatedResponse(HttpStatus.OK, auth);
+        return authenticatedResponse(HttpStatus.OK, auth, isMobileClient(httpRequest));
     }
 
     @Operation(summary = "Resend MFA email code", description = "Re-sends the email one-time code for an in-progress MFA login.")
@@ -81,13 +81,22 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(
         @CookieValue(name = "${app.auth.cookie.name}", required = false) String refreshToken,
+        @RequestBody(required = false) MobileRefreshRequest body,
         HttpServletRequest httpRequest) {
-        originGuard.verify(httpRequest);
-        if (!StringUtils.hasText(refreshToken)) {
+        boolean mobile = isMobileClient(httpRequest);
+        String token;
+        if (mobile) {
+            // Bearer-style: token must come from the body, never the ambient cookie (no CSRF surface).
+            token = body != null ? body.refreshToken() : null;
+        } else {
+            originGuard.verify(httpRequest);
+            token = refreshToken;
+        }
+        if (!StringUtils.hasText(token)) {
             throw new BadCredentialsException("Missing refresh token");
         }
         String userAgent = httpRequest.getHeader("User-Agent");
-        return tokenResponse(HttpStatus.OK, authManager.refresh(refreshToken, clientIp(httpRequest), userAgent));
+        return tokenResponse(HttpStatus.OK, authManager.refresh(token, clientIp(httpRequest), userAgent), mobile);
     }
 
     @Operation(summary = "Logout specific session", description = "Blacklists the current access token, revokes the refresh token's family (read from the HttpOnly cookie), and clears the cookie.")
@@ -97,7 +106,12 @@ public class AuthController {
     public ResponseEntity<Void> logout(
         @RequestHeader(value = "Authorization", required = false) String authHeader,
         @CookieValue(name = "${app.auth.cookie.name}", required = false) String refreshToken,
+        @RequestBody(required = false) MobileRefreshRequest body,
         HttpServletRequest httpRequest) {
+        if (isMobileClient(httpRequest)) {
+            authManager.logout(authHeader, body != null ? body.refreshToken() : null);
+            return ResponseEntity.noContent().build();
+        }
         originGuard.verify(httpRequest);
         authManager.logout(authHeader, refreshToken);
         return ResponseEntity.noContent()
@@ -143,18 +157,28 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    private ResponseEntity<AuthResponse> tokenResponse(HttpStatus status, AuthResponse resp) {
+    private ResponseEntity<AuthResponse> tokenResponse(HttpStatus status, AuthResponse resp, boolean mobile) {
+        if (mobile) {
+            return ResponseEntity.status(status).body(resp);
+        }
         ResponseCookie cookie = authCookieFactory.build(resp.refreshToken());
         return ResponseEntity.status(status)
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(withoutRefreshToken(resp));
     }
 
-    private ResponseEntity<LoginResponse> authenticatedResponse(HttpStatus status, AuthResponse resp) {
+    private ResponseEntity<LoginResponse> authenticatedResponse(HttpStatus status, AuthResponse resp, boolean mobile) {
+        if (mobile) {
+            return ResponseEntity.status(status).body(LoginResponse.authenticatedMobile(resp));
+        }
         ResponseCookie cookie = authCookieFactory.build(resp.refreshToken());
         return ResponseEntity.status(status)
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(LoginResponse.authenticated(resp));
+    }
+
+    private boolean isMobileClient(HttpServletRequest request) {
+        return "mobile".equalsIgnoreCase(request.getHeader("X-Client-Platform"));
     }
 
     private AuthResponse withoutRefreshToken(AuthResponse resp) {
