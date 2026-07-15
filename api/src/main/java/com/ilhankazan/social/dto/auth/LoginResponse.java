@@ -8,6 +8,7 @@ import java.util.List;
 public record LoginResponse(
     String status,
     String accessToken,
+    String refreshToken,
     Long accessTokenExpiresIn,
     Long refreshTokenExpiresIn,
     AuthResponse.AccountSummary account,
@@ -15,11 +16,16 @@ public record LoginResponse(
     List<String> methods
 ) {
     public static LoginResponse authenticated(AuthResponse a) {
-        return new LoginResponse("AUTHENTICATED", a.accessToken(),
+        return new LoginResponse("AUTHENTICATED", a.accessToken(), null,
+            a.accessTokenExpiresIn(), a.refreshTokenExpiresIn(), a.account(), null, null);
+    }
+
+    public static LoginResponse authenticatedMobile(AuthResponse a) {
+        return new LoginResponse("AUTHENTICATED", a.accessToken(), a.refreshToken(),
             a.accessTokenExpiresIn(), a.refreshTokenExpiresIn(), a.account(), null, null);
     }
 
     public static LoginResponse mfaRequired(String mfaToken, List<String> methods) {
-        return new LoginResponse("MFA_REQUIRED", null, null, null, null, mfaToken, methods);
+        return new LoginResponse("MFA_REQUIRED", null, null, null, null, null, mfaToken, methods);
     }
 }
