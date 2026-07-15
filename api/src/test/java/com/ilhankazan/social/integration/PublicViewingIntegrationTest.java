@@ -6,6 +6,7 @@ import com.ilhankazan.social.dto.auth.AuthResponse;
 import com.ilhankazan.social.dto.auth.RegisterRequest;
 import com.ilhankazan.social.dto.post.CreatePostRequest;
 import com.ilhankazan.social.dto.post.PostResponse;
+import com.ilhankazan.social.entity.ModerationStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -36,6 +37,10 @@ class PublicViewingIntegrationTest extends BaseIntegrationTest {
         assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Long postId = objectMapper.readValue(created.getBody(), PostResponse.class).id();
 
+        // Fail-closed moderation: a post is public only once it becomes CLEAN. Wait for the
+        // async decision (as the author) before asserting anonymous visibility.
+        awaitClean(postId, authed);
+
         // Public reads: NO Authorization header -> 200, and not personalised.
         assertThat(anon("/api/v1/posts/explore?page=0&size=20").getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -63,6 +68,19 @@ class PublicViewingIntegrationTest extends BaseIntegrationTest {
         ResponseEntity<String> anonWrite = restTemplate.exchange(
             "/api/v1/posts", HttpMethod.POST, new HttpEntity<>(anonPost), String.class);
         assertThat(anonWrite.getStatusCode()).matches(this::isUnauthorizedOrForbidden);
+    }
+
+    private void awaitClean(Long postId, HttpHeaders authed) throws Exception {
+        for (int attempt = 0; attempt < 50; attempt++) {
+            ResponseEntity<String> response = restTemplate.exchange(
+                "/api/v1/posts/" + postId, HttpMethod.GET, new HttpEntity<>(authed), String.class);
+            if (objectMapper.readValue(response.getBody(), PostResponse.class)
+                    .moderationStatus() == ModerationStatus.CLEAN) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        throw new AssertionError("post did not become CLEAN in time");
     }
 
     private boolean isUnauthorizedOrForbidden(HttpStatusCode status) {

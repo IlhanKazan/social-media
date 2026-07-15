@@ -5,6 +5,8 @@ import com.ilhankazan.social.base.BaseIntegrationTest;
 import com.ilhankazan.social.dto.auth.AuthResponse;
 import com.ilhankazan.social.dto.auth.RegisterRequest;
 import com.ilhankazan.social.dto.post.CreatePostRequest;
+import com.ilhankazan.social.dto.post.PostResponse;
+import com.ilhankazan.social.entity.ModerationStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -46,6 +48,10 @@ class FollowIntegrationTest extends BaseIntegrationTest {
         CreatePostRequest postReq = new CreatePostRequest("Target user'dan selamlar!", null, null);
         ResponseEntity<String> postRes = restTemplate.exchange("/api/v1/posts", HttpMethod.POST, new HttpEntity<>(postReq, targetHeaders), String.class);
         assertThat(postRes.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Long postId = objectMapper.readValue(postRes.getBody(), PostResponse.class).id();
+
+        // Fail-closed moderation: the post enters the following feed only once CLEAN.
+        awaitClean(postId, targetHeaders);
 
         ResponseEntity<String> emptyFeedRes = restTemplate.exchange("/api/v1/posts/feed", HttpMethod.GET, new HttpEntity<>(followerHeaders), String.class);
         assertThat(emptyFeedRes.getBody()).doesNotContain("Target user'dan selamlar!");
@@ -55,5 +61,18 @@ class FollowIntegrationTest extends BaseIntegrationTest {
 
         ResponseEntity<String> filledFeedRes = restTemplate.exchange("/api/v1/posts/feed", HttpMethod.GET, new HttpEntity<>(followerHeaders), String.class);
         assertThat(filledFeedRes.getBody()).contains("Target user'dan selamlar!");
+    }
+
+    private void awaitClean(Long postId, HttpHeaders authorHeaders) throws Exception {
+        for (int attempt = 0; attempt < 50; attempt++) {
+            ResponseEntity<String> response = restTemplate.exchange(
+                "/api/v1/posts/" + postId, HttpMethod.GET, new HttpEntity<>(authorHeaders), String.class);
+            if (objectMapper.readValue(response.getBody(), PostResponse.class)
+                    .moderationStatus() == ModerationStatus.CLEAN) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        throw new AssertionError("post did not become CLEAN in time");
     }
 }

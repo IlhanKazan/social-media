@@ -87,22 +87,17 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Post getById(Long postId) {
-        Post post = postRepository.findById(postId)
+    public Post getEntityById(Long postId) {
+        return postRepository.findById(postId)
             .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+    }
 
-        if (post.getModerationStatus() == ModerationStatus.FLAGGED) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String currentUsername = authentication.getName();
-
-            boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (!isAdmin && !post.getAccount().getUsername().equals(currentUsername)) {
-                throw new EntityNotFoundException("Post not found");
-            }
+    @Transactional(readOnly = true)
+    public Post getById(Long postId) {
+        Post post = getEntityById(postId);
+        if (!isVisibleToCurrentUser(post)) {
+            throw new EntityNotFoundException("Post not found");
         }
-
         return post;
     }
 
@@ -129,11 +124,17 @@ public class PostService {
     }
 
     private boolean isVisibleToCurrentUser(Post post) {
-        if (post.getModerationStatus() != ModerationStatus.FLAGGED) return true;
+        boolean removedByAdmin = post.getAdminStatus() == AdminStatus.REMOVED_BY_ADMIN;
+        if (!removedByAdmin && post.getModerationStatus() == ModerationStatus.CLEAN) {
+            return true;
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) return false;
         boolean isAdmin = authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        return isAdmin || post.getAccount().getUsername().equals(authentication.getName());
+        if (isAdmin) return true;
+        if (removedByAdmin) return false;
+        return post.getAccount().getUsername().equals(authentication.getName());
     }
 
     @Transactional
@@ -264,17 +265,21 @@ public class PostService {
         return postRepository.findPendingPostsOlderThan(cutoff, org.springframework.data.domain.PageRequest.of(0, limit));
     }
 
+    static final String FALLBACK_FLAG_PROVIDER = "FALLBACK_FLAG";
+    private static final int MAX_MODERATION_ATTEMPTS = 3;
+
     @Transactional
-    public void handleModerationFailure(Long postId) {
-        Post post = getById(postId);
+    public ModerationStatus handleModerationFailure(Long postId) {
+        Post post = getEntityById(postId);
         post.setModerationAttempts(post.getModerationAttempts() + 1);
 
-        if (post.getModerationAttempts() >= 3) {
-            post.setModerationStatus(ModerationStatus.CLEAN);
-            post.setModerationProvider("FALLBACK_AUTO_PASS");
+        if (post.getModerationAttempts() >= MAX_MODERATION_ATTEMPTS) {
+            post.setModerationStatus(ModerationStatus.FLAGGED);
+            post.setModerationProvider(FALLBACK_FLAG_PROVIDER);
             post.setModeratedAt(java.time.Instant.now());
         }
         postRepository.save(post);
+        return post.getModerationStatus();
     }
 
     private Long getCurrentUserIdOrNull() {
@@ -297,7 +302,7 @@ public class PostService {
 
     @Transactional
     public Post updateAdminAndModerationStatus(Long postId, AdminStatus adminStatus, ModerationStatus modStatus) {
-        Post post = getById(postId);
+        Post post = getEntityById(postId);
         post.setAdminStatus(adminStatus);
         if (modStatus != null) {
             post.setModerationStatus(modStatus);
