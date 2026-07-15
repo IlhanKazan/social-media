@@ -1,15 +1,10 @@
 import axios from 'axios';
 
+import { API_BASE_URL } from '@/lib/env';
 import { useAuthStore } from '@/stores/auth-store';
 
-const baseURL = process.env.EXPO_PUBLIC_API_URL;
-
-if (!baseURL) {
-  throw new Error('EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env and fill it in.');
-}
-
 export const api = axios.create({
-  baseURL: `${baseURL}/api/v1`,
+  baseURL: `${API_BASE_URL}/api/v1`,
   // Render free tier cold starts can take 30-60s; match the web client's ceiling.
   timeout: 30_000,
   headers: { 'X-Client-Platform': 'mobile' },

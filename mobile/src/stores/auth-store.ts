@@ -3,10 +3,11 @@ import axios from 'axios';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { API_BASE_URL } from '@/lib/env';
 import { clearRefreshToken, getRefreshToken, setRefreshToken } from '@/lib/storage';
 import type { AccountSummary, AuthResponse } from '@/types/api';
 
-const authUrl = (path: string) => `${process.env.EXPO_PUBLIC_API_URL}/api/v1/auth${path}`;
+const authUrl = (path: string) => `${API_BASE_URL}/api/v1/auth${path}`;
 
 const MOBILE_HEADERS = { 'X-Client-Platform': 'mobile' };
 
