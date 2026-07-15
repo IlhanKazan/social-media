@@ -25,6 +25,30 @@ Post images and avatars are **public content** and are delivered over standard
 unsigned `secure_url`s with an unguessable `UUID` `public_id` (no enumeration). No
 change planned — these are meant to be publicly viewable.
 
+## Content moderation: fail-closed on text, image/profile moderation deferred
+
+Post **text** is moderated fail-closed: a new post is persisted `PENDING` and is
+visible only to its author (and admins) until the async pipeline marks it `CLEAN`;
+followers receive it over `/topic/feed` only on the `CLEAN` transition. A regex
+pre-filter runs before the OpenAI check, and repeated provider failure ends in
+`FLAGGED` (human review queue) — never an auto-pass. Admin-removed posts are hidden
+from everyone including the author; admin-restored posts are treated as visible.
+
+**Residuals (accepted for now):**
+
+- **Post images and profile fields (bio, avatar, cover) are not moderated yet**
+  (LOW–MEDIUM). Only post text is checked today; image + profile moderation is a
+  planned follow-up (generic moderation engine + `omni-moderation-latest`
+  multimodal). Until then, an uploaded image or bio is not automatically screened.
+- **Reply notifications fire at creation time**, before the moderation decision.
+  The notification carries no content preview and the linked post stays author-only
+  until `CLEAN`, so a flagged reply surfaces no hidden content to the recipient
+  (the link 404s for them). Gating the notification on `CLEAN` is a later refinement.
+- **Provider-unavailable degrades to regex-only** (LOW). If `OPENAI_API_KEY` is
+  ever missing, the OpenAI stage silently passes and only the regex list applies.
+  `EnvironmentSanityCheck` requires the key in prod, so this is a defense-in-depth
+  note, not an open hole.
+
 ## OWASP ZAP scan results (2026-06-19)
 
 Both scans (reports in this folder) ran against a local `docker compose` stack.

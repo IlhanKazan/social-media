@@ -27,7 +27,7 @@ public class ModerationManager {
     public void processModeration(Long postId) {
         log.debug("Processing moderation for post ID: {}", postId);
         try {
-            Post post = postService.getById(postId);
+            Post post = postService.getEntityById(postId);
             if (post.getModerationStatus() != ModerationStatus.PENDING) return;
 
             String content = post.getContent();
@@ -45,7 +45,15 @@ public class ModerationManager {
             ));
         } catch (Exception e) {
             log.error("Moderation failed for post ID: {}. Triggering failure handler.", postId, e);
-            postService.handleModerationFailure(postId);
+            ModerationStatus status = postService.handleModerationFailure(postId);
+            if (status == ModerationStatus.FLAGGED) {
+                Post post = postService.getEntityById(postId);
+                eventPublisher.publishEvent(new PostModerationDecidedEvent(
+                    postId,
+                    post.getAccount().getUsername(),
+                    ModerationStatus.FLAGGED
+                ));
+            }
         }
     }
 }

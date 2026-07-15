@@ -166,6 +166,12 @@ public class PostManager {
     }
 
     @Transactional(readOnly = true)
+    public PostResponse getForBroadcast(Long postId) {
+        Post post = postService.getEntityById(postId);
+        return postMapper.toResponse(post, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L, 0L, false);
+    }
+
+    @Transactional(readOnly = true)
     public PageResponse<PostResponse> getFeed(int page, int size) {
         Account current = getCurrentAccount();
         Page<Post> posts = postService.getFollowingFeed(current.getId(), PageRequest.of(page, size));

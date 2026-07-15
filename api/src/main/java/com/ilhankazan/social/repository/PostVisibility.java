@@ -3,31 +3,29 @@ package com.ilhankazan.social.repository;
 // Single source of truth for the post-visibility predicate (moderation + admin
 // gate) shared across PostRepository. Referenced via compile-time concatenation
 // in @Query so a change here propagates to every feed/search/profile query.
-// Two owner-exception shapes exist and are preserved verbatim: Shape A requires
-// admin_status = 'ACTIVE' even for the author, Shape B lets the author see their
-// own post regardless of admin_status. Reconciling them is a Task 1 decision.
+//
+// Fail-closed model: a post is publicly visible only when moderation_status =
+// 'CLEAN' and it has not been removed by an admin. PENDING/FLAGGED are visible
+// only to the author (owner exception). REMOVED_BY_ADMIN is hidden from everyone
+// including the author; RESTORED_BY_ADMIN is treated as visible (an admin chose
+// to keep it), hence the admin gate is 'admin_status <> REMOVED_BY_ADMIN', not
+// '= ACTIVE'.
 final class PostVisibility {
 
     private PostVisibility() {}
 
     static final String PUBLIC_JPQL =
-        "p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE'";
+        "p.moderationStatus = 'CLEAN' AND p.adminStatus <> 'REMOVED_BY_ADMIN'";
 
     static final String PUBLIC_SQL =
-        "p.moderation_status IN ('PENDING', 'CLEAN') AND p.admin_status = 'ACTIVE'";
+        "p.moderation_status = 'CLEAN' AND p.admin_status <> 'REMOVED_BY_ADMIN'";
 
     static final String OWNER_JPQL =
-        "p.adminStatus = 'ACTIVE' AND (p.moderationStatus IN ('PENDING', 'CLEAN') OR p.account.id = :currentUserId)";
+        "p.adminStatus <> 'REMOVED_BY_ADMIN' AND (p.moderationStatus = 'CLEAN' OR p.account.id = :currentUserId)";
 
     static final String OWNER_SQL =
-        "p.admin_status = 'ACTIVE' AND (p.moderation_status IN ('PENDING', 'CLEAN') OR p.account_id = :currentUserId)";
+        "p.admin_status <> 'REMOVED_BY_ADMIN' AND (p.moderation_status = 'CLEAN' OR p.account_id = :currentUserId)";
 
     static final String OWNER_PARENT_JPQL =
-        "parent.adminStatus = 'ACTIVE' AND (parent.moderationStatus IN ('PENDING', 'CLEAN') OR parent.account.id = :currentUserId)";
-
-    static final String OWNER_LENIENT_JPQL =
-        "(p.moderationStatus IN ('PENDING', 'CLEAN') AND p.adminStatus = 'ACTIVE') OR p.account.id = :currentUserId";
-
-    static final String OWNER_LENIENT_PARENT_JPQL =
-        "(parent.moderationStatus IN ('PENDING', 'CLEAN') AND parent.adminStatus = 'ACTIVE') OR parent.account.id = :currentUserId";
+        "parent.adminStatus <> 'REMOVED_BY_ADMIN' AND (parent.moderationStatus = 'CLEAN' OR parent.account.id = :currentUserId)";
 }

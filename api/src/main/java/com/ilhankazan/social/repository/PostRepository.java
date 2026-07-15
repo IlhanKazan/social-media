@@ -63,7 +63,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         "LEFT JOIN p.parentPost parent " +
         "WHERE i.account.id = :accountId AND i.type = com.ilhankazan.social.entity.InteractionType.LIKE " +
         "AND p.deletedAt IS NULL AND i.deletedAt IS NULL " +
-        "AND (" + PostVisibility.OWNER_LENIENT_JPQL + ") " +
+        "AND (" + PostVisibility.OWNER_JPQL + ") " +
         "AND (parent IS NULL OR (parent.deletedAt IS NULL AND " + PostVisibility.OWNER_PARENT_JPQL + ")) " +
         "ORDER BY i.createdAt DESC")
     Page<Post> findLikedPostsByAccountId(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
@@ -108,8 +108,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p JOIN p.parentPost parent " +
         "WHERE p.account.id = :accountId AND p.deletedAt IS NULL AND parent.deletedAt IS NULL " +
-        "AND ( " + PostVisibility.OWNER_LENIENT_JPQL + " ) " +
-        "AND ( " + PostVisibility.OWNER_LENIENT_PARENT_JPQL + " ) " +
+        "AND ( " + PostVisibility.OWNER_JPQL + " ) " +
+        "AND ( " + PostVisibility.OWNER_PARENT_JPQL + " ) " +
         "ORDER BY p.createdAt DESC")
     Page<Post> findRepliesByAccountId(@Param("accountId") Long accountId, @Param("currentUserId") Long currentUserId, Pageable pageable);
 

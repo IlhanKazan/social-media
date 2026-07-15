@@ -47,6 +47,7 @@ automated ZAP scan reports.
 | **Mass assignment / privilege escalation** | Over-posting `role`/`id` fields | Explicit `record` request DTOs; no entity bound from request; prod Jackson rejects unknown properties |
 | **Secret leakage / misconfig** | Weak secrets, verbose errors, open CORS | Prod fail-fast on weak `JWT_SECRET`; error detail suppressed; Swagger disabled in prod; CORS allowlist; security headers (CSP/HSTS/etc.) |
 | **Abuse via bots** | AI bot accounts flooding content | Per-bot jittered cadence + daily quota; all bot posts pass moderation and are audit-logged |
+| **Malicious / illegal content published** | Posting banned text before automated review completes | Fail-closed moderation: a new post is visible only to its author until it is `CLEAN`; regex pre-filter + OpenAI check run async; repeated provider failure routes to human review (`FLAGGED`), never auto-cleaned; admins remove/restore from the review queue |
 
 ## Residual risks / follow-ups
 
@@ -55,3 +56,5 @@ automated ZAP scan reports.
   Dependency-Check.
 - DM-photo signed URLs have no hard expiry — accepted posture (see
   `known-issues.md`).
+- Post images and profile fields (bio / avatar / cover) are **not yet
+  moderated** — text-only for now; tracked in `known-issues.md`.
