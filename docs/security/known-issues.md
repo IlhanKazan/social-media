@@ -49,6 +49,17 @@ from everyone including the author; admin-restored posts are treated as visible.
   `EnvironmentSanityCheck` requires the key in prod, so this is a defense-in-depth
   note, not an open hole.
 
+## WebSocket revocation window (LOW — bounded)
+
+Logout/ban revocation is enforced on the STOMP layer at CONNECT and re-verified
+on every SUBSCRIBE and SEND frame (blacklist + ban, behind a 5-second in-memory
+cache, so a revoked session is rejected at most ~5s after revocation once it
+sends any frame). A session that stays **completely passive** — already
+subscribed, sending nothing — keeps receiving broker deliveries until it
+disconnects or its next inbound frame; heartbeats do not trigger the check.
+Accepted: the access token itself expires in 15 minutes, which caps the passive
+window.
+
 ## OWASP ZAP scan results (2026-06-19)
 
 Both scans (reports in this folder) ran against a local `docker compose` stack.
