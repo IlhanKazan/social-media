@@ -33,6 +33,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
             .setAllowedOrigins(corsProps.allowedOrigins().toArray(new String[0]))
             .withSockJS();
+
+        // Native clients send no browser Origin and no ambient credentials; auth is the JWT on CONNECT.
+        registry.addEndpoint("/ws-native")
+            .setAllowedOriginPatterns("*");
     }
 
     @Override
