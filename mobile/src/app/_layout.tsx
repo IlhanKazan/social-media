@@ -8,6 +8,7 @@ import { useColorScheme } from 'react-native';
 
 import { SessionGate } from '@/components/session-gate';
 import { queryClient } from '@/lib/query-client';
+import { WebSocketProvider } from '@/lib/ws';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -24,15 +25,17 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={theme}>
         <SessionGate>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: background },
-            }}
-          >
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(auth)" />
-          </Stack>
+          <WebSocketProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: background },
+              }}
+            >
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(auth)" />
+            </Stack>
+          </WebSocketProvider>
         </SessionGate>
         <StatusBar style="auto" />
       </ThemeProvider>

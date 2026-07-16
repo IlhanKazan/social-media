@@ -12,6 +12,7 @@ import {
 
 import { PostCard } from '@/components/post-card';
 import { useExplore, useFeed } from '@/features/posts/queries';
+import { useLiveFeed } from '@/features/posts/use-live-feed';
 import type { FeedItemResponse, PostResponse } from '@/types/api';
 
 type Tab = 'following' | 'explore';
@@ -92,6 +93,7 @@ export default function HomeScreen() {
 
   const following = useFeed();
   const explore = useExplore();
+  useLiveFeed();
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
