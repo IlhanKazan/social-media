@@ -2,8 +2,9 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { BadgeCheck, CornerDownRight, Heart, MessageSquare, Repeat2 } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 
+import { useToggleLike, useToggleRepost } from '@/features/posts/queries';
 import { useAuthStore } from '@/stores/auth-store';
 import type { PostResponse, PublicAccountResponse } from '@/types/api';
 
@@ -35,29 +36,76 @@ function Avatar({ account, size }: { account: PublicAccountResponse; size: numbe
   );
 }
 
-function CountRow({ post }: { post: PostResponse }) {
+function ActionRow({ post }: { post: PostResponse }) {
+  const router = useRouter();
+  const toggleLike = useToggleLike();
+  const toggleRepost = useToggleRepost();
+
+  const openRepostMenu = () => {
+    Alert.alert('Repost', undefined, [
+      {
+        text: post.repostedByMe ? 'Undo repost' : 'Repost',
+        onPress: () => toggleRepost.mutate(post.id),
+      },
+      {
+        text: 'Quote',
+        onPress: () =>
+          router.push({
+            pathname: '/compose',
+            params: {
+              quotePostId: String(post.id),
+              quoteAuthor: post.author.displayName || post.author.username,
+              quoteContent: post.content.slice(0, 120),
+            },
+          }),
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
   return (
-    <View className="mt-2 flex-row items-center gap-8">
-      <View className="flex-row items-center gap-1.5">
+    <View className="mt-2.5 flex-row items-center gap-10">
+      <Pressable
+        className="flex-row items-center gap-1.5 active:opacity-60"
+        hitSlop={10}
+        onPress={() =>
+          router.push({
+            pathname: '/compose',
+            params: { parentPostId: String(post.id), parentAuthor: post.author.username },
+          })
+        }
+      >
         <MessageSquare size={17} color="#737373" />
         <Text className="text-sm text-neutral-500">{post.replyCount > 0 ? post.replyCount : ''}</Text>
-      </View>
-      <View className="flex-row items-center gap-1.5">
+      </Pressable>
+
+      <Pressable
+        className="flex-row items-center gap-1.5 active:opacity-60"
+        hitSlop={10}
+        onPress={openRepostMenu}
+        disabled={toggleRepost.isPending}
+      >
         <Repeat2 size={18} color={post.repostedByMe ? '#22c55e' : '#737373'} />
-        <Text className={post.repostedByMe ? 'text-sm text-green-500' : 'text-sm text-neutral-500'}>
+        <Text className={post.repostedByMe ? 'text-sm font-semibold text-green-500' : 'text-sm text-neutral-500'}>
           {post.repostCount > 0 ? post.repostCount : ''}
         </Text>
-      </View>
-      <View className="flex-row items-center gap-1.5">
+      </Pressable>
+
+      <Pressable
+        className="flex-row items-center gap-1.5 active:opacity-60"
+        hitSlop={10}
+        onPress={() => toggleLike.mutate(post.id)}
+        disabled={toggleLike.isPending}
+      >
         <Heart
           size={17}
           color={post.likedByMe ? '#f43f5e' : '#737373'}
           fill={post.likedByMe ? '#f43f5e' : 'transparent'}
         />
-        <Text className={post.likedByMe ? 'text-sm text-rose-500' : 'text-sm text-neutral-500'}>
+        <Text className={post.likedByMe ? 'text-sm font-semibold text-rose-500' : 'text-sm text-neutral-500'}>
           {post.likeCount > 0 ? post.likeCount : ''}
         </Text>
-      </View>
+      </Pressable>
     </View>
   );
 }
@@ -66,7 +114,7 @@ function QuotedPostPreview({ post }: { post: PostResponse }) {
   const router = useRouter();
   return (
     <Pressable
-      className="mt-2 rounded-2xl border border-neutral-200 p-3 dark:border-neutral-800"
+      className="mt-2 rounded-2xl border border-neutral-200 p-3 active:bg-neutral-50 dark:border-neutral-800 dark:active:bg-neutral-900"
       onPress={() => router.push(`/post/${post.id}`)}
     >
       <View className="flex-row items-center gap-1.5">
@@ -151,7 +199,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
 
           {post.quotedPost && <QuotedPostPreview post={post.quotedPost} />}
 
-          <CountRow post={post} />
+          <ActionRow post={post} />
         </View>
       </View>
     </Pressable>
