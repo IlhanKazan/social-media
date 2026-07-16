@@ -1,10 +1,12 @@
 import { Redirect, Tabs } from 'expo-router';
 import { Bell, Home, Mail, User } from 'lucide-react-native';
+import { useColorScheme } from 'react-native';
 
 import { useAuthStore } from '@/stores/auth-store';
 
 export default function TabsLayout() {
   const token = useAuthStore((s) => s.token);
+  const colorScheme = useColorScheme();
 
   if (!token) {
     return <Redirect href="/login" />;
@@ -15,6 +17,7 @@ export default function TabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: '#208AEF',
         headerShown: true,
+        sceneStyle: { backgroundColor: colorScheme === 'dark' ? '#0a0a0a' : '#ffffff' },
       }}
     >
       <Tabs.Screen

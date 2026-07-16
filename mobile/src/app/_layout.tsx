@@ -11,12 +11,25 @@ import { queryClient } from '@/lib/query-client';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const dark = colorScheme === 'dark';
+
+  // Match the nav container + card background to the screens' bg so
+  // transitions don't flash white (screens use bg-white / dark:bg-neutral-950).
+  const background = dark ? '#0a0a0a' : '#ffffff';
+  const theme = dark
+    ? { ...DarkTheme, colors: { ...DarkTheme.colors, background } }
+    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background } };
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={theme}>
         <SessionGate>
-          <Stack screenOptions={{ headerShown: false }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: background },
+            }}
+          >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="(auth)" />
           </Stack>

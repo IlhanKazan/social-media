@@ -14,22 +14,30 @@ import {
   View,
 } from 'react-native';
 
-import { uploadPostImage, useCreatePost } from '@/features/posts/queries';
+import { uploadPostImage, useCreatePost, useQuoteRepost } from '@/features/posts/queries';
 import type { ErrorResponse } from '@/types/api';
 
 const MAX_CONTENT_LENGTH = 500;
 
 export default function ComposeScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ parentPostId?: string; parentAuthor?: string }>();
+  const params = useLocalSearchParams<{
+    parentPostId?: string;
+    parentAuthor?: string;
+    quotePostId?: string;
+    quoteAuthor?: string;
+    quoteContent?: string;
+  }>();
   const parentPostId = params.parentPostId ? Number(params.parentPostId) : undefined;
+  const quotePostId = params.quotePostId ? Number(params.quotePostId) : undefined;
 
   const [content, setContent] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const createPost = useCreatePost();
-  const busy = uploading || createPost.isPending;
+  const quoteRepost = useQuoteRepost();
+  const busy = uploading || createPost.isPending || quoteRepost.isPending;
   const canSubmit = content.trim().length > 0 && content.length <= MAX_CONTENT_LENGTH && !busy;
 
   const pickImage = async () => {
@@ -60,16 +68,19 @@ export default function ComposeScreen() {
       }
     }
 
-    createPost.mutate(
-      { content: content.trim(), imageUrl, parentPostId },
-      {
-        onSuccess: () => router.back(),
-        onError: (error) => {
-          const data = (error as { response?: { data?: ErrorResponse } }).response?.data;
-          Alert.alert('Post failed', data?.message ?? 'Something went wrong. Please try again.');
-        },
-      }
-    );
+    const callbacks = {
+      onSuccess: () => router.back(),
+      onError: (error: unknown) => {
+        const data = (error as { response?: { data?: ErrorResponse } }).response?.data;
+        Alert.alert('Post failed', data?.message ?? 'Something went wrong. Please try again.');
+      },
+    };
+
+    if (quotePostId) {
+      quoteRepost.mutate({ content: content.trim(), imageUrl, quotedPostId: quotePostId }, callbacks);
+    } else {
+      createPost.mutate({ content: content.trim(), imageUrl, parentPostId }, callbacks);
+    }
   };
 
   return (
@@ -79,7 +90,7 @@ export default function ComposeScreen() {
     >
       <Stack.Screen
         options={{
-          title: parentPostId ? 'Reply' : 'New post',
+          title: quotePostId ? 'Quote' : parentPostId ? 'Reply' : 'New post',
           presentation: 'modal',
           headerShown: true,
         }}
@@ -92,7 +103,9 @@ export default function ComposeScreen() {
 
         <TextInput
           className="min-h-[120px] text-base text-neutral-900 dark:text-neutral-50"
-          placeholder={parentPostId ? 'Post your reply' : "What's happening?"}
+          placeholder={
+            quotePostId ? 'Add your thoughts...' : parentPostId ? 'Post your reply' : "What's happening?"
+          }
           placeholderTextColor="#737373"
           multiline
           autoFocus
@@ -101,6 +114,17 @@ export default function ComposeScreen() {
           onChangeText={setContent}
           textAlignVertical="top"
         />
+
+        {quotePostId && (
+          <View className="mt-2 rounded-2xl border border-neutral-200 p-3 opacity-70 dark:border-neutral-800">
+            <Text className="text-sm font-bold text-neutral-900 dark:text-neutral-50">
+              {params.quoteAuthor}
+            </Text>
+            <Text className="mt-0.5 text-sm text-neutral-500" numberOfLines={3}>
+              {params.quoteContent}
+            </Text>
+          </View>
+        )}
 
         {imageUri && (
           <View className="mt-2">

@@ -1,8 +1,15 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
 import type {
   CreatePostRequest,
+  CreateQuoteRepostRequest,
   FeedItemResponse,
   PageResponse,
   PostResponse,
@@ -74,6 +81,100 @@ export async function uploadPostImage(uri: string): Promise<string> {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data.url;
+}
+
+const isPostListQuery = (queryKey: readonly unknown[]) =>
+  queryKey[0] === 'feed' || queryKey[0] === 'explore' || queryKey[0] === 'post';
+
+type ListItem = PostResponse | FeedItemResponse;
+
+function applyToItem(item: ListItem, postId: number, updater: (p: PostResponse) => PostResponse): ListItem {
+  if ('post' in item) {
+    return item.post.id === postId ? { ...item, post: updater(item.post) } : item;
+  }
+  return item.id === postId ? updater(item) : item;
+}
+
+// Walks every cached shape a post can live in: infinite feed/explore/replies
+// pages, the ancestors array, and the single post detail entry.
+function updatePostInCaches(
+  queryClient: QueryClient,
+  postId: number,
+  updater: (p: PostResponse) => PostResponse
+) {
+  queryClient.setQueriesData<unknown>(
+    { predicate: (query) => isPostListQuery(query.queryKey) },
+    (old: unknown) => {
+      if (!old) return old;
+      if (Array.isArray(old)) {
+        return (old as PostResponse[]).map((p) => (p.id === postId ? updater(p) : p));
+      }
+      if (typeof old === 'object' && 'pages' in old) {
+        const data = old as { pages: PageResponse<ListItem>[]; pageParams: unknown[] };
+        return {
+          ...data,
+          pages: data.pages.map((page) => ({
+            ...page,
+            content: page.content.map((item) => applyToItem(item, postId, updater)),
+          })),
+        };
+      }
+      const post = old as PostResponse;
+      return post.id === postId ? updater(post) : post;
+    }
+  );
+}
+
+function invalidatePostLists(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ predicate: (query) => isPostListQuery(query.queryKey) });
+}
+
+export function useToggleLike() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: number) => {
+      await api.post(`/posts/${postId}/interactions/like`);
+    },
+    onMutate: (postId) => {
+      updatePostInCaches(queryClient, postId, (p) => ({
+        ...p,
+        likedByMe: !p.likedByMe,
+        likeCount: p.likedByMe ? Math.max(0, p.likeCount - 1) : p.likeCount + 1,
+      }));
+    },
+    onError: () => invalidatePostLists(queryClient),
+  });
+}
+
+export function useToggleRepost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: number) => {
+      await api.post(`/posts/${postId}/repost`);
+    },
+    onMutate: (postId) => {
+      updatePostInCaches(queryClient, postId, (p) => ({
+        ...p,
+        repostedByMe: !p.repostedByMe,
+        repostCount: p.repostedByMe ? Math.max(0, p.repostCount - 1) : p.repostCount + 1,
+      }));
+    },
+    onSettled: () => invalidatePostLists(queryClient),
+  });
+}
+
+export function useQuoteRepost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (request: CreateQuoteRepostRequest) => {
+      const { data } = await api.post<PostResponse>(
+        `/posts/${request.quotedPostId}/quote-repost`,
+        request
+      );
+      return data;
+    },
+    onSuccess: () => invalidatePostLists(queryClient),
+  });
 }
 
 export function useCreatePost() {
