@@ -21,6 +21,7 @@ public class EnvironmentSanityCheck implements ApplicationListener<ApplicationSt
     private final AppProperties.JwtProperties jwtProps;
     private final AppProperties.CloudinaryProperties cloudinaryProps;
     private final AppProperties.EmailProperties emailProps;
+    private final AppProperties.FirebaseProperties firebaseProps;
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -43,6 +44,11 @@ public class EnvironmentSanityCheck implements ApplicationListener<ApplicationSt
 
         if (emailProps.enabled() && !StringUtils.hasText(emailProps.resendApiKey())) {
             log.error("FATAL: EMAIL_ENABLED=true but RESEND_API_KEY is missing in prod profile.");
+            failed = true;
+        }
+
+        if (firebaseProps.enabled() && !StringUtils.hasText(firebaseProps.credentialsPath())) {
+            log.error("FATAL: FIREBASE_ENABLED=true but FIREBASE_CREDENTIALS_PATH is missing in prod profile.");
             failed = true;
         }
 

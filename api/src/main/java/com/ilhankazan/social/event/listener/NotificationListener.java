@@ -11,6 +11,7 @@ import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.NotificationService;
 import com.ilhankazan.social.service.PostService;
+import com.ilhankazan.social.service.PushNotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +32,7 @@ public class NotificationListener {
     private final AccountService accountService;
     private final SimpMessagingTemplate messagingTemplate;
     private final AccountMapper accountMapper;
+    private final PushNotificationService pushNotificationService;
 
     private static final Pattern MENTION_PATTERN = Pattern.compile("@([a-zA-Z0-9_]+)");
 
@@ -46,7 +49,7 @@ public class NotificationListener {
                 NotificationType.REPLY,
                 postId
             );
-            pushToWebSocket(notification);
+            notify(notification);
         }
 
         if (event.post().quotedPost() != null) {
@@ -57,7 +60,7 @@ public class NotificationListener {
                 NotificationType.QUOTE_REPOST,
                 postId
             );
-            pushToWebSocket(notification);
+            notify(notification);
         }
 
         handleMentions(event.post().content(), actorId, postId);
@@ -71,7 +74,7 @@ public class NotificationListener {
             NotificationType.REPOST,
             event.originalPostId()
         );
-        pushToWebSocket(notification);
+        notify(notification);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -85,7 +88,7 @@ public class NotificationListener {
                 NotificationType.LIKE,
                 post.getId()
             );
-            pushToWebSocket(notification);
+            notify(notification);
         }
     }
 
@@ -97,7 +100,7 @@ public class NotificationListener {
             NotificationType.FOLLOW,
             event.followerId()
         );
-        pushToWebSocket(notification);
+        notify(notification);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -112,7 +115,7 @@ public class NotificationListener {
                 event.postId()
             );
 
-            pushToWebSocket(notification);
+            notify(notification);
         }
     }
 
@@ -130,14 +133,14 @@ public class NotificationListener {
                     NotificationType.MENTION,
                     referenceId
                 );
-                pushToWebSocket(notification);
+                notify(notification);
             } catch (EntityNotFoundException e) {
                 // Etiketlenen kullanici sistemde yoksa sessizce yoksay
             }
         }
     }
 
-    private void pushToWebSocket(Notification notification) {
+    private void notify(Notification notification) {
         if (notification == null) return;
 
         PublicAccountResponse actorResponse = null;
@@ -159,5 +162,37 @@ public class NotificationListener {
             "/queue/notifications",
             response
         );
+
+        pushNotificationService.send(
+            notification.getRecipient().getId(),
+            pushTitle(notification),
+            pushBody(notification),
+            Map.of(
+                "type", notification.getType().name(),
+                "referenceId", String.valueOf(notification.getReferenceId()),
+                "notificationId", String.valueOf(notification.getId())
+            )
+        );
+    }
+
+    private String pushTitle(Notification notification) {
+        Account actor = notification.getActor();
+        if (actor == null) {
+            return "Sistem Bildirimi";
+        }
+        return actor.getDisplayName() != null ? actor.getDisplayName() : actor.getUsername();
+    }
+
+    private String pushBody(Notification notification) {
+        return switch (notification.getType()) {
+            case LIKE -> "gönderini beğendi.";
+            case REPLY -> "sana bir yanıt verdi.";
+            case MENTION -> "senden bahsetti.";
+            case FOLLOW -> "seni takip etmeye başladı.";
+            case REPOST -> "gönderini yeniden paylaştı.";
+            case QUOTE_REPOST -> "gönderini alıntıladı.";
+            case MODERATION_ALERT -> "Gönderin topluluk kuralları ihlali sebebiyle gizlendi.";
+            default -> "yeni bir bildirim gönderdi.";
+        };
     }
 }

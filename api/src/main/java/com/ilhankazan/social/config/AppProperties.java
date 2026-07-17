@@ -45,4 +45,10 @@ public class AppProperties {
         String appName,
         String logoUrl
     ) {}
+
+    @ConfigurationProperties(prefix = "app.firebase")
+    public record FirebaseProperties(
+        boolean enabled,
+        String credentialsPath
+    ) {}
 }

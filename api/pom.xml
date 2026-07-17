@@ -117,6 +117,13 @@
 			<version>1.39.0</version>
 		</dependency>
 
+		<!-- Firebase Admin SDK (FCM push) -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.10.0</version>
+		</dependency>
+
 		<!-- Springdoc OpenAPI -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
