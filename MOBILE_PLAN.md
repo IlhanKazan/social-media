@@ -9,7 +9,7 @@ the mobile track, mirroring the style of `PLAN.md`.
 
 | Decision | Choice | Why |
 |---|---|---|
-| Tooling | **Expo (managed) + custom dev client + EAS** | FCM via config plugin, cloud builds (iOS without a Mac), OTA-friendly. Not Expo Go (native Firebase needs a dev client). |
+| Tooling | **Expo (managed) + EAS**, developing in **Expo Go** until M6 | FCM via config plugin, cloud builds (iOS without a Mac), OTA-friendly. Dev client only becomes necessary once native Firebase (M6) lands; until then Expo Go is faster to iterate in. SDK pinned to 54 to match the tester's installed Expo Go. |
 | v1 scope | **Core MVP** | Auth (incl. MFA), feed (timeline + explore), compose + interactions, notifications + push, DMs. **No admin panel on mobile.** |
 | Platforms | **Android first, iOS later** | Ship Android (test device on hand), add iOS via EAS afterwards — no code changes expected, just build/signing. |
 | Styling | **NativeWind v4** | Tailwind mental model carried over from web; own the components (shadcn-style), no heavy UI lib lock-in. |
@@ -69,7 +69,8 @@ backend, and FCM registration + handlers on the client. See **Phase M6**.
 - **Acceptance:** `eas whoami` works; Firebase project + Android app exist;
   service-account key saved to a password manager.
 
-### [ ] M1 — Scaffold the app
+### [x] M1 — Scaffold the app
+(dev-client build step skipped — running in Expo Go instead, see Locked-in decisions)
 - `mobile/` directory in this monorepo (sibling of `api/` and `client/`).
 - `npx create-expo-app@latest` (TS template) + `npx expo install expo-dev-client`.
 - Add **NativeWind v4** (`tailwind.config.js`, `metro.config.js`, `global.css`).
@@ -92,47 +93,51 @@ backend, and FCM registration + handlers on the client. See **Phase M6**.
 - **Acceptance:** dev client launches on the Android device, shows a tab bar,
   NativeWind classes render.
 
-### [ ] M2 — Contracts, API client, auth (+ backend changes)
+### [x] M2 — Contracts, API client, auth (+ backend changes)
 **Backend work (api/):**
-- [ ] Add a **mobile auth path** that returns the refresh token in the response
+- [x] Add a **mobile auth path** that returns the refresh token in the response
   body instead of the cookie. Options: a `X-Client-Platform: mobile` header
   branch in `AuthController`, or dedicated `/auth/mobile/{login,register,refresh}`.
   Cleanest: keep one set of endpoints, branch on the header so web behavior is
   untouched.
-- [ ] `/auth/refresh` (mobile): read the refresh token from the request body /
+- [x] `/auth/refresh` (mobile): read the refresh token from the request body /
   `Authorization` when the cookie is absent. Reuse the existing
   `RefreshTokenService.rotate(...)` unchanged (rotation + reuse-detection apply).
-- [ ] CORS / origin guard: `AuthRequestOriginGuard` is for browser CSRF; mobile
+- [x] CORS / origin guard: `AuthRequestOriginGuard` is for browser CSRF; mobile
   requests have no `Origin` — ensure the mobile path is exempt (bearer-only, no
   cookie → no CSRF surface).
 
 **Mobile work:**
-- [ ] `src/types/api.ts` — mirror backend DTOs (copy from `client/src/types/api.ts`).
-- [ ] `src/lib/storage.ts` — `expo-secure-store` get/set/delete for the refresh token.
-- [ ] `src/lib/api.ts` — axios instance, request interceptor (Bearer), response
+- [x] `src/types/api.ts` — mirror backend DTOs (copy from `client/src/types/api.ts`).
+- [x] `src/lib/storage.ts` — `expo-secure-store` get/set/delete for the refresh token.
+- [x] `src/lib/api.ts` — axios instance, request interceptor (Bearer), response
   interceptor with **single-flight refresh** reading/writing the secure-store token.
-- [ ] `src/stores/auth-store.ts` — Zustand: `token` (memory) + `account`
+- [x] `src/stores/auth-store.ts` — Zustand: `token` (memory) + `account`
   (persisted via secure-store or AsyncStorage), `login/logout/tryRefresh`.
 - **Acceptance:** a manual login against staging returns tokens, refresh token
   lands in secure-store, an expired access token auto-refreshes once, logout clears it.
+  Verified on device.
 
-### [ ] M3 — Auth screens
+### [x] M3 — Auth screens
 - Login, Register, MFA challenge (TOTP/email), Forgot/Reset password (web parity).
 - `react-hook-form` + `zod` (reuse schemas from web where identical).
 - Auth gate: unauthenticated → auth stack; authenticated → `(tabs)`.
 - **Acceptance:** full register → verify → login → MFA → land on feed loop works on device.
+  Verified on device.
 
-### [ ] M4 — Feed + compose
+### [x] M4 — Feed + compose
 - Timeline + Explore tabs, infinite scroll (`useInfiniteQuery`), pull-to-refresh.
 - Post card component (author, content, image, relative time, counts).
 - Post detail screen; compose screen (text + image via `expo-image-picker` →
   existing Cloudinary upload endpoint).
 - **Acceptance:** feed paginates, a new post appears, image upload works.
+  Verified on device.
 
-### [ ] M5 — Interactions
+### [x] M5 — Interactions
 - Like, repost, quote-repost, reply — reuse existing mutations/endpoints.
 - Optimistic updates via TanStack Query, consistent with web.
 - **Acceptance:** all four interactions update counts and survive refetch.
+  Verified on device.
 
 ### [ ] M6 — Notifications + FCM push (new backend infra)
 **Backend work (api/):**
@@ -158,17 +163,24 @@ backend, and FCM registration + handlers on the client. See **Phase M6**.
   app; tapping it deep-links correctly; unregister on logout stops pushes.
 
 ### [ ] M7 — Messaging / DMs + realtime
+Realtime feed portion pulled forward and done (2026-07-16); DM screens remain.
 **Backend work (api/):**
-- [ ] Register a **non-SockJS** STOMP endpoint (`/ws-native`) alongside `/ws`.
+- [x] Register a **non-SockJS** STOMP endpoint (`/ws-native`) alongside `/ws`.
 **Mobile work:**
-- [ ] `@stomp/stompjs` client with native `webSocketFactory` → `wss://<api>/ws-native`,
+- [x] `@stomp/stompjs` client with native `webSocketFactory` → `wss://<api>/ws-native`,
   `connectHeaders: { Authorization: Bearer <token> }`, reconnect/backoff.
 - [ ] Conversation list + conversation view, optimistic send, read receipts,
   unread counts — mirror `client/src/features/messaging`.
-- [ ] Reconnect on app foreground; re-auth the STOMP connection when the access
+- [x] Reconnect on app foreground; re-auth the STOMP connection when the access
   token rotates.
-- **Acceptance:** two devices exchange messages in real time; read receipts and
-  unread badges update; reconnect after backgrounding works.
+- [x] Live feed: `/topic/feed` subscription prepends new top-level posts into
+  Explore and the viewer's own post into Following; other authors' posts
+  trigger a Following refetch instead of an optimistic splice, since the
+  broadcast isn't scoped to the follow graph — the client can't safely decide
+  who's followed without asking the server.
+- **Acceptance (DMs, still open):** two devices exchange messages in real
+  time; read receipts and unread badges update; reconnect after backgrounding
+  works.
 
 ### [ ] M8 — Profile + settings
 - Own + others' profile (header, counts, posts, follow/unfollow).
