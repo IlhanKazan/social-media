@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 
 import { SessionGate } from '@/components/session-gate';
+import { MessagingProvider } from '@/features/messaging/messaging-provider';
 import { queryClient } from '@/lib/query-client';
 import { PushNotificationProvider } from '@/lib/push';
 import { WebSocketProvider } from '@/lib/ws';
@@ -27,17 +28,20 @@ export default function RootLayout() {
       <ThemeProvider value={theme}>
         <SessionGate>
           <WebSocketProvider>
-            <PushNotificationProvider>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: background },
-                }}
-              >
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)" />
-              </Stack>
-            </PushNotificationProvider>
+            <MessagingProvider>
+              <PushNotificationProvider>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: background },
+                  }}
+                >
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="conversation/[id]" />
+                </Stack>
+              </PushNotificationProvider>
+            </MessagingProvider>
           </WebSocketProvider>
         </SessionGate>
         <StatusBar style="auto" />
