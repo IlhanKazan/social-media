@@ -1,5 +1,6 @@
 package com.ilhankazan.social.event.listener;
 
+import com.ilhankazan.social.dto.post.PostResponse;
 import com.ilhankazan.social.entity.ModerationStatus;
 import com.ilhankazan.social.event.PostModerationDecidedEvent;
 import com.ilhankazan.social.manager.PostManager;
@@ -21,7 +22,11 @@ public class ModerationFeedInvalidator {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onModerationDecided(PostModerationDecidedEvent event) {
         if (event.status() == ModerationStatus.CLEAN) {
-            messagingTemplate.convertAndSend("/topic/feed", postManager.getForBroadcast(event.postId()));
+            PostResponse response = postManager.getForBroadcast(event.postId());
+            messagingTemplate.convertAndSend("/topic/feed", response);
+            if (response.parentPostId() != null) {
+                messagingTemplate.convertAndSend("/topic/post/" + response.parentPostId(), response);
+            }
         } else if (event.status() == ModerationStatus.FLAGGED) {
             messagingTemplate.convertAndSend("/topic/feed",
                 Map.of("type", "POST_REMOVED", "postId", event.postId()));

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, MessageSquareOff } from 'lucide-react';
 import { usePost, usePostReplies, usePostAncestors } from './hooks/use-post';
+import { useLiveReplies } from './hooks/use-live-replies';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { PostCard } from '@/features/feed/components/PostCard';
 import { CreatePost } from '@/features/feed/components/CreatePost';
@@ -18,6 +19,8 @@ export function PostDetailPage() {
   const { data: post, status: postStatus } = usePost(postId);
   const { data: ancestors } = usePostAncestors(postId);
   const { data: replies, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostReplies(postId);
+
+  useLiveReplies(postId);
 
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
 

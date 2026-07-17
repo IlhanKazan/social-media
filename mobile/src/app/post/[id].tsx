@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native
 
 import { PostCard } from '@/components/post-card';
 import { useAncestors, usePost, useReplies } from '@/features/posts/queries';
+import { useLiveReplies } from '@/features/posts/use-live-replies';
 
 export default function PostDetailScreen() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function PostDetailScreen() {
   const post = usePost(postId);
   const ancestors = useAncestors(postId);
   const replies = useReplies(postId);
+
+  useLiveReplies(postId);
 
   const replyItems = replies.data?.pages.flatMap((page) => page.content) ?? [];
 
