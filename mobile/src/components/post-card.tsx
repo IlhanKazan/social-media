@@ -167,17 +167,32 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
       )}
 
       <View className="flex-row gap-3">
-        <Avatar account={post.author} size={40} />
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation();
+            router.push(`/user/${post.author.username}`);
+          }}
+        >
+          <Avatar account={post.author} size={40} />
+        </Pressable>
 
         <View className="min-w-0 flex-1">
           <View className="flex-row flex-wrap items-center gap-x-1.5">
-            <Text className="text-[15px] font-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
-              {post.author.displayName || post.author.username}
-            </Text>
-            {post.author.emailVerified && <BadgeCheck size={15} color="#3b82f6" />}
-            <Text className="text-sm text-neutral-500" numberOfLines={1}>
-              @{post.author.username}
-            </Text>
+            <Pressable
+              className="flex-row items-center gap-x-1.5"
+              onPress={(e) => {
+                e.stopPropagation();
+                router.push(`/user/${post.author.username}`);
+              }}
+            >
+              <Text className="text-[15px] font-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
+                {post.author.displayName || post.author.username}
+              </Text>
+              {post.author.emailVerified && <BadgeCheck size={15} color="#3b82f6" />}
+              <Text className="text-sm text-neutral-500" numberOfLines={1}>
+                @{post.author.username}
+              </Text>
+            </Pressable>
             <Text className="text-sm text-neutral-500">·</Text>
             <Text className="text-sm text-neutral-500">
               {formatDistanceToNowStrict(new Date(post.createdAt))}

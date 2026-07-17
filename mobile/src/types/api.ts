@@ -90,6 +90,11 @@ export interface UpdateProfileRequest {
   coverPosition?: number;
 }
 
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
 // ─── Post ─────────────────────────────────────────────────────────────────────
 
 export interface CreatePostRequest {

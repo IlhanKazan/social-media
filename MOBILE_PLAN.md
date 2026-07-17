@@ -189,10 +189,21 @@ Realtime feed pulled forward earlier (2026-07-16); DMs done (2026-07-17).
 - Note: starting a *new* conversation from a user profile lands with **M8**
   (no profile screen yet); existing conversations are fully functional.
 
-### [ ] M8 — Profile + settings
-- Own + others' profile (header, counts, posts, follow/unfollow).
-- Settings: theme, MFA management (reuse endpoints), logout (clears secure-store +
-  unregisters device token).
+### [x] M8 — Profile + settings
+Code complete (2026-07-17); on-device verification pending.
+- [x] Own + others' profile (`ProfileView`: cover/avatar, bio, joined date,
+  follower/following counts, Posts/Replies/Likes tabs reusing `PostCard`).
+  Own profile → Edit + settings gear; others → Follow/Unfollow + Message.
+- [x] Edit profile (displayName, bio, avatar, cover via existing multipart upload).
+- [x] Follower/following list screen (segmented toggle, per-row follow buttons).
+- [x] Profile navigation wired from post-card avatar/name and notification actors.
+- [x] **Start-new-DM** (deferred from M7): Message button → `POST /conversations/with/{id}`
+  → opens the thread. Closes the M7 gap.
+- [x] Settings: theme (Light/Dark/System, persisted via a theme store + NativeWind
+  `setColorScheme`), email verification, change password, logout, logout-all,
+  delete account.
+- Deferred: **MFA enable/disable UI** (TOTP QR + recovery codes) — later milestone;
+  login-time MFA already works.
 - **Acceptance:** view/follow works; logout fully clears session and stops push.
 
 ### [ ] M9 — Build, test, distribute

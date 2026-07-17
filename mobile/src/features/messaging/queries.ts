@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -10,6 +11,27 @@ import type {
 } from '@/types/api';
 
 const PAGE_SIZE = 20;
+
+export function useStartConversation() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (accountId: number) => {
+      const { data } = await api.post<ConversationResponse>(`/conversations/with/${accountId}`);
+      return data;
+    },
+    onSuccess: (conversation) => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      router.push({
+        pathname: '/conversation/[id]',
+        params: {
+          id: String(conversation.id),
+          name: conversation.otherParticipant.displayName || conversation.otherParticipant.username,
+        },
+      });
+    },
+  });
+}
 
 export function useConversations() {
   return useInfiniteQuery<PageResponse<ConversationResponse>>({

@@ -4,16 +4,20 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
+import { useColorScheme } from 'nativewind';
 
 import { SessionGate } from '@/components/session-gate';
 import { MessagingProvider } from '@/features/messaging/messaging-provider';
 import { queryClient } from '@/lib/query-client';
 import { PushNotificationProvider } from '@/lib/push';
 import { WebSocketProvider } from '@/lib/ws';
+// Import for its side effect: rehydrating the theme store re-applies the saved
+// mode to NativeWind before first paint.
+import '@/stores/theme-store';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // NativeWind's effective scheme (respects the persisted Light/Dark/System choice).
+  const { colorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
 
   // Match the nav container + card background to the screens' bg so
@@ -39,6 +43,10 @@ export default function RootLayout() {
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="conversation/[id]" />
+                  <Stack.Screen name="user/[username]/index" />
+                  <Stack.Screen name="user/[username]/follows" />
+                  <Stack.Screen name="settings" />
+                  <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
                 </Stack>
               </PushNotificationProvider>
             </MessagingProvider>

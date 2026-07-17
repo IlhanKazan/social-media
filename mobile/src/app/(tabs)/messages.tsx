@@ -34,7 +34,14 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
         })
       }
     >
-      <Avatar account={other} />
+      <Pressable
+        onPress={(e) => {
+          e.stopPropagation();
+          router.push(`/user/${other.username}`);
+        }}
+      >
+        <Avatar account={other} />
+      </Pressable>
       <View className="flex-1">
         <View className="flex-row items-center justify-between">
           <Text

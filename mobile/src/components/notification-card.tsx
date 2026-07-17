@@ -84,7 +84,9 @@ export function NotificationCard({ notification }: Props) {
     if (notification.readAt === null) {
       markAsRead.mutate(notification.id);
     }
-    if (notification.type !== 'FOLLOW' && notification.referenceId) {
+    if (notification.type === 'FOLLOW' && notification.actor) {
+      router.push(`/user/${notification.actor.username}`);
+    } else if (notification.type !== 'FOLLOW' && notification.referenceId) {
       router.push(`/post/${notification.referenceId}`);
     }
   };
