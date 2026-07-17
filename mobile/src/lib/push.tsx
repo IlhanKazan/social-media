@@ -77,18 +77,12 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
 
       unsubTokenRefresh = messaging().onTokenRefresh(registerDeviceToken);
 
-      unsubForegroundMessage = messaging().onMessage(async (remoteMessage) => {
-        const { notification, data } = remoteMessage;
+      // In the foreground onMessage fires while the user is already in the app,
+      // so we skip the OS banner and just refresh in-app state (list + unread
+      // badge via the prefix-matched ['notifications'] key). Background/quit
+      // messages are shown by the system tray and never reach this handler.
+      unsubForegroundMessage = messaging().onMessage(async () => {
         void queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        if (!notification) return;
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: notification.title ?? 'SocialHan',
-            body: notification.body ?? '',
-            data: data ?? {},
-          },
-          trigger: null,
-        });
       });
     })();
 
