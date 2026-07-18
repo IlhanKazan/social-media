@@ -1,17 +1,20 @@
 import { Stack } from 'expo-router';
 import { LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
 import { useMe } from '@/features/profile/queries';
 import {
   useChangePassword,
   useDeleteAccount,
   useLogoutAll,
+  useNotificationPreferences,
   useSendVerification,
+  useUpdateNotificationPreferences,
 } from '@/features/settings/queries';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore, type ThemeMode } from '@/stores/theme-store';
+import type { NotificationPreferences } from '@/types/api';
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
   { mode: 'light', label: 'Light', Icon: Sun },
@@ -25,6 +28,37 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
       <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
       {subtitle && <Text className="mt-0.5 text-sm text-neutral-500">{subtitle}</Text>}
       <View className="mt-4">{children}</View>
+    </View>
+  );
+}
+
+const PREF_ROWS: { key: keyof NotificationPreferences; label: string }[] = [
+  { key: 'likes', label: 'Likes' },
+  { key: 'reposts', label: 'Reposts' },
+  { key: 'follows', label: 'New followers' },
+  { key: 'replies', label: 'Replies' },
+  { key: 'mentions', label: 'Mentions' },
+  { key: 'recommendations', label: 'Recommendations' },
+];
+
+function NotificationPreferencesControls() {
+  const { data: prefs } = useNotificationPreferences();
+  const update = useUpdateNotificationPreferences();
+
+  if (!prefs) return null;
+
+  return (
+    <View>
+      {PREF_ROWS.map(({ key, label }) => (
+        <View key={key} className="flex-row items-center justify-between py-1.5">
+          <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">{label}</Text>
+          <Switch
+            value={prefs[key]}
+            onValueChange={(value) => update.mutate({ ...prefs, [key]: value })}
+            disabled={update.isPending}
+          />
+        </View>
+      ))}
     </View>
   );
 }
@@ -107,6 +141,10 @@ export default function SettingsScreen() {
               );
             })}
           </View>
+        </Section>
+
+        <Section title="Notifications" subtitle="Choose which push notifications you receive.">
+          <NotificationPreferencesControls />
         </Section>
 
         {me && !me.emailVerified && (

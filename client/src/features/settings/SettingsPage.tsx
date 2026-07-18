@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { MfaSection } from './components/MfaSection';
 import { TotpSection } from './components/TotpSection';
+import { NotificationPreferencesSection } from './components/NotificationPreferencesSection';
 import {
   Dialog,
   DialogContent,
@@ -134,6 +135,16 @@ export function SettingsPage() {
               <Monitor className="h-4 w-4" /> Sistem
             </Button>
           </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold">Bildirim Tercihleri</h3>
+            <p className="text-sm text-muted-foreground">Hangi bildirimler için anlık bildirim (push) almak istediğini seç.</p>
+          </div>
+          <NotificationPreferencesSection />
         </section>
 
         <Separator />

@@ -157,6 +157,15 @@ export type NotificationType =
   | 'MODERATION_ALERT'
   | 'RECOMMENDATION';
 
+export interface NotificationPreferences {
+  likes: boolean;
+  reposts: boolean;
+  follows: boolean;
+  replies: boolean;
+  mentions: boolean;
+  recommendations: boolean;
+}
+
 export interface NotificationResponse {
   id: number;
   type: NotificationType;
