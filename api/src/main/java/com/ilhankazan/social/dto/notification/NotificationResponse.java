@@ -8,6 +8,8 @@ public record NotificationResponse(
     PublicAccountResponse actor,
     String type,
     Long referenceId,
+    int count,
     Instant readAt,
-    Instant createdAt
+    Instant createdAt,
+    Instant updatedAt
 ) {}

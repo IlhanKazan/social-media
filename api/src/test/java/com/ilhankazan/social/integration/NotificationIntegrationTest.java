@@ -1,5 +1,6 @@
 package com.ilhankazan.social.integration;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ilhankazan.social.base.BaseIntegrationTest;
 import com.ilhankazan.social.dto.auth.AuthResponse;
@@ -56,6 +57,67 @@ class NotificationIntegrationTest extends BaseIntegrationTest {
         assertThat(notifRes.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(notifRes.getBody()).contains("liker_user");
         assertThat(notifRes.getBody()).contains("LIKE");
+
+        ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
+        assertThat(countRes.getBody()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldCoalesceMultipleLikesIntoOneNotification() throws Exception {
+        AuthResponse ownerAuth = registerAndGetAuth("coal_owner");
+        AuthResponse liker1Auth = registerAndGetAuth("coal_liker1");
+        AuthResponse liker2Auth = registerAndGetAuth("coal_liker2");
+
+        HttpHeaders ownerHeaders = new HttpHeaders();
+        ownerHeaders.setBearerAuth(ownerAuth.accessToken());
+
+        CreatePostRequest postReq = new CreatePostRequest("Coalesce edilecek post", null, null);
+        ResponseEntity<String> postRes = restTemplate.exchange("/api/v1/posts", HttpMethod.POST, new HttpEntity<>(postReq, ownerHeaders), String.class);
+        PostResponse post = objectMapper.readValue(postRes.getBody(), PostResponse.class);
+
+        for (String token : new String[]{liker1Auth.accessToken(), liker2Auth.accessToken()}) {
+            HttpHeaders likerHeaders = new HttpHeaders();
+            likerHeaders.setBearerAuth(token);
+            restTemplate.exchange("/api/v1/posts/" + post.id() + "/interactions/like", HttpMethod.POST, new HttpEntity<>(likerHeaders), String.class);
+        }
+
+        ResponseEntity<String> notifRes = restTemplate.exchange("/api/v1/notifications?unread=true", HttpMethod.GET, new HttpEntity<>(ownerHeaders), String.class);
+        JsonNode content = objectMapper.readTree(notifRes.getBody()).get("content");
+
+        assertThat(content).hasSize(1);
+        assertThat(content.get(0).get("type").asText()).isEqualTo("LIKE");
+        assertThat(content.get(0).get("count").asInt()).isEqualTo(2);
+        assertThat(content.get(0).get("actor").get("username").asText()).isEqualTo("coal_liker2");
+
+        ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
+        assertThat(countRes.getBody()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldNotInflateCountWhenSameUserTogglesLike() throws Exception {
+        AuthResponse ownerAuth = registerAndGetAuth("toggle_owner");
+        AuthResponse likerAuth = registerAndGetAuth("toggle_liker");
+
+        HttpHeaders ownerHeaders = new HttpHeaders();
+        ownerHeaders.setBearerAuth(ownerAuth.accessToken());
+        HttpHeaders likerHeaders = new HttpHeaders();
+        likerHeaders.setBearerAuth(likerAuth.accessToken());
+
+        CreatePostRequest postReq = new CreatePostRequest("Toggle testi", null, null);
+        ResponseEntity<String> postRes = restTemplate.exchange("/api/v1/posts", HttpMethod.POST, new HttpEntity<>(postReq, ownerHeaders), String.class);
+        PostResponse post = objectMapper.readValue(postRes.getBody(), PostResponse.class);
+
+        // like -> unlike -> like: two "like created" events, one active like at the end
+        for (int i = 0; i < 3; i++) {
+            restTemplate.exchange("/api/v1/posts/" + post.id() + "/interactions/like", HttpMethod.POST, new HttpEntity<>(likerHeaders), String.class);
+        }
+
+        ResponseEntity<String> notifRes = restTemplate.exchange("/api/v1/notifications?unread=true", HttpMethod.GET, new HttpEntity<>(ownerHeaders), String.class);
+        JsonNode content = objectMapper.readTree(notifRes.getBody()).get("content");
+
+        assertThat(content).hasSize(1);
+        assertThat(content.get(0).get("type").asText()).isEqualTo("LIKE");
+        assertThat(content.get(0).get("count").asInt()).isEqualTo(1);
 
         ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
         assertThat(countRes.getBody()).isEqualTo(1);

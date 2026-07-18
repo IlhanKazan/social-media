@@ -32,6 +32,11 @@ public class NotificationService {
             return null;
         }
 
+        if (type.isAggregatable()) {
+            notificationRepository.upsertAggregate(recipientId, actorId, type.name(), referenceId);
+            return notificationRepository.findUnreadAggregate(recipientId, type, referenceId).orElse(null);
+        }
+
         Account recipient = accountRepository.findById(recipientId)
             .orElseThrow(() -> new EntityNotFoundException("Recipient not found"));
 
