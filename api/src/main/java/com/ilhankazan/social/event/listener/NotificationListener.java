@@ -111,6 +111,17 @@ public class NotificationListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleRecommendationCreated(RecommendationCreatedEvent event) {
+        Notification notification = notificationService.create(
+            event.recipientId(),
+            event.authorId(),
+            NotificationType.RECOMMENDATION,
+            event.postId()
+        );
+        notify(notification);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleModerationDecided(PostModerationDecidedEvent event) {
         if (event.status() == com.ilhankazan.social.entity.ModerationStatus.FLAGGED) {
             Account author = accountService.getAccount(event.authorUsername());
@@ -241,6 +252,7 @@ public class NotificationListener {
             case REPOST -> "gönderini yeniden paylaştı.";
             case QUOTE_REPOST -> "gönderini alıntıladı.";
             case MODERATION_ALERT -> "Gönderin topluluk kuralları ihlali sebebiyle gizlendi.";
+            case RECOMMENDATION -> "beğenebileceğin bir gönderi paylaştı.";
             default -> "yeni bir bildirim gönderdi.";
         };
     }

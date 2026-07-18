@@ -76,6 +76,11 @@ app:
   firebase:
     enabled: ${FIREBASE_ENABLED:false}
     credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+  recommendations:
+    enabled: ${RECOMMENDATIONS_ENABLED:false}
+    window-days: ${RECOMMENDATIONS_WINDOW_DAYS:7}
+    cooldown-hours: ${RECOMMENDATIONS_COOLDOWN_HOURS:24}
+    batch-size: ${RECOMMENDATIONS_BATCH_SIZE:25}
   email:
     enabled: ${EMAIL_ENABLED:false}
     provider: resend

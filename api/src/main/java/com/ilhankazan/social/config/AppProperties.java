@@ -51,4 +51,12 @@ public class AppProperties {
         boolean enabled,
         String credentialsPath
     ) {}
+
+    @ConfigurationProperties(prefix = "app.recommendations")
+    public record RecommendationProperties(
+        boolean enabled,
+        int windowDays,
+        int cooldownHours,
+        int batchSize
+    ) {}
 }

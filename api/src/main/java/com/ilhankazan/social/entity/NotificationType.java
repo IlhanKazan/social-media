@@ -8,7 +8,8 @@ public enum NotificationType {
     MENTION,
     REPOST,
     QUOTE_REPOST,
-    MODERATION_ALERT;
+    MODERATION_ALERT,
+    RECOMMENDATION;
 
     public boolean isAggregatable() {
         return this == LIKE || this == REPOST;

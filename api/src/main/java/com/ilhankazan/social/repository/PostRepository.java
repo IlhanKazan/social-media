@@ -97,6 +97,39 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     """, nativeQuery = true)
     Page<FeedItemProjection> getFollowingFeedUnion(@Param("userId") Long userId, Pageable pageable);
 
+    @Query(value = """
+        SELECT p.id FROM posts p
+        JOIN interactions i ON i.post_id = p.id AND i.type = 'LIKE' AND i.deleted_at IS NULL
+        WHERE p.parent_post_id IS NULL AND p.deleted_at IS NULL
+          AND """ + " " + PostVisibility.PUBLIC_SQL + """
+          AND p.created_at > :since
+          AND p.account_id <> :userId
+          AND i.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId)
+          AND p.account_id NOT IN (SELECT f2.following_id FROM follows f2 WHERE f2.follower_id = :userId)
+          AND NOT EXISTS (SELECT 1 FROM interactions mine WHERE mine.post_id = p.id AND mine.account_id = :userId AND mine.deleted_at IS NULL)
+          AND NOT EXISTS (SELECT 1 FROM notifications n WHERE n.recipient_id = :userId AND n.type = 'RECOMMENDATION' AND n.reference_id = p.id)
+        GROUP BY p.id
+        ORDER BY COUNT(DISTINCT i.account_id) DESC, p.created_at DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    List<Long> findCollaborativeRecommendation(@Param("userId") Long userId, @Param("since") Instant since);
+
+    @Query(value = """
+        SELECT p.id FROM posts p
+        JOIN interactions i ON i.post_id = p.id AND i.type = 'LIKE' AND i.deleted_at IS NULL
+        WHERE p.parent_post_id IS NULL AND p.deleted_at IS NULL
+          AND """ + " " + PostVisibility.PUBLIC_SQL + """
+          AND p.created_at > :since
+          AND p.account_id <> :userId
+          AND p.account_id NOT IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId)
+          AND NOT EXISTS (SELECT 1 FROM interactions mine WHERE mine.post_id = p.id AND mine.account_id = :userId AND mine.deleted_at IS NULL)
+          AND NOT EXISTS (SELECT 1 FROM notifications n WHERE n.recipient_id = :userId AND n.type = 'RECOMMENDATION' AND n.reference_id = p.id)
+        GROUP BY p.id
+        ORDER BY COUNT(DISTINCT i.account_id) DESC, p.created_at DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    List<Long> findTrendingRecommendation(@Param("userId") Long userId, @Param("since") Instant since);
+
     long countByModerationStatusAndCreatedAtAfter(ModerationStatus status, Instant since);
 
     @Query("SELECT p FROM Post p WHERE p.moderationStatus = 'PENDING' AND p.deletedAt IS NULL AND p.createdAt < :cutoff")
