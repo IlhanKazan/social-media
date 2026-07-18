@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Heart, UserPlus, AtSign, CornerDownRight, Bell, Repeat2, Quote, ShieldAlert, Trash2 } from 'lucide-react';
+import { Heart, UserPlus, AtSign, CornerDownRight, Bell, Repeat2, Quote, ShieldAlert, Trash2, Sparkles } from 'lucide-react';
 import type { NotificationResponse } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,7 +27,7 @@ export function NotificationCard({ notification }: Props) {
     if (notification.type === 'FOLLOW' && notification.actor) {
       navigate(`/u/${notification.actor.username}`);
     } else if (
-      ['REPLY', 'MENTION', 'LIKE', 'REPOST', 'QUOTE_REPOST', 'MODERATION_ALERT'].includes(notification.type)
+      ['REPLY', 'MENTION', 'LIKE', 'REPOST', 'QUOTE_REPOST', 'MODERATION_ALERT', 'RECOMMENDATION'].includes(notification.type)
     ) {
       if (notification.referenceId) {
         navigate(`/post/${notification.referenceId}`);
@@ -44,6 +44,7 @@ export function NotificationCard({ notification }: Props) {
       case 'REPOST': return <Repeat2 className="h-6 w-6 text-green-500" />;
       case 'QUOTE_REPOST': return <Quote className="h-6 w-6 text-green-500 fill-green-500/20" />;
       case 'MODERATION_ALERT': return <ShieldAlert className="h-6 w-6 text-destructive" />;
+      case 'RECOMMENDATION': return <Sparkles className="h-6 w-6 text-amber-500 fill-amber-500/20" />;
       default: return <Bell className="h-6 w-6 text-muted-foreground" />;
     }
   };
@@ -57,6 +58,7 @@ export function NotificationCard({ notification }: Props) {
       case 'REPOST': return 'gönderini yeniden paylaştı.';
       case 'QUOTE_REPOST': return 'gönderini alıntıladı.';
       case 'MODERATION_ALERT': return 'Gönderin topluluk kuralları ihlali sebebiyle gizlendi.';
+      case 'RECOMMENDATION': return 'beğenebileceğin bir gönderi paylaştı.';
       default: return 'yeni bir bildirim gönderdi.';
     }
   };

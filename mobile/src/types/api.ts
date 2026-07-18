@@ -154,7 +154,8 @@ export type NotificationType =
   | 'MENTION'
   | 'REPOST'
   | 'QUOTE_REPOST'
-  | 'MODERATION_ALERT';
+  | 'MODERATION_ALERT'
+  | 'RECOMMENDATION';
 
 export interface NotificationResponse {
   id: number;

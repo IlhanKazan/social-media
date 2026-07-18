@@ -139,7 +139,7 @@ export interface CreateQuoteRepostRequest {
 
 // ─── Notification ──────────────────────────────────────────────
 
-export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION' | 'REPOST' | 'QUOTE_REPOST' | 'MODERATION_ALERT';
+export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION' | 'REPOST' | 'QUOTE_REPOST' | 'MODERATION_ALERT' | 'RECOMMENDATION';
 
 export interface NotificationResponse {
   id: number;

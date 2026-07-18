@@ -9,6 +9,7 @@ import {
   Quote,
   Repeat2,
   ShieldAlert,
+  Sparkles,
   Trash2,
   UserPlus,
 } from 'lucide-react-native';
@@ -57,6 +58,7 @@ function icon(type: NotificationResponse['type']) {
     case 'REPOST': return <Repeat2 {...props} color="#22c55e" />;
     case 'QUOTE_REPOST': return <Quote {...props} color="#22c55e" />;
     case 'MODERATION_ALERT': return <ShieldAlert {...props} color="#ef4444" />;
+    case 'RECOMMENDATION': return <Sparkles {...props} color="#f59e0b" />;
     default: return <Bell {...props} color="#a3a3a3" />;
   }
 }
@@ -70,6 +72,7 @@ function message(type: NotificationResponse['type']) {
     case 'REPOST': return 'gönderini yeniden paylaştı.';
     case 'QUOTE_REPOST': return 'gönderini alıntıladı.';
     case 'MODERATION_ALERT': return 'Gönderin topluluk kuralları ihlali sebebiyle gizlendi.';
+    case 'RECOMMENDATION': return 'beğenebileceğin bir gönderi paylaştı.';
     default: return 'yeni bir bildirim gönderdi.';
   }
 }
