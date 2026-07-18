@@ -1,13 +1,17 @@
 package com.ilhankazan.social.manager;
 
 import com.ilhankazan.social.dto.common.PageResponse;
+import com.ilhankazan.social.dto.notification.NotificationPreferenceRequest;
+import com.ilhankazan.social.dto.notification.NotificationPreferenceResponse;
 import com.ilhankazan.social.dto.notification.NotificationResponse;
 import com.ilhankazan.social.entity.Notification;
+import com.ilhankazan.social.entity.NotificationPreference;
 import com.ilhankazan.social.entity.NotificationType;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.FollowService;
 import com.ilhankazan.social.service.InteractionService;
+import com.ilhankazan.social.service.NotificationPreferenceService;
 import com.ilhankazan.social.service.NotificationService;
 import com.ilhankazan.social.service.RepostService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,7 @@ public class NotificationManager {
     private final InteractionService interactionService;
     private final RepostService repostService;
     private final FollowService followService;
+    private final NotificationPreferenceService preferenceService;
 
     private Long getCurrentAccountId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -112,6 +117,21 @@ public class NotificationManager {
             notification.getCreatedAt(),
             notification.getUpdatedAt()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public NotificationPreferenceResponse getPreferences() {
+        return toPrefResponse(preferenceService.getOrDefault(getCurrentAccountId()));
+    }
+
+    @Transactional
+    public NotificationPreferenceResponse updatePreferences(NotificationPreferenceRequest request) {
+        return toPrefResponse(preferenceService.update(getCurrentAccountId(), request));
+    }
+
+    private NotificationPreferenceResponse toPrefResponse(NotificationPreference p) {
+        return new NotificationPreferenceResponse(
+            p.isLikes(), p.isReposts(), p.isFollows(), p.isReplies(), p.isMentions(), p.isRecommendations());
     }
 
     @Transactional

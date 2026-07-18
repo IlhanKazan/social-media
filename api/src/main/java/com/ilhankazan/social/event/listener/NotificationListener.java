@@ -12,6 +12,7 @@ import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.FollowService;
 import com.ilhankazan.social.service.InteractionService;
+import com.ilhankazan.social.service.NotificationPreferenceService;
 import com.ilhankazan.social.service.NotificationService;
 import com.ilhankazan.social.service.PostService;
 import com.ilhankazan.social.service.PushNotificationService;
@@ -41,6 +42,7 @@ public class NotificationListener {
     private final InteractionService interactionService;
     private final RepostService repostService;
     private final FollowService followService;
+    private final NotificationPreferenceService preferenceService;
 
     private static final Pattern MENTION_PATTERN = Pattern.compile("@([a-zA-Z0-9_]+)");
 
@@ -186,6 +188,7 @@ public class NotificationListener {
         );
 
         if (!shouldPush(notification.getType(), count)) return;
+        if (!preferenceService.isPushEnabled(notification.getRecipient().getId(), notification.getType())) return;
 
         pushNotificationService.send(
             notification.getRecipient().getId(),
