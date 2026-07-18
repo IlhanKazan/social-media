@@ -56,8 +56,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             void useNotificationStore.getState().fetchUnreadCount();
 
             // Like/repost are coalesced and throttled — skip their toast so they can't
-            // spam; still toast the high-value types (reply/mention/follow/quote/moderation).
+            // spam; still toast the high-value types (reply/mention/quote/moderation).
+            // Follows coalesce too: toast only the leading edge so mass-follows stay quiet.
             if (notification.type === 'LIKE' || notification.type === 'REPOST') return;
+            if (notification.type === 'FOLLOW' && notification.count > 1) return;
 
             toast(notification.type === 'MODERATION_ALERT' ? 'Uyarı' : 'Yeni Bildirim', {
               description: getToastMessage(notification),
