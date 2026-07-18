@@ -114,13 +114,16 @@ export function NotificationCard({ notification }: Props) {
           ) : (
             <Text className="font-bold">
               {(notification.actor?.displayName || notification.actor?.username) + ' '}
+              {notification.count > 1 && (
+                <Text className="font-normal text-neutral-500">{`ve ${notification.count - 1} kişi daha `}</Text>
+              )}
             </Text>
           )}
           <Text className="text-neutral-700 dark:text-neutral-300">{message(notification.type)}</Text>
         </Text>
 
         <Text className="mt-1 text-sm text-neutral-500">
-          {formatDistanceToNowStrict(new Date(notification.createdAt), { addSuffix: true })}
+          {formatDistanceToNowStrict(new Date(notification.updatedAt), { addSuffix: true })}
         </Text>
       </View>
     </Pressable>

@@ -51,7 +51,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         client.subscribe('/user/queue/notifications', (message) => {
           if (message.body) {
             const notification = JSON.parse(message.body) as NotificationResponse;
-            useNotificationStore.getState().incrementUnread();
+            // Server-authoritative badge: a coalesced like/repost reuses one unread row,
+            // so refetch the count instead of blindly incrementing.
+            void useNotificationStore.getState().fetchUnreadCount();
+
+            // Like/repost are coalesced and throttled — skip their toast so they can't
+            // spam; still toast the high-value types (reply/mention/follow/quote/moderation).
+            if (notification.type === 'LIKE' || notification.type === 'REPOST') return;
 
             toast(notification.type === 'MODERATION_ALERT' ? 'Uyarı' : 'Yeni Bildirim', {
               description: getToastMessage(notification),

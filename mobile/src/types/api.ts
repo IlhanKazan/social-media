@@ -161,8 +161,10 @@ export interface NotificationResponse {
   type: NotificationType;
   actor: PublicAccountResponse | null;
   referenceId: number | null;
+  count: number;
   readAt: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Messages ──────────────────────────────────────────────────

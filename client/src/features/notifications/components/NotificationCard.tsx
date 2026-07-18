@@ -110,7 +110,12 @@ export function NotificationCard({ notification }: Props) {
           {isSystemNotification ? (
             <span className="font-bold mr-1 text-destructive">Sistem Bildirimi</span>
           ) : (
-            <span className="font-bold mr-1">{notification.actor?.displayName || notification.actor?.username}</span>
+            <span className="font-bold mr-1">
+              {notification.actor?.displayName || notification.actor?.username}
+              {notification.count > 1 && (
+                <span className="font-normal text-muted-foreground"> ve {notification.count - 1} kişi daha</span>
+              )}
+            </span>
           )}
 
           <span className={isSystemNotification ? "text-muted-foreground block mt-0.5" : ""}>
@@ -119,7 +124,7 @@ export function NotificationCard({ notification }: Props) {
         </div>
 
         <span className="text-sm text-muted-foreground mt-1">
-          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: tr })}
+          {formatDistanceToNow(new Date(notification.updatedAt), { addSuffix: true, locale: tr })}
         </span>
       </div>
     </div>
