@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, MessageSquareOff } from 'lucide-react';
 import { usePost, usePostReplies, usePostAncestors } from './hooks/use-post';
 import { useLiveReplies } from './hooks/use-live-replies';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
+import { LikersDialog } from './components/LikersDialog';
 import { PostCard } from '@/features/feed/components/PostCard';
 import { CreatePost } from '@/features/feed/components/CreatePost';
 import { useAuthStore } from '@/stores/auth-store';
@@ -15,6 +16,7 @@ export function PostDetailPage() {
   const postId = Number(id);
   const navigate = useNavigate();
   const account = useAuthStore((state) => state.account);
+  const [likersOpen, setLikersOpen] = useState(false);
 
   const { data: post, status: postStatus } = usePost(postId);
   const { data: ancestors } = usePostAncestors(postId);
@@ -81,6 +83,18 @@ export function PostDetailPage() {
       <div ref={focusedRef} className="scroll-mt-[57px]">
         <PostCard post={post} connector={ancestorCount > 0 ? 'top' : 'none'} />
       </div>
+
+      {post.likeCount > 0 && (
+        <button
+          onClick={() => setLikersOpen(true)}
+          className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50 text-left text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+        >
+          <span className="font-bold">{post.likeCount}</span>{' '}
+          <span className="text-muted-foreground">beğeni</span>
+        </button>
+      )}
+
+      <LikersDialog postId={postId} open={likersOpen} onOpenChange={setLikersOpen} />
 
       {account && (
         <div className="border-t border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10">

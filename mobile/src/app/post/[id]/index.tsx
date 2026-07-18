@@ -53,6 +53,16 @@ export default function PostDetailScreen() {
               <PostCard key={ancestor.id} post={ancestor} />
             ))}
             <PostCard post={post.data} pressable={false} />
+            {post.data.likeCount > 0 && (
+              <Pressable
+                className="border-b border-neutral-100 px-4 py-3 active:bg-neutral-50 dark:border-neutral-800 dark:active:bg-neutral-900"
+                onPress={() => router.push(`/post/${postId}/likers`)}
+              >
+                <Text className="text-sm text-neutral-700 dark:text-neutral-300">
+                  <Text className="font-bold text-neutral-900 dark:text-neutral-50">{post.data.likeCount}</Text> beğeni
+                </Text>
+              </Pressable>
+            )}
             <View className="border-b border-neutral-100 px-4 py-2 dark:border-neutral-800">
               <Text className="text-sm font-bold text-neutral-500">Replies</Text>
             </View>
