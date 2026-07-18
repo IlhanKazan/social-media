@@ -1,6 +1,7 @@
 package com.ilhankazan.social.event.listener;
 
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
+import com.ilhankazan.social.dto.interaction.InteractionCounts;
 import com.ilhankazan.social.dto.notification.NotificationResponse;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Notification;
@@ -9,8 +10,13 @@ import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.*;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
+import com.ilhankazan.social.service.FollowService;
+import com.ilhankazan.social.service.InteractionService;
+import com.ilhankazan.social.service.NotificationPreferenceService;
 import com.ilhankazan.social.service.NotificationService;
 import com.ilhankazan.social.service.PostService;
+import com.ilhankazan.social.service.PushNotificationService;
+import com.ilhankazan.social.service.RepostService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,6 +24,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +38,11 @@ public class NotificationListener {
     private final AccountService accountService;
     private final SimpMessagingTemplate messagingTemplate;
     private final AccountMapper accountMapper;
+    private final PushNotificationService pushNotificationService;
+    private final InteractionService interactionService;
+    private final RepostService repostService;
+    private final FollowService followService;
+    private final NotificationPreferenceService preferenceService;
 
     private static final Pattern MENTION_PATTERN = Pattern.compile("@([a-zA-Z0-9_]+)");
 
@@ -46,7 +59,7 @@ public class NotificationListener {
                 NotificationType.REPLY,
                 postId
             );
-            pushToWebSocket(notification);
+            notify(notification);
         }
 
         if (event.post().quotedPost() != null) {
@@ -57,7 +70,7 @@ public class NotificationListener {
                 NotificationType.QUOTE_REPOST,
                 postId
             );
-            pushToWebSocket(notification);
+            notify(notification);
         }
 
         handleMentions(event.post().content(), actorId, postId);
@@ -71,7 +84,7 @@ public class NotificationListener {
             NotificationType.REPOST,
             event.originalPostId()
         );
-        pushToWebSocket(notification);
+        notify(notification);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -85,19 +98,29 @@ public class NotificationListener {
                 NotificationType.LIKE,
                 post.getId()
             );
-            pushToWebSocket(notification);
+            notify(notification);
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleFollowCreated(FollowCreatedEvent event) {
-        Notification notification = notificationService.create(
+        Notification notification = notificationService.upsertFollow(
             event.followingId(),
             event.followerId(),
-            NotificationType.FOLLOW,
-            event.followerId()
+            event.followedAt()
         );
-        pushToWebSocket(notification);
+        notify(notification);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleRecommendationCreated(RecommendationCreatedEvent event) {
+        Notification notification = notificationService.create(
+            event.recipientId(),
+            event.authorId(),
+            NotificationType.RECOMMENDATION,
+            event.postId()
+        );
+        notify(notification);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -112,7 +135,7 @@ public class NotificationListener {
                 event.postId()
             );
 
-            pushToWebSocket(notification);
+            notify(notification);
         }
     }
 
@@ -130,14 +153,14 @@ public class NotificationListener {
                     NotificationType.MENTION,
                     referenceId
                 );
-                pushToWebSocket(notification);
+                notify(notification);
             } catch (EntityNotFoundException e) {
                 // Etiketlenen kullanici sistemde yoksa sessizce yoksay
             }
         }
     }
 
-    private void pushToWebSocket(Notification notification) {
+    private void notify(Notification notification) {
         if (notification == null) return;
 
         PublicAccountResponse actorResponse = null;
@@ -145,13 +168,17 @@ public class NotificationListener {
             actorResponse = accountMapper.toPublicResponseNoFollow(notification.getActor());
         }
 
+        int count = aggregatedCount(notification);
+
         NotificationResponse response = new NotificationResponse(
             notification.getId(),
             actorResponse,
             notification.getType().name(),
             notification.getReferenceId(),
+            count,
             notification.getReadAt(),
-            notification.getCreatedAt()
+            notification.getCreatedAt(),
+            notification.getUpdatedAt()
         );
 
         messagingTemplate.convertAndSendToUser(
@@ -159,5 +186,77 @@ public class NotificationListener {
             "/queue/notifications",
             response
         );
+
+        if (!shouldPush(notification.getType(), count)) return;
+        if (!preferenceService.isPushEnabled(notification.getRecipient().getId(), notification.getType())) return;
+
+        pushNotificationService.send(
+            notification.getRecipient().getId(),
+            pushTitle(notification),
+            pushBody(notification.getType(), count),
+            Map.of(
+                "type", notification.getType().name(),
+                "referenceId", String.valueOf(notification.getReferenceId()),
+                "notificationId", String.valueOf(notification.getId())
+            )
+        );
+    }
+
+    // Distinct current likers/reposters/followers of the target, derived from the source
+    // tables so toggling can never inflate the count. Follows are window-scoped to the
+    // aggregate's created_at. At least 1 (the latest actor).
+    private int aggregatedCount(Notification notification) {
+        Long ref = notification.getReferenceId();
+        long count = switch (notification.getType()) {
+            case LIKE -> ref == null ? 0L
+                : interactionService.getCountsForPosts(List.of(ref))
+                    .getOrDefault(ref, InteractionCounts.EMPTY).likes();
+            case REPOST -> ref == null ? 0L
+                : repostService.getRepostCounts(List.of(ref)).getOrDefault(ref, 0L);
+            case FOLLOW -> followService.countFollowersInWindow(
+                notification.getRecipient().getId(), notification.getCreatedAt(), null);
+            default -> 1L;
+        };
+        return (int) Math.max(1L, count);
+    }
+
+    // Coalesced notifications only push on the first interaction and at milestones;
+    // the in-between updates still reach the app silently over websocket.
+    private boolean shouldPush(NotificationType type, int count) {
+        if (type.isAggregatable() || type == NotificationType.FOLLOW) {
+            return count == 1 || count == 10 || count == 50 || count == 100;
+        }
+        return true;
+    }
+
+    private String pushTitle(Notification notification) {
+        Account actor = notification.getActor();
+        if (actor == null) {
+            return "Sistem Bildirimi";
+        }
+        return actor.getDisplayName() != null ? actor.getDisplayName() : actor.getUsername();
+    }
+
+    private String pushBody(NotificationType type, int count) {
+        if ((type.isAggregatable() || type == NotificationType.FOLLOW) && count > 1) {
+            int others = count - 1;
+            return switch (type) {
+                case LIKE -> "ve " + others + " kişi daha gönderini beğendi.";
+                case REPOST -> "ve " + others + " kişi daha gönderini yeniden paylaştı.";
+                case FOLLOW -> "ve " + others + " kişi daha seni takip etmeye başladı.";
+                default -> "ve " + others + " kişi daha etkileşimde bulundu.";
+            };
+        }
+        return switch (type) {
+            case LIKE -> "gönderini beğendi.";
+            case REPLY -> "sana bir yanıt verdi.";
+            case MENTION -> "senden bahsetti.";
+            case FOLLOW -> "seni takip etmeye başladı.";
+            case REPOST -> "gönderini yeniden paylaştı.";
+            case QUOTE_REPOST -> "gönderini alıntıladı.";
+            case MODERATION_ALERT -> "Gönderin topluluk kuralları ihlali sebebiyle gizlendi.";
+            case RECOMMENDATION -> "beğenebileceğin bir gönderi paylaştı.";
+            default -> "yeni bir bildirim gönderdi.";
+        };
     }
 }

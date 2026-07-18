@@ -32,6 +32,11 @@ public class NotificationService {
             return null;
         }
 
+        if (type.isAggregatable()) {
+            notificationRepository.upsertAggregate(recipientId, actorId, type.name(), referenceId);
+            return notificationRepository.findUnreadAggregate(recipientId, type, referenceId).orElse(null);
+        }
+
         Account recipient = accountRepository.findById(recipientId)
             .orElseThrow(() -> new EntityNotFoundException("Recipient not found"));
 
@@ -47,6 +52,15 @@ public class NotificationService {
         notification.setReferenceId(referenceId);
 
         return notificationRepository.save(notification);
+    }
+
+    // Follow'lar reference_id'ye (post) göre değil (recipient, FOLLOW) bazında coalesce edilir:
+    // her takipçi farklı olduğu için tek bir okunmamış "seni takip etti" satırında toplanır.
+    @CacheEvict(value = "unreadNotificationCount", key = "#result != null ? #result.recipient.username : 'null'")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Notification upsertFollow(Long recipientId, Long actorId, Instant followedAt) {
+        notificationRepository.upsertFollowAggregate(recipientId, actorId, followedAt);
+        return notificationRepository.findUnreadFollowAggregate(recipientId).orElse(null);
     }
 
     @Transactional(readOnly = true)

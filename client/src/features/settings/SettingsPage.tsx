@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { MfaSection } from './components/MfaSection';
 import { TotpSection } from './components/TotpSection';
+import { NotificationPreferencesSection } from './components/NotificationPreferencesSection';
 import {
   Dialog,
   DialogContent,
@@ -140,6 +141,16 @@ export function SettingsPage() {
 
         <section className="space-y-4">
           <div className="mb-4">
+            <h3 className="text-lg font-bold">Bildirim Tercihleri</h3>
+            <p className="text-sm text-muted-foreground">Hangi bildirimler için anlık bildirim (push) almak istediğini seç.</p>
+          </div>
+          <NotificationPreferencesSection />
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="mb-4">
             <h3 className="text-lg font-bold">Hesap Doğrulama</h3>
             <p className="text-sm text-muted-foreground">E-posta adresini onayla ve mavi tik rozetini al.</p>
           </div>
@@ -156,6 +167,9 @@ export function SettingsPage() {
                   <ShieldAlert className="h-4 w-4 text-amber-500" />
                 )}
               </div>
+              {account?.email && (
+                <p className="text-sm font-medium break-all">{account.email}</p>
+              )}
               <p className="text-sm text-muted-foreground">
                 {isLoading
                   ? 'Kontrol ediliyor...'

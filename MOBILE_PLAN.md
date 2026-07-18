@@ -139,38 +139,44 @@ backend, and FCM registration + handlers on the client. See **Phase M6**.
 - **Acceptance:** all four interactions update counts and survive refetch.
   Verified on device.
 
-### [ ] M6 — Notifications + FCM push (new backend infra)
+### [x] M6 — Notifications + FCM push (new backend infra)
+Code complete (2026-07-17); on-device verification pending a dev-client build.
 **Backend work (api/):**
-- [ ] Migration `V29__device_tokens.sql`: `device_tokens(id, account_id FK,
+- [x] Migration `V29__device_tokens.sql`: `device_tokens(id, account_id FK,
   token, platform, created_at, updated_at, deleted_at)` + unique on `token`.
-- [ ] `DeviceToken` entity + repository; `POST /api/v1/devices` (register/upsert),
+- [x] `DeviceToken` entity + repository; `POST /api/v1/devices` (register/upsert),
   `DELETE /api/v1/devices/{token}` (unregister on logout).
-- [ ] Add **Firebase Admin SDK** dependency; init from the service-account secret.
-- [ ] `PushNotificationService.send(accountId, payload)` → look up the user's
-  device tokens, send via FCM, prune tokens FCM reports as stale.
-- [ ] Hook into the existing notification flow: where the WebSocket notification
-  is published, **also** enqueue an FCM push (respect a future per-user
-  notification preference; default on).
+- [x] Add **Firebase Admin SDK** dependency; init from the service-account secret
+  (opt-in via `FIREBASE_ENABLED` + `FIREBASE_CREDENTIALS_PATH`).
+- [x] `PushNotificationService.send(accountId, payload)` → look up the user's
+  device tokens, send via FCM, prune tokens FCM reports as stale (UNREGISTERED).
+- [x] Hook into the existing notification flow: `NotificationListener` now fans
+  every in-app notification out to FCM alongside the websocket push.
 **Mobile work:**
-- [ ] `@react-native-firebase/app` + `/messaging` via Expo config plugin;
-  drop in `google-services.json`.
-- [ ] Request POST-notifications permission (Android 13+); get the FCM token;
-  register it (`POST /devices`) on login; refresh on token rotation.
-- [ ] Foreground messages → in-app toast/local notification (`expo-notifications`).
-  Background/quit taps → deep-link to the relevant screen (post/notification/DM).
-- [ ] Notifications screen (list, mark-read, mark-all-read) — web parity.
+- [x] `@react-native-firebase/app` + `/messaging` via Expo config plugin;
+  `google-services.json` wired through `app.json`.
+- [x] Request POST-notifications permission (Android 13+, via `expo-notifications`
+  since RNFirebase's requestPermission is a no-op on Android); get the FCM token;
+  register it (`POST /devices`); refresh on token rotation; unregister on logout.
+- [x] Foreground messages → local notification (`expo-notifications`).
+  Background/quit taps → deep-link to the relevant screen (post / notifications).
+- [x] Notifications screen (list, mark-read, mark-all-read, delete, unread badge)
+  — web parity.
 - **Acceptance:** a like/follow/reply triggers a system push on a backgrounded
   app; tapping it deep-links correctly; unregister on logout stops pushes.
+  (Requires the dev-client build to verify on device — Expo Go can't load RNFirebase.)
 
-### [ ] M7 — Messaging / DMs + realtime
-Realtime feed portion pulled forward and done (2026-07-16); DM screens remain.
+### [x] M7 — Messaging / DMs + realtime
+Realtime feed pulled forward earlier (2026-07-16); DMs done (2026-07-17).
 **Backend work (api/):**
 - [x] Register a **non-SockJS** STOMP endpoint (`/ws-native`) alongside `/ws`.
 **Mobile work:**
-- [x] `@stomp/stompjs` client with native `webSocketFactory` → `wss://<api>/ws-native`,
+- [x] `@stomp/stompjs` client with native WebSocket → `ws(s)://<api>/ws-native`,
   `connectHeaders: { Authorization: Bearer <token> }`, reconnect/backoff.
-- [ ] Conversation list + conversation view, optimistic send, read receipts,
-  unread counts — mirror `client/src/features/messaging`.
+- [x] Conversation list + conversation view, optimistic send, read receipts,
+  unread counts — mirrors `client/src/features/messaging`. A single app-wide
+  `MessagingProvider` owns the `/user/queue/messages` + `/user/queue/read-receipts`
+  subscriptions (avoids double-processing from list + open-conversation mounts).
 - [x] Reconnect on app foreground; re-auth the STOMP connection when the access
   token rotates.
 - [x] Live feed: `/topic/feed` subscription prepends new top-level posts into
@@ -178,14 +184,26 @@ Realtime feed portion pulled forward and done (2026-07-16); DM screens remain.
   trigger a Following refetch instead of an optimistic splice, since the
   broadcast isn't scoped to the follow graph — the client can't safely decide
   who's followed without asking the server.
-- **Acceptance (DMs, still open):** two devices exchange messages in real
-  time; read receipts and unread badges update; reconnect after backgrounding
-  works.
+- **Acceptance:** two devices exchange messages in real time; read receipts and
+  unread badges update; reconnect after backgrounding works.
+- Note: starting a *new* conversation from a user profile lands with **M8**
+  (no profile screen yet); existing conversations are fully functional.
 
-### [ ] M8 — Profile + settings
-- Own + others' profile (header, counts, posts, follow/unfollow).
-- Settings: theme, MFA management (reuse endpoints), logout (clears secure-store +
-  unregisters device token).
+### [x] M8 — Profile + settings
+Code complete (2026-07-17); on-device verification pending.
+- [x] Own + others' profile (`ProfileView`: cover/avatar, bio, joined date,
+  follower/following counts, Posts/Replies/Likes tabs reusing `PostCard`).
+  Own profile → Edit + settings gear; others → Follow/Unfollow + Message.
+- [x] Edit profile (displayName, bio, avatar, cover via existing multipart upload).
+- [x] Follower/following list screen (segmented toggle, per-row follow buttons).
+- [x] Profile navigation wired from post-card avatar/name and notification actors.
+- [x] **Start-new-DM** (deferred from M7): Message button → `POST /conversations/with/{id}`
+  → opens the thread. Closes the M7 gap.
+- [x] Settings: theme (Light/Dark/System, persisted via a theme store + NativeWind
+  `setColorScheme`), email verification, change password, logout, logout-all,
+  delete account.
+- Deferred: **MFA enable/disable UI** (TOTP QR + recovery codes) — later milestone;
+  login-time MFA already works.
 - **Acceptance:** view/follow works; logout fully clears session and stops push.
 
 ### [ ] M9 — Build, test, distribute

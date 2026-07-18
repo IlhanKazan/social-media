@@ -1,5 +1,6 @@
 package com.ilhankazan.social.controller;
 
+import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.interaction.InteractionStatusResponse;
 import com.ilhankazan.social.manager.InteractionManager;
@@ -38,6 +39,16 @@ public class InteractionController {
     @PostMapping("/dislike")
     public ResponseEntity<InteractionStatusResponse> toggleDislike(@PathVariable Long postId) {
         return ResponseEntity.ok(interactionManager.toggleDislike(postId));
+    }
+
+    @Operation(summary = "Get likers", description = "Returns a paginated list of users who liked the post, newest first.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved likers")
+    @GetMapping("/likers")
+    public ResponseEntity<PageResponse<PublicAccountResponse>> getLikers(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(interactionManager.getLikers(postId, page, size));
     }
 
 }

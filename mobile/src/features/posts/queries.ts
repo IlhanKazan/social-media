@@ -13,6 +13,7 @@ import type {
   FeedItemResponse,
   PageResponse,
   PostResponse,
+  PublicAccountResponse,
 } from '@/types/api';
 
 const PAGE_SIZE = 20;
@@ -63,6 +64,13 @@ export function useAncestors(postId: number) {
 
 export function useReplies(postId: number) {
   return usePagedPosts<PostResponse>(['post', postId, 'replies'], `/posts/${postId}/replies`);
+}
+
+export function useLikers(postId: number) {
+  return usePagedPosts<PublicAccountResponse>(
+    ['post', postId, 'likers'],
+    `/posts/${postId}/interactions/likers`
+  );
 }
 
 export async function uploadPostImage(uri: string): Promise<string> {

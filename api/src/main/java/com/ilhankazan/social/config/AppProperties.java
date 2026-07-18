@@ -45,4 +45,18 @@ public class AppProperties {
         String appName,
         String logoUrl
     ) {}
+
+    @ConfigurationProperties(prefix = "app.firebase")
+    public record FirebaseProperties(
+        boolean enabled,
+        String credentialsPath
+    ) {}
+
+    @ConfigurationProperties(prefix = "app.recommendations")
+    public record RecommendationProperties(
+        boolean enabled,
+        int windowDays,
+        int cooldownHours,
+        int batchSize
+    ) {}
 }

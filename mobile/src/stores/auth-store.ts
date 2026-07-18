@@ -3,6 +3,7 @@ import axios from 'axios';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { unregisterCurrentDevice } from '@/lib/device-token';
 import { API_BASE_URL } from '@/lib/env';
 import { clearRefreshToken, getRefreshToken, setRefreshToken } from '@/lib/storage';
 import type { AccountSummary, AuthResponse } from '@/types/api';
@@ -40,6 +41,9 @@ export const useAuthStore = create<AuthState>()(
         set({ token: resp.accessToken, account: resp.account });
       },
       logout: async () => {
+        // Unregister before /auth/logout blacklists the access token below.
+        await unregisterCurrentDevice(get().token);
+
         const refreshToken = await getRefreshToken();
         try {
           await axios.post(authUrl('/logout'), { refreshToken }, {

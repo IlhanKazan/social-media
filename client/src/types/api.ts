@@ -139,15 +139,26 @@ export interface CreateQuoteRepostRequest {
 
 // ─── Notification ──────────────────────────────────────────────
 
-export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION' | 'REPOST' | 'QUOTE_REPOST' | 'MODERATION_ALERT';
+export type NotificationType = 'LIKE' | 'FOLLOW' | 'REPLY' | 'MENTION' | 'REPOST' | 'QUOTE_REPOST' | 'MODERATION_ALERT' | 'RECOMMENDATION';
+
+export interface NotificationPreferences {
+  likes: boolean;
+  reposts: boolean;
+  follows: boolean;
+  replies: boolean;
+  mentions: boolean;
+  recommendations: boolean;
+}
 
 export interface NotificationResponse {
   id: number;
   type: NotificationType;
   actor: PublicAccountResponse;
   referenceId: number | null;
+  count: number;
   readAt: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Messages ──────────────────────────────────────────────────

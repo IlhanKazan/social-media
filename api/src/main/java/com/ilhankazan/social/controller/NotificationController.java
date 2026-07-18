@@ -1,6 +1,8 @@
 package com.ilhankazan.social.controller;
 
 import com.ilhankazan.social.dto.common.PageResponse;
+import com.ilhankazan.social.dto.notification.NotificationPreferenceRequest;
+import com.ilhankazan.social.dto.notification.NotificationPreferenceResponse;
 import com.ilhankazan.social.dto.notification.NotificationResponse;
 import com.ilhankazan.social.manager.NotificationManager;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,5 +63,19 @@ public class NotificationController {
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
         notificationManager.deleteNotification(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get notification preferences", description = "Returns the current user's per-category push preferences.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved preferences")
+    @GetMapping("/preferences")
+    public ResponseEntity<NotificationPreferenceResponse> getPreferences() {
+        return ResponseEntity.ok(notificationManager.getPreferences());
+    }
+
+    @Operation(summary = "Update notification preferences")
+    @ApiResponse(responseCode = "200", description = "Successfully updated preferences")
+    @PutMapping("/preferences")
+    public ResponseEntity<NotificationPreferenceResponse> updatePreferences(@RequestBody NotificationPreferenceRequest request) {
+        return ResponseEntity.ok(notificationManager.updatePreferences(request));
     }
 }
