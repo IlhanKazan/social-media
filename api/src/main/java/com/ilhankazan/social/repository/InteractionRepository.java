@@ -1,7 +1,10 @@
 package com.ilhankazan.social.repository;
 
+import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Interaction;
 import com.ilhankazan.social.entity.InteractionType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +18,9 @@ import java.util.Optional;
 public interface InteractionRepository extends JpaRepository<Interaction, Long> {
 
     Optional<Interaction> findByAccountIdAndPostIdAndType(Long accountId, Long postId, InteractionType type);
+
+    @Query("SELECT i.account FROM Interaction i WHERE i.post.id = :postId AND i.type = com.ilhankazan.social.entity.InteractionType.LIKE ORDER BY i.createdAt DESC")
+    Page<Account> findLikersByPostId(@Param("postId") Long postId, Pageable pageable);
 
     @Query("""
         SELECT i.post.id AS postId, i.type AS type, COUNT(i) AS count
