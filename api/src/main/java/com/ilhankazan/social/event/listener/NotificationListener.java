@@ -10,6 +10,7 @@ import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.event.*;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
+import com.ilhankazan.social.service.FollowService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.NotificationService;
 import com.ilhankazan.social.service.PostService;
@@ -39,6 +40,7 @@ public class NotificationListener {
     private final PushNotificationService pushNotificationService;
     private final InteractionService interactionService;
     private final RepostService repostService;
+    private final FollowService followService;
 
     private static final Pattern MENTION_PATTERN = Pattern.compile("@([a-zA-Z0-9_]+)");
 
@@ -100,11 +102,10 @@ public class NotificationListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleFollowCreated(FollowCreatedEvent event) {
-        Notification notification = notificationService.create(
+        Notification notification = notificationService.upsertFollow(
             event.followingId(),
             event.followerId(),
-            NotificationType.FOLLOW,
-            event.followerId()
+            event.followedAt()
         );
         notify(notification);
     }
@@ -187,8 +188,9 @@ public class NotificationListener {
         );
     }
 
-    // Distinct current likers/reposters of the target, derived from the source tables so
-    // toggling a like/repost can never inflate the count. At least 1 (the latest actor).
+    // Distinct current likers/reposters/followers of the target, derived from the source
+    // tables so toggling can never inflate the count. Follows are window-scoped to the
+    // aggregate's created_at. At least 1 (the latest actor).
     private int aggregatedCount(Notification notification) {
         Long ref = notification.getReferenceId();
         long count = switch (notification.getType()) {
@@ -197,16 +199,20 @@ public class NotificationListener {
                     .getOrDefault(ref, InteractionCounts.EMPTY).likes();
             case REPOST -> ref == null ? 0L
                 : repostService.getRepostCounts(List.of(ref)).getOrDefault(ref, 0L);
+            case FOLLOW -> followService.countFollowersInWindow(
+                notification.getRecipient().getId(), notification.getCreatedAt(), null);
             default -> 1L;
         };
         return (int) Math.max(1L, count);
     }
 
-    // Aggregatable notifications only push on the first interaction and at milestones;
+    // Coalesced notifications only push on the first interaction and at milestones;
     // the in-between updates still reach the app silently over websocket.
     private boolean shouldPush(NotificationType type, int count) {
-        if (!type.isAggregatable()) return true;
-        return count == 1 || count == 10 || count == 50 || count == 100;
+        if (type.isAggregatable() || type == NotificationType.FOLLOW) {
+            return count == 1 || count == 10 || count == 50 || count == 100;
+        }
+        return true;
     }
 
     private String pushTitle(Notification notification) {
@@ -218,11 +224,12 @@ public class NotificationListener {
     }
 
     private String pushBody(NotificationType type, int count) {
-        if (type.isAggregatable() && count > 1) {
+        if ((type.isAggregatable() || type == NotificationType.FOLLOW) && count > 1) {
             int others = count - 1;
             return switch (type) {
                 case LIKE -> "ve " + others + " kişi daha gönderini beğendi.";
                 case REPOST -> "ve " + others + " kişi daha gönderini yeniden paylaştı.";
+                case FOLLOW -> "ve " + others + " kişi daha seni takip etmeye başladı.";
                 default -> "ve " + others + " kişi daha etkileşimde bulundu.";
             };
         }

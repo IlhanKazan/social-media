@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ilhankazan.social.repository.FollowRepository.AccountCountRow;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,11 +20,11 @@ public class FollowService {
     private final FollowRepository followRepository;
 
     @Transactional
-    public void follow(Account follower, Account target) {
+    public Instant follow(Account follower, Account target) {
         Follow follow = new Follow();
         follow.setFollower(follower);
         follow.setFollowing(target);
-        followRepository.save(follow);
+        return followRepository.save(follow).getCreatedAt();
     }
 
     @Transactional
@@ -73,6 +74,13 @@ public class FollowService {
         if (accountIds.isEmpty()) return Collections.emptyMap();
         return followRepository.countFollowingForAccounts(accountIds).stream()
             .collect(Collectors.toMap(AccountCountRow::getAccountId, AccountCountRow::getCount));
+    }
+
+    @Transactional(readOnly = true)
+    public long countFollowersInWindow(Long recipientId, Instant start, Instant end) {
+        return end == null
+            ? followRepository.countFollowersSince(recipientId, start)
+            : followRepository.countFollowersBetween(recipientId, start, end);
     }
 
     @Transactional(readOnly = true)

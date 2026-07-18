@@ -54,6 +54,15 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
+    // Follow'lar reference_id'ye (post) göre değil (recipient, FOLLOW) bazında coalesce edilir:
+    // her takipçi farklı olduğu için tek bir okunmamış "seni takip etti" satırında toplanır.
+    @CacheEvict(value = "unreadNotificationCount", key = "#result != null ? #result.recipient.username : 'null'")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Notification upsertFollow(Long recipientId, Long actorId, Instant followedAt) {
+        notificationRepository.upsertFollowAggregate(recipientId, actorId, followedAt);
+        return notificationRepository.findUnreadFollowAggregate(recipientId).orElse(null);
+    }
+
     @Transactional(readOnly = true)
     public Page<Notification> findUnread(Long userId, Pageable pageable) {
         return notificationRepository.findByRecipientIdAndReadAtIsNull(userId, pageable);

@@ -6,6 +6,7 @@ import com.ilhankazan.social.entity.Notification;
 import com.ilhankazan.social.entity.NotificationType;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.AccountService;
+import com.ilhankazan.social.service.FollowService;
 import com.ilhankazan.social.service.InteractionService;
 import com.ilhankazan.social.service.NotificationService;
 import com.ilhankazan.social.service.RepostService;
@@ -32,6 +33,7 @@ public class NotificationManager {
     private final AccountMapper accountMapper;
     private final InteractionService interactionService;
     private final RepostService repostService;
+    private final FollowService followService;
 
     private Long getCurrentAccountId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -54,7 +56,7 @@ public class NotificationManager {
         Map<Long, Long> likeCounts = aggregateCounts(notifications.getContent(), NotificationType.LIKE);
         Map<Long, Long> repostCounts = aggregateCounts(notifications.getContent(), NotificationType.REPOST);
 
-        return PageResponse.of(notifications.map(n -> toResponse(n, likeCounts, repostCounts)));
+        return PageResponse.of(notifications.map(n -> toResponse(n, currentId, likeCounts, repostCounts)));
     }
 
     private Map<Long, Long> aggregateCounts(List<Notification> notifications, NotificationType type) {
@@ -71,10 +73,11 @@ public class NotificationManager {
         return repostService.getRepostCounts(refs);
     }
 
-    private int aggregatedCount(Notification n, Map<Long, Long> likeCounts, Map<Long, Long> repostCounts) {
+    private int aggregatedCount(Notification n, Long recipientId, Map<Long, Long> likeCounts, Map<Long, Long> repostCounts) {
         long count = switch (n.getType()) {
             case LIKE -> likeCounts.getOrDefault(n.getReferenceId(), 0L);
             case REPOST -> repostCounts.getOrDefault(n.getReferenceId(), 0L);
+            case FOLLOW -> followService.countFollowersInWindow(recipientId, n.getCreatedAt(), n.getReadAt());
             default -> 1L;
         };
         return (int) Math.max(1L, count);
@@ -98,13 +101,13 @@ public class NotificationManager {
         notificationService.markAllRead(getCurrentAccountId());
     }
 
-    private NotificationResponse toResponse(Notification notification, Map<Long, Long> likeCounts, Map<Long, Long> repostCounts) {
+    private NotificationResponse toResponse(Notification notification, Long recipientId, Map<Long, Long> likeCounts, Map<Long, Long> repostCounts) {
         return new NotificationResponse(
             notification.getId(),
             accountMapper.toPublicResponseNoFollow(notification.getActor()),
             notification.getType().name(),
             notification.getReferenceId(),
-            aggregatedCount(notification, likeCounts, repostCounts),
+            aggregatedCount(notification, recipientId, likeCounts, repostCounts),
             notification.getReadAt(),
             notification.getCreatedAt(),
             notification.getUpdatedAt()

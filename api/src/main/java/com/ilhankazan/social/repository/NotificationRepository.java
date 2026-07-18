@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -32,6 +33,21 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Optional<Notification> findUnreadAggregate(@Param("recipientId") Long recipientId,
                                                @Param("type") NotificationType type,
                                                @Param("referenceId") Long referenceId);
+
+    @Modifying
+    @Query(value = """
+        INSERT INTO notifications (recipient_id, actor_id, type, reference_id, created_at, updated_at)
+        VALUES (:recipientId, :actorId, 'FOLLOW', :actorId, :followedAt, NOW())
+        ON CONFLICT (recipient_id) WHERE read_at IS NULL AND type = 'FOLLOW'
+        DO UPDATE SET actor_id = :actorId, reference_id = :actorId, updated_at = NOW()
+        """, nativeQuery = true)
+    void upsertFollowAggregate(@Param("recipientId") Long recipientId,
+                               @Param("actorId") Long actorId,
+                               @Param("followedAt") Instant followedAt);
+
+    @Query("SELECT n FROM Notification n JOIN FETCH n.recipient LEFT JOIN FETCH n.actor "
+        + "WHERE n.recipient.id = :recipientId AND n.type = com.ilhankazan.social.entity.NotificationType.FOLLOW AND n.readAt IS NULL")
+    Optional<Notification> findUnreadFollowAggregate(@Param("recipientId") Long recipientId);
 
     @Query("SELECT n FROM Notification n LEFT JOIN FETCH n.actor WHERE n.recipient.id = :recipientId AND n.readAt IS NULL")
     Page<Notification> findByRecipientIdAndReadAtIsNull(@Param("recipientId") Long recipientId, Pageable pageable);

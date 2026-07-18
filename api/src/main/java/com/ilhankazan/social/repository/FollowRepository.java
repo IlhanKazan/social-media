@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -42,6 +43,15 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     @Query("SELECT f.following.id FROM Follow f WHERE f.follower.id = :followerId AND f.following.id IN :followingIds")
     List<Long> findFollowingIdsByFollowerIdAndFollowingIdsIn(@Param("followerId") Long followerId, @Param("followingIds") List<Long> followingIds);
+
+    @Query("SELECT COUNT(f) FROM Follow f WHERE f.following.id = :recipientId AND f.createdAt >= :start")
+    long countFollowersSince(@Param("recipientId") Long recipientId, @Param("start") Instant start);
+
+    @Query("SELECT COUNT(f) FROM Follow f WHERE f.following.id = :recipientId "
+        + "AND f.createdAt >= :start AND f.createdAt <= :end")
+    long countFollowersBetween(@Param("recipientId") Long recipientId,
+                               @Param("start") Instant start,
+                               @Param("end") Instant end);
 
     @Modifying
     @Query("DELETE FROM Follow f WHERE f.follower.id = :accountId OR f.following.id = :accountId")

@@ -122,4 +122,59 @@ class NotificationIntegrationTest extends BaseIntegrationTest {
         ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
         assertThat(countRes.getBody()).isEqualTo(1);
     }
+
+    @Test
+    void shouldCoalesceMultipleFollowsIntoOneNotification() throws Exception {
+        AuthResponse ownerAuth = registerAndGetAuth("fcoal_owner");
+        AuthResponse follower1Auth = registerAndGetAuth("fcoal_one");
+        AuthResponse follower2Auth = registerAndGetAuth("fcoal_two");
+        Long ownerId = ownerAuth.account().id();
+
+        HttpHeaders ownerHeaders = new HttpHeaders();
+        ownerHeaders.setBearerAuth(ownerAuth.accessToken());
+
+        for (String token : new String[]{follower1Auth.accessToken(), follower2Auth.accessToken()}) {
+            HttpHeaders followerHeaders = new HttpHeaders();
+            followerHeaders.setBearerAuth(token);
+            restTemplate.exchange("/api/v1/follow/" + ownerId, HttpMethod.POST, new HttpEntity<>(followerHeaders), String.class);
+        }
+
+        ResponseEntity<String> notifRes = restTemplate.exchange("/api/v1/notifications?unread=true", HttpMethod.GET, new HttpEntity<>(ownerHeaders), String.class);
+        JsonNode content = objectMapper.readTree(notifRes.getBody()).get("content");
+
+        assertThat(content).hasSize(1);
+        assertThat(content.get(0).get("type").asText()).isEqualTo("FOLLOW");
+        assertThat(content.get(0).get("count").asInt()).isEqualTo(2);
+        assertThat(content.get(0).get("actor").get("username").asText()).isEqualTo("fcoal_two");
+
+        ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
+        assertThat(countRes.getBody()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldNotInflateFollowCountWhenSameUserTogglesFollow() throws Exception {
+        AuthResponse ownerAuth = registerAndGetAuth("ftoggle_owner");
+        AuthResponse followerAuth = registerAndGetAuth("ftoggle_follower");
+        Long ownerId = ownerAuth.account().id();
+
+        HttpHeaders ownerHeaders = new HttpHeaders();
+        ownerHeaders.setBearerAuth(ownerAuth.accessToken());
+        HttpHeaders followerHeaders = new HttpHeaders();
+        followerHeaders.setBearerAuth(followerAuth.accessToken());
+
+        // follow -> unfollow -> follow: two follow events, one active follow at the end
+        restTemplate.exchange("/api/v1/follow/" + ownerId, HttpMethod.POST, new HttpEntity<>(followerHeaders), String.class);
+        restTemplate.exchange("/api/v1/follow/" + ownerId, HttpMethod.DELETE, new HttpEntity<>(followerHeaders), String.class);
+        restTemplate.exchange("/api/v1/follow/" + ownerId, HttpMethod.POST, new HttpEntity<>(followerHeaders), String.class);
+
+        ResponseEntity<String> notifRes = restTemplate.exchange("/api/v1/notifications?unread=true", HttpMethod.GET, new HttpEntity<>(ownerHeaders), String.class);
+        JsonNode content = objectMapper.readTree(notifRes.getBody()).get("content");
+
+        assertThat(content).hasSize(1);
+        assertThat(content.get(0).get("type").asText()).isEqualTo("FOLLOW");
+        assertThat(content.get(0).get("count").asInt()).isEqualTo(1);
+
+        ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
+        assertThat(countRes.getBody()).isEqualTo(1);
+    }
 }

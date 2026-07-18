@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,8 +53,8 @@ public class FollowManager {
         Account follower = accountService.getAccountById(currentId);
         Account target = accountService.getAccountById(targetId);
 
-        followService.follow(follower, target);
-        eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId));
+        Instant followedAt = followService.follow(follower, target);
+        eventPublisher.publishEvent(new FollowCreatedEvent(currentId, targetId, followedAt));
 
         evictProfileCaches(target);
     }
