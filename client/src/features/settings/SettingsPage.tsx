@@ -156,6 +156,9 @@ export function SettingsPage() {
                   <ShieldAlert className="h-4 w-4 text-amber-500" />
                 )}
               </div>
+              {account?.email && (
+                <p className="text-sm font-medium break-all">{account.email}</p>
+              )}
               <p className="text-sm text-muted-foreground">
                 {isLoading
                   ? 'Kontrol ediliyor...'

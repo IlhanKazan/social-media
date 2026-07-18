@@ -76,6 +76,15 @@ export default function SettingsScreen() {
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <Stack.Screen options={{ title: 'Settings', headerShown: true }} />
       <ScrollView keyboardShouldPersistTaps="handled">
+        {me && (
+          <Section title="Account">
+            <Text className="text-sm text-neutral-500">Email</Text>
+            <Text className="mt-0.5 text-[15px] font-medium text-neutral-900 dark:text-neutral-50">
+              {me.email}
+            </Text>
+          </Section>
+        )}
+
         <Section title="Appearance" subtitle="Customize the app theme.">
           <View className="flex-row gap-2">
             {THEME_OPTIONS.map(({ mode: m, label, Icon }) => {
