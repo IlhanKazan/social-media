@@ -51,7 +51,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
-      <Text className="mb-8 text-center text-3xl font-bold text-neutral-900 dark:text-neutral-50">
+      <Text className="mb-8 text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
         SocialHan
       </Text>
 
@@ -61,7 +61,7 @@ export default function LoginScreen() {
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             className="mb-1 rounded-xl border border-neutral-300 px-4 py-3 text-neutral-900 dark:border-neutral-700 dark:text-neutral-50"
-            placeholder="Username or email"
+            placeholder="Kullanıcı adı veya e-posta"
             placeholderTextColor="#737373"
             autoCapitalize="none"
             autoCorrect={false}
@@ -81,7 +81,7 @@ export default function LoginScreen() {
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             className="mb-1 mt-3 rounded-xl border border-neutral-300 px-4 py-3 text-neutral-900 dark:border-neutral-700 dark:text-neutral-50"
-            placeholder="Password"
+            placeholder="Şifre"
             placeholderTextColor="#737373"
             secureTextEntry
             onBlur={onBlur}
@@ -103,19 +103,19 @@ export default function LoginScreen() {
         disabled={loginMutation.isPending}
         onPress={handleSubmit(onSubmit)}
       >
-        <Text className="text-center text-base font-semibold text-white">
-          {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
+        <Text className="text-center text-base font-sans-semibold text-white">
+          {loginMutation.isPending ? 'Giriş yapılıyor…' : 'Giriş Yap'}
         </Text>
       </Pressable>
 
       <Link href="/forgot-password" asChild>
         <Pressable className="mt-5">
-          <Text className="text-center text-primary">Forgot password?</Text>
+          <Text className="text-center text-primary">Şifreni mi unuttun?</Text>
         </Pressable>
       </Link>
       <Link href="/register" asChild>
         <Pressable className="mt-3">
-          <Text className="text-center text-primary">No account? Sign up</Text>
+          <Text className="text-center text-primary">Hesabın yok mu? Kayıt ol</Text>
         </Pressable>
       </Link>
     </KeyboardAvoidingView>

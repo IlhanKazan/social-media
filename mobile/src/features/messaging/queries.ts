@@ -64,6 +64,36 @@ export function useMessages(conversationId: number | undefined) {
   });
 }
 
+export function useSendDmImage(conversationId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ uri, caption }: { uri: string; caption?: string }) => {
+      const filename = uri.split('/').pop() ?? 'photo.jpg';
+      const extension = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
+      const mimeType = extension === 'png' ? 'image/png'
+        : extension === 'webp' ? 'image/webp'
+        : extension === 'gif' ? 'image/gif'
+        : 'image/jpeg';
+
+      const formData = new FormData();
+      // RN's FormData takes a { uri, name, type } descriptor instead of a Blob.
+      formData.append('file', { uri, name: filename, type: mimeType } as unknown as Blob);
+      if (caption) formData.append('caption', caption);
+
+      const { data } = await api.post<MessageResponse>(
+        `/conversations/${conversationId}/messages/image`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      return data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+}
+
 export function useMarkConversationRead() {
   const queryClient = useQueryClient();
   return useMutation({

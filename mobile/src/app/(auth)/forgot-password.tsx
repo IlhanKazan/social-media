@@ -32,7 +32,7 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
-      <Text className="text-center text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+      <Text className="text-center text-2xl font-sans-bold text-neutral-900 dark:text-neutral-50">
         Reset password
       </Text>
 
@@ -47,7 +47,7 @@ export default function ForgotPasswordScreen() {
             control={control}
             name="email"
             error={errors.email?.message}
-            placeholder="Email"
+            placeholder="E-posta"
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
@@ -57,8 +57,8 @@ export default function ForgotPasswordScreen() {
             disabled={requestMutation.isPending}
             onPress={handleSubmit((values) => requestMutation.mutate(values))}
           >
-            <Text className="text-center text-base font-semibold text-white">
-              {requestMutation.isPending ? 'Sending…' : 'Send reset link'}
+            <Text className="text-center text-base font-sans-semibold text-white">
+              {requestMutation.isPending ? 'Gönderiliyor…' : 'Sıfırlama bağlantısı gönder'}
             </Text>
           </Pressable>
         </>
@@ -66,7 +66,7 @@ export default function ForgotPasswordScreen() {
 
       <Link href="/login" asChild>
         <Pressable className="mt-6">
-          <Text className="text-center text-primary">Back to sign in</Text>
+          <Text className="text-center text-primary">Girişe geri dön</Text>
         </Pressable>
       </Link>
     </KeyboardAvoidingView>

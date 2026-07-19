@@ -157,6 +157,11 @@ export type NotificationType =
   | 'MODERATION_ALERT'
   | 'RECOMMENDATION';
 
+export interface CombinedSearchResponse {
+  users: PublicAccountResponse[];
+  posts: PostResponse[];
+}
+
 export interface NotificationPreferences {
   likes: boolean;
   reposts: boolean;

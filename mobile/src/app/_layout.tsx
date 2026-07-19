@@ -1,13 +1,24 @@
 import '../global.css';
 
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from '@expo-google-fonts/inter';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
+import { useEffect } from 'react';
 
 import { SessionGate } from '@/components/session-gate';
 import { MessagingProvider } from '@/features/messaging/messaging-provider';
+// Side effect: makes Inter the default font for every Text/TextInput.
+import '@/lib/default-font';
 import { queryClient } from '@/lib/query-client';
 import { PushNotificationProvider } from '@/lib/push';
 import { WebSocketProvider } from '@/lib/ws';
@@ -15,7 +26,22 @@ import { WebSocketProvider } from '@/lib/ws';
 // mode to NativeWind before first paint.
 import '@/stores/theme-store';
 
+void SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
   // NativeWind's effective scheme (respects the persisted Light/Dark/System choice).
   const { colorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
@@ -23,9 +49,14 @@ export default function RootLayout() {
   // Match the nav container + card background to the screens' bg so
   // transitions don't flash white (screens use bg-white / dark:bg-neutral-950).
   const background = dark ? '#0a0a0a' : '#ffffff';
+  const foreground = dark ? '#f5f5f5' : '#0a0a0a';
   const theme = dark
     ? { ...DarkTheme, colors: { ...DarkTheme.colors, background } }
     : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background } };
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -38,6 +69,10 @@ export default function RootLayout() {
                   screenOptions={{
                     headerShown: false,
                     contentStyle: { backgroundColor: background },
+                    headerStyle: { backgroundColor: background },
+                    headerShadowVisible: false,
+                    headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 18, color: foreground },
+                    headerTintColor: foreground,
                   }}
                 >
                   <Stack.Screen name="(tabs)" />

@@ -8,8 +8,6 @@ import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -19,6 +17,7 @@ import {
 import { z } from 'zod';
 
 import { uploadAvatar, uploadCover, useMe, useUpdateProfile } from '@/features/profile/queries';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { useAuthStore } from '@/stores/auth-store';
 
 const schema = z.object({
@@ -37,7 +36,7 @@ async function pickImage(aspect: [number, number]): Promise<string | null> {
   const asset = result.assets?.[0];
   if (result.canceled || !asset) return null;
   if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-    Alert.alert('Image too large', 'The image must be smaller than 5MB.');
+    Alert.alert('Fotoğraf çok büyük', 'Fotoğraf 5MB’den küçük olmalı.');
     return null;
   }
   return asset.uri;
@@ -46,6 +45,7 @@ async function pickImage(aspect: [number, number]): Promise<string | null> {
 export default function EditProfileScreen() {
   const router = useRouter();
   const { data: me } = useMe();
+  const keyboardHeight = useKeyboardHeight();
   const updateProfile = useUpdateProfile(me?.username);
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export default function EditProfileScreen() {
       );
       router.back();
     } catch {
-      Alert.alert('Update failed', 'Something went wrong. Please try again.');
+      Alert.alert('Güncellenemedi', 'Bir şeyler ters gitti. Lütfen tekrar dene.');
     } finally {
       setSaving(false);
     }
@@ -96,13 +96,10 @@ export default function EditProfileScreen() {
   const avatarSource = avatarUri ?? me?.profileImageUrl;
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-white dark:bg-neutral-950"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View className="flex-1 bg-white dark:bg-neutral-950">
       <Stack.Screen
         options={{
-          title: 'Edit profile',
+          title: 'Profili Düzenle',
           presentation: 'modal',
           headerShown: true,
           headerRight: () => (
@@ -110,14 +107,14 @@ export default function EditProfileScreen() {
               {saving ? (
                 <ActivityIndicator size="small" />
               ) : (
-                <Text className="font-bold text-primary">Save</Text>
+                <Text className="font-sans-bold text-primary">Kaydet</Text>
               )}
             </Pressable>
           ),
         }}
       />
 
-      <ScrollView keyboardShouldPersistTaps="handled">
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: keyboardHeight + 24 }}>
         <Pressable className="h-36 w-full bg-neutral-200 dark:bg-neutral-800" onPress={async () => {
           const uri = await pickImage([3, 1]);
           if (uri) setCoverUri(uri);
@@ -151,7 +148,7 @@ export default function EditProfileScreen() {
           </Pressable>
 
           <View className="mt-6">
-            <Text className="mb-1 text-sm font-medium text-neutral-500">Display name</Text>
+            <Text className="mb-1 text-sm font-sans-medium text-neutral-500">Görünen ad</Text>
             <Controller
               control={control}
               name="displayName"
@@ -159,7 +156,7 @@ export default function EditProfileScreen() {
                 <>
                   <TextInput
                     className="rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-                    placeholder="Your name"
+                    placeholder="Adın"
                     placeholderTextColor="#737373"
                     value={value}
                     onChangeText={onChange}
@@ -174,7 +171,7 @@ export default function EditProfileScreen() {
           </View>
 
           <View className="mt-4">
-            <Text className="mb-1 text-sm font-medium text-neutral-500">Bio</Text>
+            <Text className="mb-1 text-sm font-sans-medium text-neutral-500">Hakkında</Text>
             <Controller
               control={control}
               name="bio"
@@ -182,7 +179,7 @@ export default function EditProfileScreen() {
                 <>
                   <TextInput
                     className="min-h-[90px] rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-                    placeholder="Tell people about yourself"
+                    placeholder="Kendinden bahset"
                     placeholderTextColor="#737373"
                     value={value}
                     onChangeText={onChange}
@@ -199,6 +196,6 @@ export default function EditProfileScreen() {
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

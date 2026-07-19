@@ -62,7 +62,7 @@ export default function MfaScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
-      <Text className="text-center text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+      <Text className="text-center text-2xl font-sans-bold text-neutral-900 dark:text-neutral-50">
         Two-factor verification
       </Text>
       <Text className="mt-2 text-center text-neutral-500 dark:text-neutral-400">
@@ -91,7 +91,7 @@ export default function MfaScreen() {
         control={control}
         name="code"
         error={errors.code?.message}
-        placeholder="Verification code"
+        placeholder="Doğrulama kodu"
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType={method === 'RECOVERY' ? 'default' : 'number-pad'}
@@ -110,8 +110,8 @@ export default function MfaScreen() {
           verifyMutation.mutate(values);
         })}
       >
-        <Text className="text-center text-base font-semibold text-white">
-          {verifyMutation.isPending ? 'Verifying…' : 'Verify'}
+        <Text className="text-center text-base font-sans-semibold text-white">
+          {verifyMutation.isPending ? 'Doğrulanıyor…' : 'Doğrula'}
         </Text>
       </Pressable>
 
@@ -121,7 +121,7 @@ export default function MfaScreen() {
           disabled={resendMutation.isPending}
           onPress={() => resendMutation.mutate()}
         >
-          <Text className="text-center text-primary">Resend email code</Text>
+          <Text className="text-center text-primary">E-posta kodunu tekrar gönder</Text>
         </Pressable>
       )}
     </KeyboardAvoidingView>

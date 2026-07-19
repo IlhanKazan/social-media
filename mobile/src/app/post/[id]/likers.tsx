@@ -41,14 +41,14 @@ function LikerRow({ user }: { user: PublicAccountResponse }) {
         <Image source={{ uri: user.profileImageUrl }} style={{ width: 44, height: 44, borderRadius: 22 }} />
       ) : (
         <View className="h-11 w-11 items-center justify-center rounded-full bg-neutral-300 dark:bg-neutral-700">
-          <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
+          <Text className="text-sm font-sans-bold text-neutral-700 dark:text-neutral-200">
             {user.username.substring(0, 2).toUpperCase()}
           </Text>
         </View>
       )}
 
       <View className="flex-1">
-        <Text className="font-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
+        <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
           {user.displayName || user.username}
         </Text>
         <Text className="text-sm text-neutral-500" numberOfLines={1}>
@@ -68,10 +68,10 @@ function LikerRow({ user }: { user: PublicAccountResponse }) {
         >
           <Text
             className={
-              following ? 'text-sm font-bold text-neutral-900 dark:text-neutral-50' : 'text-sm font-bold text-white'
+              following ? 'text-sm font-sans-bold text-neutral-900 dark:text-neutral-50' : 'text-sm font-sans-bold text-white'
             }
           >
-            {following ? 'Following' : 'Follow'}
+            {following ? 'Takip Ediliyor' : 'Takip Et'}
           </Text>
         </Pressable>
       )}
@@ -87,7 +87,7 @@ export default function LikersScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: 'Likes', headerShown: true }} />
+      <Stack.Screen options={{ title: 'Beğenenler', headerShown: true }} />
 
       <FlatList
         data={items}
@@ -106,7 +106,7 @@ export default function LikersScreen() {
             </View>
           ) : (
             <View className="items-center py-10">
-              <Text className="text-neutral-500">No likes yet.</Text>
+              <Text className="text-neutral-500">Henüz beğeni yok.</Text>
             </View>
           )
         }

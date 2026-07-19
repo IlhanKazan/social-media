@@ -14,6 +14,7 @@ import type {
   PageResponse,
   PostResponse,
   PublicAccountResponse,
+  UpdatePostRequest,
 } from '@/types/api';
 
 const PAGE_SIZE = 20;
@@ -71,6 +72,36 @@ export function useLikers(postId: number) {
     ['post', postId, 'likers'],
     `/posts/${postId}/interactions/likers`
   );
+}
+
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ postId, request }: { postId: number; request: UpdatePostRequest }) => {
+      const { data } = await api.patch<PostResponse>(`/posts/${postId}`, request);
+      return data;
+    },
+    onSuccess: (_data, { postId }) => {
+      void queryClient.invalidateQueries({ queryKey: ['feed'] });
+      void queryClient.invalidateQueries({ queryKey: ['explore'] });
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
+      void queryClient.invalidateQueries({ queryKey: ['post', postId] });
+    },
+  });
+}
+
+export function useDeletePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: number) => {
+      await api.delete(`/posts/${postId}`);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['feed'] });
+      void queryClient.invalidateQueries({ queryKey: ['explore'] });
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
 }
 
 export async function uploadPostImage(uri: string): Promise<string> {

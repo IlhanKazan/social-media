@@ -6,15 +6,14 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from 'react-native';
 
-import { uploadPostImage, useCreatePost, useQuoteRepost } from '@/features/posts/queries';
+import { uploadPostImage, useCreatePost, useQuoteRepost, useUpdatePost } from '@/features/posts/queries';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import type { ErrorResponse } from '@/types/api';
 
 const MAX_CONTENT_LENGTH = 500;
@@ -27,17 +26,22 @@ export default function ComposeScreen() {
     quotePostId?: string;
     quoteAuthor?: string;
     quoteContent?: string;
+    editPostId?: string;
+    initialContent?: string;
+    editImageUrl?: string;
   }>();
   const parentPostId = params.parentPostId ? Number(params.parentPostId) : undefined;
   const quotePostId = params.quotePostId ? Number(params.quotePostId) : undefined;
+  const editPostId = params.editPostId ? Number(params.editPostId) : undefined;
 
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(params.initialContent ?? '');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const createPost = useCreatePost();
   const quoteRepost = useQuoteRepost();
-  const busy = uploading || createPost.isPending || quoteRepost.isPending;
+  const updatePost = useUpdatePost();
+  const busy = uploading || createPost.isPending || quoteRepost.isPending || updatePost.isPending;
   const canSubmit = content.trim().length > 0 && content.length <= MAX_CONTENT_LENGTH && !busy;
 
   const pickImage = async () => {
@@ -76,21 +80,32 @@ export default function ComposeScreen() {
       },
     };
 
-    if (quotePostId) {
+    if (editPostId) {
+      updatePost.mutate(
+        { postId: editPostId, request: { content: content.trim(), imageUrl: params.editImageUrl } },
+        callbacks
+      );
+    } else if (quotePostId) {
       quoteRepost.mutate({ content: content.trim(), imageUrl, quotedPostId: quotePostId }, callbacks);
     } else {
       createPost.mutate({ content: content.trim(), imageUrl, parentPostId }, callbacks);
     }
   };
 
+  const keyboardHeight = useKeyboardHeight();
+
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-white dark:bg-neutral-950"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View style={{ flex: 1, paddingBottom: keyboardHeight }}>
+      <View className="flex-1 bg-white dark:bg-neutral-950">
       <Stack.Screen
         options={{
-          title: quotePostId ? 'Quote' : parentPostId ? 'Reply' : 'New post',
+          title: editPostId
+            ? 'Gönderiyi Düzenle'
+            : quotePostId
+              ? 'Alıntıla'
+              : parentPostId
+                ? 'Yanıtla'
+                : 'Yeni gönderi',
           presentation: 'modal',
           headerShown: true,
         }}
@@ -98,13 +113,13 @@ export default function ComposeScreen() {
 
       <View className="flex-1 p-4">
         {parentPostId && params.parentAuthor && (
-          <Text className="mb-2 text-sm text-neutral-500">Replying to @{params.parentAuthor}</Text>
+          <Text className="mb-2 text-sm text-neutral-500">@{params.parentAuthor} kullanıcısına yanıt</Text>
         )}
 
         <TextInput
-          className="min-h-[120px] text-base text-neutral-900 dark:text-neutral-50"
+          className="min-h-[120px] text-[17px] text-neutral-900 dark:text-neutral-50"
           placeholder={
-            quotePostId ? 'Add your thoughts...' : parentPostId ? 'Post your reply' : "What's happening?"
+            quotePostId ? 'Düşüncelerini ekle...' : parentPostId ? 'Yanıtını gönder' : 'Neler oluyor?'
           }
           placeholderTextColor="#737373"
           multiline
@@ -117,7 +132,7 @@ export default function ComposeScreen() {
 
         {quotePostId && (
           <View className="mt-2 rounded-2xl border border-neutral-200 p-3 opacity-70 dark:border-neutral-800">
-            <Text className="text-sm font-bold text-neutral-900 dark:text-neutral-50">
+            <Text className="text-sm font-sans-bold text-neutral-900 dark:text-neutral-50">
               {params.quoteAuthor}
             </Text>
             <Text className="mt-0.5 text-sm text-neutral-500" numberOfLines={3}>
@@ -153,9 +168,9 @@ export default function ComposeScreen() {
         <Pressable
           className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-100 dark:active:bg-neutral-900"
           onPress={pickImage}
-          disabled={busy || !!imageUri}
+          disabled={busy || !!imageUri || !!editPostId}
         >
-          <ImageIcon size={22} color={imageUri ? '#a3a3a3' : '#208AEF'} />
+          <ImageIcon size={22} color={imageUri || editPostId ? '#a3a3a3' : '#208AEF'} />
         </Pressable>
 
         <View className="flex-row items-center gap-3">
@@ -174,11 +189,14 @@ export default function ComposeScreen() {
             {busy ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <Text className="font-bold text-white">{parentPostId ? 'Reply' : 'Post'}</Text>
+              <Text className="font-sans-bold text-white">
+                {editPostId ? 'Kaydet' : parentPostId ? 'Yanıtla' : 'Gönder'}
+              </Text>
             )}
           </Pressable>
         </View>
       </View>
-    </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 }
