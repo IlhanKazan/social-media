@@ -50,3 +50,15 @@ export const useDeleteNotification = () => {
     },
   });
 };
+
+export function useDeleteAllNotifications() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete('/notifications');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}
