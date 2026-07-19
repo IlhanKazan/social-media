@@ -124,6 +124,33 @@ class NotificationIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    void shouldDeleteAllNotifications() throws Exception {
+        AuthResponse ownerAuth = registerAndGetAuth("delall_owner");
+        AuthResponse likerAuth = registerAndGetAuth("delall_liker");
+
+        HttpHeaders ownerHeaders = new HttpHeaders();
+        ownerHeaders.setBearerAuth(ownerAuth.accessToken());
+        HttpHeaders likerHeaders = new HttpHeaders();
+        likerHeaders.setBearerAuth(likerAuth.accessToken());
+
+        CreatePostRequest postReq = new CreatePostRequest("Silinecek bildirimler", null, null);
+        ResponseEntity<String> postRes = restTemplate.exchange("/api/v1/posts", HttpMethod.POST, new HttpEntity<>(postReq, ownerHeaders), String.class);
+        PostResponse post = objectMapper.readValue(postRes.getBody(), PostResponse.class);
+
+        restTemplate.exchange("/api/v1/posts/" + post.id() + "/interactions/like", HttpMethod.POST, new HttpEntity<>(likerHeaders), String.class);
+        restTemplate.exchange("/api/v1/follow/" + ownerAuth.account().id(), HttpMethod.POST, new HttpEntity<>(likerHeaders), String.class);
+
+        ResponseEntity<Void> deleteRes = restTemplate.exchange("/api/v1/notifications", HttpMethod.DELETE, new HttpEntity<>(ownerHeaders), Void.class);
+        assertThat(deleteRes.getStatusCode().is2xxSuccessful()).isTrue();
+
+        ResponseEntity<String> notifRes = restTemplate.exchange("/api/v1/notifications", HttpMethod.GET, new HttpEntity<>(ownerHeaders), String.class);
+        assertThat(objectMapper.readTree(notifRes.getBody()).get("content")).isEmpty();
+
+        ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/notifications/unread-count", HttpMethod.GET, new HttpEntity<>(ownerHeaders), Integer.class);
+        assertThat(countRes.getBody()).isEqualTo(0);
+    }
+
+    @Test
     void shouldCoalesceMultipleFollowsIntoOneNotification() throws Exception {
         AuthResponse ownerAuth = registerAndGetAuth("fcoal_owner");
         AuthResponse follower1Auth = registerAndGetAuth("fcoal_one");

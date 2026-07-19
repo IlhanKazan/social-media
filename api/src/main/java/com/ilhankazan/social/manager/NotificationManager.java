@@ -142,4 +142,10 @@ public class NotificationManager {
         }
         notificationService.delete(id);
     }
+
+    @CacheEvict(value = "unreadNotificationCount", key = "@auth.user()")
+    @Transactional
+    public void deleteAllNotifications() {
+        notificationService.deleteAll(getCurrentAccountId());
+    }
 }

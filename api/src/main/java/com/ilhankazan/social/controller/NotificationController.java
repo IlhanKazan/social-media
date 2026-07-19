@@ -65,6 +65,14 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Delete all notifications", description = "Deletes every notification belonging to the current user.")
+    @ApiResponse(responseCode = "204", description = "Successfully deleted all notifications")
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllNotifications() {
+        notificationManager.deleteAllNotifications();
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Get notification preferences", description = "Returns the current user's per-category push preferences.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved preferences")
     @GetMapping("/preferences")
