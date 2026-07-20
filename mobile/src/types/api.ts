@@ -129,6 +129,7 @@ export interface PostResponse {
   moderationStatus: ModerationStatus;
   adminStatus: AdminStatus;
   isEdited: boolean;
+  viewCount: number;
 }
 
 export interface FeedItemResponse {

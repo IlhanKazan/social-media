@@ -60,4 +60,7 @@ public class Post extends BaseEntity {
 
     @Column(name = "is_edited", nullable = false)
     private boolean isEdited = false;
+
+    @Column(name = "view_count", nullable = false)
+    private long viewCount = 0;
 }

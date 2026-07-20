@@ -1,5 +1,6 @@
 package com.ilhankazan.social.controller;
 
+import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.dto.post.*;
 import com.ilhankazan.social.manager.PostManager;
@@ -166,6 +167,17 @@ public class PostController {
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
         return ResponseEntity.ok(postManager.getQuotes(id, page, size));
+    }
+
+    @Operation(summary = "Get reposters", description = "Returns a paginated list of users who reposted the post, newest first.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved reposters")
+    @RateLimit(capacity = 120, minutes = 1)
+    @GetMapping("/{id}/reposters")
+    public ResponseEntity<PageResponse<PublicAccountResponse>> getReposters(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
+        return ResponseEntity.ok(postManager.getReposters(id, page, size));
     }
 
 }

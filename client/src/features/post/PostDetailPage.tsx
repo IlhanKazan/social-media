@@ -5,6 +5,7 @@ import { usePost, usePostReplies, usePostAncestors } from './hooks/use-post';
 import { useLiveReplies } from './hooks/use-live-replies';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { LikersDialog } from './components/LikersDialog';
+import { RepostersDialog } from './components/RepostersDialog';
 import { PostCard } from '@/features/feed/components/PostCard';
 import { CreatePost } from '@/features/feed/components/CreatePost';
 import { useAuthStore } from '@/stores/auth-store';
@@ -17,6 +18,7 @@ export function PostDetailPage() {
   const navigate = useNavigate();
   const account = useAuthStore((state) => state.account);
   const [likersOpen, setLikersOpen] = useState(false);
+  const [repostersOpen, setRepostersOpen] = useState(false);
 
   const { data: post, status: postStatus } = usePost(postId);
   const { data: ancestors } = usePostAncestors(postId);
@@ -84,17 +86,37 @@ export function PostDetailPage() {
         <PostCard post={post} connector={ancestorCount > 0 ? 'top' : 'none'} />
       </div>
 
-      {post.likeCount > 0 && (
-        <button
-          onClick={() => setLikersOpen(true)}
-          className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50 text-left text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
-        >
-          <span className="font-bold">{post.likeCount}</span>{' '}
-          <span className="text-muted-foreground">beğeni</span>
-        </button>
+      {(post.repostCount > 0 || post.likeCount > 0 || post.viewCount > 0) && (
+        <div className="flex items-center gap-4 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50 text-sm">
+          {post.repostCount > 0 && (
+            <button
+              onClick={() => setRepostersOpen(true)}
+              className="text-left hover:underline"
+            >
+              <span className="font-bold">{post.repostCount}</span>{' '}
+              <span className="text-muted-foreground">repost</span>
+            </button>
+          )}
+          {post.likeCount > 0 && (
+            <button
+              onClick={() => setLikersOpen(true)}
+              className="text-left hover:underline"
+            >
+              <span className="font-bold">{post.likeCount}</span>{' '}
+              <span className="text-muted-foreground">beğeni</span>
+            </button>
+          )}
+          {post.viewCount > 0 && (
+            <span>
+              <span className="font-bold">{post.viewCount}</span>{' '}
+              <span className="text-muted-foreground">görüntülenme</span>
+            </span>
+          )}
+        </div>
       )}
 
       <LikersDialog postId={postId} open={likersOpen} onOpenChange={setLikersOpen} />
+      <RepostersDialog postId={postId} open={repostersOpen} onOpenChange={setRepostersOpen} />
 
       {account && (
         <div className="border-t border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10">

@@ -24,5 +24,6 @@ public record PostResponse(
     boolean isEdited,
     ModerationStatus moderationStatus,
     AdminStatus adminStatus,
-    Instant createdAt
+    Instant createdAt,
+    long viewCount
 ) {}

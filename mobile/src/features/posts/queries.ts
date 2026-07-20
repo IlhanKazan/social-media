@@ -74,6 +74,13 @@ export function useLikers(postId: number) {
   );
 }
 
+export function useReposters(postId: number) {
+  return usePagedPosts<PublicAccountResponse>(
+    ['post', postId, 'reposters'],
+    `/posts/${postId}/reposters`
+  );
+}
+
 export function useUpdatePost() {
   const queryClient = useQueryClient();
   return useMutation({
