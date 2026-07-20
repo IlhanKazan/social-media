@@ -208,4 +208,12 @@ public class MessageManager {
     public int getTotalUnreadCount() {
         return messageService.countTotalUnread(getCurrentAccount().getId());
     }
+
+    @Transactional
+    public void deleteConversation(Long conversationId) {
+        Account current = getCurrentAccount();
+        Conversation conversation = conversationService.getById(conversationId);
+        verifyParticipant(conversation, current.getId());
+        conversationService.hideForParticipant(conversationId, current.getId());
+    }
 }

@@ -1,10 +1,14 @@
-import { formatDistanceToNowStrict } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { Trash2 } from 'lucide-react-native';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
+import { ActionSheet } from '@/components/action-sheet';
 import { ThemedRefreshControl } from '@/components/themed-refresh';
-import { useConversations } from '@/features/messaging/queries';
+import { useConversations, useDeleteConversation } from '@/features/messaging/queries';
+import { useNow } from '@/hooks/use-now';
+import { formatShortRelativeTime } from '@/lib/relative-time';
 import type { ConversationResponse, PublicAccountResponse } from '@/types/api';
 
 function Avatar({ account }: { account: PublicAccountResponse }) {
@@ -24,6 +28,9 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
   const router = useRouter();
   const other = conversation.otherParticipant;
   const unread = conversation.unreadCount > 0;
+  const now = useNow();
+  const deleteConversation = useDeleteConversation();
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   return (
     <Pressable
@@ -34,7 +41,21 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
           params: { id: String(conversation.id), name: other.displayName || other.username },
         })
       }
+      onLongPress={() => setDeleteConfirmOpen(true)}
     >
+      <ActionSheet
+        visible={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        title="Bu sohbet silinsin mi? Yeni mesaj gelirse geri görünür."
+        options={[
+          {
+            label: 'Sohbeti Sil',
+            icon: Trash2,
+            destructive: true,
+            onPress: () => deleteConversation.mutate(conversation.id),
+          },
+        ]}
+      />
       <Pressable
         onPress={(e) => {
           e.stopPropagation();
@@ -53,7 +74,7 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
           </Text>
           {conversation.lastMessageAt && (
             <Text className="ml-2 text-xs text-neutral-500">
-              {formatDistanceToNowStrict(new Date(conversation.lastMessageAt), { addSuffix: false })}
+              {formatShortRelativeTime(conversation.lastMessageAt, now)}
             </Text>
           )}
         </View>

@@ -17,6 +17,9 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     @Query("SELECT c FROM Conversation c WHERE c.participantA.id = :aId AND c.participantB.id = :bId")
     Optional<Conversation> findByParticipants(@Param("aId") Long aId, @Param("bId") Long bId);
 
-    @Query("SELECT c FROM Conversation c WHERE c.participantA.id = :accountId OR c.participantB.id = :accountId ORDER BY c.lastMessageAt DESC NULLS LAST")
+    @Query("SELECT c FROM Conversation c WHERE " +
+        "(c.participantA.id = :accountId AND (c.hiddenForAAt IS NULL OR c.lastMessageAt > c.hiddenForAAt)) OR " +
+        "(c.participantB.id = :accountId AND (c.hiddenForBAt IS NULL OR c.lastMessageAt > c.hiddenForBAt)) " +
+        "ORDER BY c.lastMessageAt DESC NULLS LAST")
     Page<Conversation> findByParticipantId(@Param("accountId") Long accountId, Pageable pageable);
 }
