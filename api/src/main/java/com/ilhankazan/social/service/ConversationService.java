@@ -49,4 +49,15 @@ public class ConversationService {
     public Page<Conversation> findByParticipantId(Long accountId, Pageable pageable) {
         return conversationRepository.findByParticipantId(accountId, pageable);
     }
+
+    @Transactional
+    public void hideForParticipant(Long conversationId, Long accountId) {
+        Conversation c = getById(conversationId);
+        if (c.getParticipantA().getId().equals(accountId)) {
+            c.setHiddenForAAt(Instant.now());
+        } else {
+            c.setHiddenForBAt(Instant.now());
+        }
+        conversationRepository.save(c);
+    }
 }

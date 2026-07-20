@@ -5,12 +5,12 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
-  RefreshControl,
   Text,
   View,
 } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
+import { ThemedRefreshControl } from '@/components/themed-refresh';
 import { useExplore, useFeed } from '@/features/posts/queries';
 import { useLiveFeed } from '@/features/posts/use-live-feed';
 import type { FeedItemResponse, PostResponse } from '@/types/api';
@@ -37,9 +37,9 @@ function FeedList({ query, emptyMessage }: FeedListProps) {
   if (query.status === 'error') {
     return (
       <View className="flex-1 items-center justify-center px-8">
-        <Text className="text-center text-neutral-500">Failed to load the feed.</Text>
+        <Text className="text-center text-neutral-500">Akış yüklenemedi.</Text>
         <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => query.refetch()}>
-          <Text className="font-semibold text-white">Retry</Text>
+          <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
         </Pressable>
       </View>
     );
@@ -68,7 +68,7 @@ function FeedList({ query, emptyMessage }: FeedListProps) {
       }}
       onEndReachedThreshold={0.5}
       refreshControl={
-        <RefreshControl refreshing={query.isRefetching} onRefresh={() => query.refetch()} />
+        <ThemedRefreshControl refreshing={query.isRefetching} onRefresh={() => query.refetch()} />
       }
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center px-8 pt-24">
@@ -98,30 +98,37 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <View className="flex-row border-b border-neutral-100 dark:border-neutral-800">
-        {(['following', 'explore'] as const).map((tab) => (
-          <Pressable
-            key={tab}
-            className="flex-1 items-center py-3"
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text
-              className={
-                activeTab === tab
-                  ? 'font-bold text-neutral-900 dark:text-neutral-50'
-                  : 'font-medium text-neutral-500'
-              }
+        {(['following', 'explore'] as const).map((tab) => {
+          const active = activeTab === tab;
+          return (
+            <Pressable
+              key={tab}
+              className="flex-1 items-center active:bg-neutral-50 dark:active:bg-neutral-900/40"
+              onPress={() => setActiveTab(tab)}
             >
-              {tab === 'following' ? 'Following' : 'Explore'}
-            </Text>
-            {activeTab === tab && <View className="mt-2 h-1 w-14 rounded-full bg-primary" />}
-          </Pressable>
-        ))}
+              <View className="items-center py-3.5">
+                <Text
+                  className={
+                    active
+                      ? 'text-[15px] font-sans-bold text-neutral-900 dark:text-neutral-50'
+                      : 'text-[15px] font-sans-medium text-neutral-500'
+                  }
+                >
+                  {tab === 'following' ? 'Takip Edilen' : 'Keşfet'}
+                </Text>
+                {active && (
+                  <View className="absolute bottom-0 h-[3px] w-full rounded-full bg-neutral-900 dark:bg-neutral-50" />
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
       </View>
 
       {activeTab === 'following' ? (
-        <FeedList query={following} emptyMessage="No posts yet. Follow some people to fill your feed!" />
+        <FeedList query={following} emptyMessage="Henüz gönderi yok. Akışını doldurmak için birilerini takip et!" />
       ) : (
-        <FeedList query={explore} emptyMessage="No posts yet." />
+        <FeedList query={explore} emptyMessage="Henüz gönderi yok." />
       )}
 
       <Pressable

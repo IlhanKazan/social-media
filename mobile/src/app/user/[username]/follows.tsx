@@ -43,14 +43,14 @@ function FollowRow({ user }: { user: PublicAccountResponse }) {
         <Image source={{ uri: user.profileImageUrl }} style={{ width: 44, height: 44, borderRadius: 22 }} />
       ) : (
         <View className="h-11 w-11 items-center justify-center rounded-full bg-neutral-300 dark:bg-neutral-700">
-          <Text className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
+          <Text className="text-sm font-sans-bold text-neutral-700 dark:text-neutral-200">
             {user.username.substring(0, 2).toUpperCase()}
           </Text>
         </View>
       )}
 
       <View className="flex-1">
-        <Text className="font-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
+        <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
           {user.displayName || user.username}
         </Text>
         <Text className="text-sm text-neutral-500" numberOfLines={1}>
@@ -70,10 +70,10 @@ function FollowRow({ user }: { user: PublicAccountResponse }) {
         >
           <Text
             className={
-              following ? 'text-sm font-bold text-neutral-900 dark:text-neutral-50' : 'text-sm font-bold text-white'
+              following ? 'text-sm font-sans-bold text-neutral-900 dark:text-neutral-50' : 'text-sm font-sans-bold text-white'
             }
           >
-            {following ? 'Following' : 'Follow'}
+            {following ? 'Takip Ediliyor' : 'Takip Et'}
           </Text>
         </Pressable>
       )}
@@ -92,23 +92,34 @@ export default function FollowsScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: params.name ?? params.username ?? 'Follows', headerShown: true }} />
+      <Stack.Screen options={{ title: params.name ?? params.username ?? 'Takip', headerShown: true }} />
 
       <View className="flex-row border-b border-neutral-100 dark:border-neutral-800">
-        {(['following', 'followers'] as const).map((t) => (
-          <Pressable key={t} className="flex-1 items-center py-3" onPress={() => setTab(t)}>
-            <Text
-              className={
-                tab === t
-                  ? 'font-bold capitalize text-neutral-900 dark:text-neutral-50'
-                  : 'font-medium capitalize text-neutral-500'
-              }
+        {(['following', 'followers'] as const).map((t) => {
+          const active = tab === t;
+          return (
+            <Pressable
+              key={t}
+              className="flex-1 items-center active:bg-neutral-50 dark:active:bg-neutral-900/40"
+              onPress={() => setTab(t)}
             >
-              {t}
-            </Text>
-            {tab === t && <View className="mt-2 h-1 w-12 rounded-full bg-primary" />}
-          </Pressable>
-        ))}
+              <View className="items-center py-3.5">
+                <Text
+                  className={
+                    active
+                      ? 'text-[15px] font-sans-bold text-neutral-900 dark:text-neutral-50'
+                      : 'text-[15px] font-sans-medium text-neutral-500'
+                  }
+                >
+                  {t === 'following' ? 'Takip Edilen' : 'Takipçiler'}
+                </Text>
+                {active && (
+                  <View className="absolute bottom-0 h-[3px] w-full rounded-full bg-neutral-900 dark:bg-neutral-50" />
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
       </View>
 
       <FlatList
@@ -128,7 +139,7 @@ export default function FollowsScreen() {
             </View>
           ) : (
             <View className="items-center py-10">
-              <Text className="text-neutral-500">Nobody here yet.</Text>
+              <Text className="text-neutral-500">Henüz kimse yok.</Text>
             </View>
           )
         }

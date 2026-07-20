@@ -2,11 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput } from 'react-native';
+import { useForm } from 'react-hook-form';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 
-import { api } from '@/lib/api';
+import { FormInput } from '@/components/form-input';
 import { loginSchema, type LoginFormValues } from '@/features/auth/login-schema';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse, LoginResponse } from '@/types/api';
 
@@ -37,7 +38,7 @@ export default function LoginScreen() {
       await useAuthStore.getState().login(data as AuthResponse);
     },
     onError: (error: { response?: { data?: ErrorResponse } }) => {
-      setServerError(error.response?.data?.message ?? 'Login failed. Check your connection.');
+      setServerError(error.response?.data?.message ?? 'Giriş yapılamadı. Bağlantını kontrol et.');
     },
   });
 
@@ -51,71 +52,58 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
-      <Text className="mb-8 text-center text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-        SocialHan
+      <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
+        Tekrar hoş geldin
       </Text>
+      <Text className="mb-8 mt-1.5 text-center text-base text-neutral-500">Hesabına giriş yap</Text>
 
-      <Controller
+      <FormInput
         control={control}
         name="identifier"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            className="mb-1 rounded-xl border border-neutral-300 px-4 py-3 text-neutral-900 dark:border-neutral-700 dark:text-neutral-50"
-            placeholder="Username or email"
-            placeholderTextColor="#737373"
-            autoCapitalize="none"
-            autoCorrect={false}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+        error={errors.identifier?.message}
+        placeholder="Kullanıcı adı veya e-posta"
+        autoCapitalize="none"
+        autoCorrect={false}
       />
-      {errors.identifier && (
-        <Text className="mb-2 text-sm text-red-500">{errors.identifier.message}</Text>
-      )}
-
-      <Controller
+      <FormInput
         control={control}
         name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            className="mb-1 mt-3 rounded-xl border border-neutral-300 px-4 py-3 text-neutral-900 dark:border-neutral-700 dark:text-neutral-50"
-            placeholder="Password"
-            placeholderTextColor="#737373"
-            secureTextEntry
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+        error={errors.password?.message}
+        placeholder="Şifre"
+        secureTextEntry
       />
-      {errors.password && (
-        <Text className="mb-2 text-sm text-red-500">{errors.password.message}</Text>
-      )}
 
       {serverError && (
-        <Text className="mt-3 text-center text-sm text-red-500">{serverError}</Text>
+        <View className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+          <Text className="text-center text-sm font-sans-medium text-red-500">{serverError}</Text>
+        </View>
       )}
 
       <Pressable
-        className="mt-6 rounded-xl bg-primary py-3 active:opacity-80"
+        className={
+          loginMutation.isPending
+            ? 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary/60 py-3.5'
+            : 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80'
+        }
         disabled={loginMutation.isPending}
         onPress={handleSubmit(onSubmit)}
       >
-        <Text className="text-center text-base font-semibold text-white">
-          {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
+        {loginMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
+        <Text className="text-center text-base font-sans-semibold text-white">
+          {loginMutation.isPending ? 'Giriş yapılıyor…' : 'Giriş Yap'}
         </Text>
       </Pressable>
 
       <Link href="/forgot-password" asChild>
         <Pressable className="mt-5">
-          <Text className="text-center text-primary">Forgot password?</Text>
+          <Text className="text-center text-primary">Şifreni mi unuttun?</Text>
         </Pressable>
       </Link>
       <Link href="/register" asChild>
         <Pressable className="mt-3">
-          <Text className="text-center text-primary">No account? Sign up</Text>
+          <Text className="text-center text-neutral-500">
+            Hesabın yok mu? <Text className="font-sans-semibold text-primary">Kayıt ol</Text>
+          </Text>
         </Pressable>
       </Link>
     </KeyboardAvoidingView>

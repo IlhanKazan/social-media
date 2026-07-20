@@ -45,6 +45,7 @@ public class PostManager {
     private final PostingPolicy postingPolicy;
     private final AuthCacheResolver authResolver;
     private final AppProperties.CloudinaryProperties cloudinaryProperties;
+    private final FollowService followService;
 
     private void requireAllowedImageUrl(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) return;
@@ -174,7 +175,10 @@ public class PostManager {
 
     @Transactional(readOnly = true)
     public PostResponse getById(Long id) {
-        return toEnriched(postService.getById(id), currentUserIdOrNull());
+        Post post = postService.getById(id);
+        postService.incrementViewCount(id);
+        post.setViewCount(post.getViewCount() + 1);
+        return toEnriched(post, currentUserIdOrNull());
     }
 
     @Transactional(readOnly = true)
@@ -264,6 +268,28 @@ public class PostManager {
     public PageResponse<PostResponse> getQuotes(Long postId, int page, int size) {
         Page<Post> posts = postService.getQuotes(postId, PageRequest.of(page, size));
         return enrichPage(posts, currentUserIdOrNull());
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PublicAccountResponse> getReposters(Long postId, int page, int size) {
+        Long currentUserId = getCurrentAccount().getId();
+        Page<Account> reposters = repostService.getReposters(postId, PageRequest.of(page, size));
+
+        if (reposters.isEmpty()) {
+            return PageResponse.of(reposters.map(a -> accountMapper.toPublicResponse(a, 0L, 0L, false)));
+        }
+
+        List<Long> accountIds = reposters.stream().map(Account::getId).toList();
+        Map<Long, Long> followersMap = followService.getFollowerCounts(accountIds);
+        Map<Long, Long> followingMap = followService.getFollowingCounts(accountIds);
+        Set<Long> followedByMeSet = followService.getFollowedByMe(currentUserId, accountIds);
+
+        return PageResponse.of(reposters.map(account -> accountMapper.toPublicResponse(
+            account,
+            followersMap.getOrDefault(account.getId(), 0L),
+            followingMap.getOrDefault(account.getId(), 0L),
+            followedByMeSet.contains(account.getId())
+        )));
     }
 
     private PageResponse<FeedItemResponse> enrichFeedPage(Page<FeedItemProjection> projections, Long currentUserId) {

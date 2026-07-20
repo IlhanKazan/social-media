@@ -1,4 +1,12 @@
-import messaging from '@react-native-firebase/messaging';
+import { getApp } from '@react-native-firebase/app';
+import {
+  getInitialNotification,
+  getMessaging,
+  getToken,
+  onMessage,
+  onNotificationOpenedApp,
+  onTokenRefresh,
+} from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import { useRouter, type Href } from 'expo-router';
 import { useEffect, type ReactNode } from 'react';
@@ -71,17 +79,18 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
       const granted = await requestPermission();
       if (!granted || cancelled) return;
 
-      const deviceToken = await messaging().getToken();
+      const messaging = getMessaging(getApp());
+      const deviceToken = await getToken(messaging);
       if (cancelled) return;
       await registerDeviceToken(deviceToken);
 
-      unsubTokenRefresh = messaging().onTokenRefresh(registerDeviceToken);
+      unsubTokenRefresh = onTokenRefresh(messaging, registerDeviceToken);
 
       // In the foreground onMessage fires while the user is already in the app,
       // so we skip the OS banner and just refresh in-app state (list + unread
       // badge via the prefix-matched ['notifications'] key). Background/quit
       // messages are shown by the system tray and never reach this handler.
-      unsubForegroundMessage = messaging().onMessage(async () => {
+      unsubForegroundMessage = onMessage(messaging, async () => {
         void queryClient.invalidateQueries({ queryKey: ['notifications'] });
       });
     })();
@@ -99,17 +108,17 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
       router.push(routeFor(data));
     });
 
-    const unsubOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
+    const messaging = getMessaging(getApp());
+
+    const unsubOpenedApp = onNotificationOpenedApp(messaging, (remoteMessage) => {
       router.push(routeFor(remoteMessage.data ?? {}));
     });
 
-    void messaging()
-      .getInitialNotification()
-      .then((remoteMessage) => {
-        if (remoteMessage) {
-          router.push(routeFor(remoteMessage.data ?? {}));
-        }
-      });
+    void getInitialNotification(messaging).then((remoteMessage) => {
+      if (remoteMessage) {
+        router.push(routeFor(remoteMessage.data ?? {}));
+      }
+    });
 
     return () => {
       tapSub.remove();

@@ -126,7 +126,7 @@ export function NotificationCard({ notification }: Props) {
         </div>
 
         <span className="text-sm text-muted-foreground mt-1">
-          {formatDistanceToNow(new Date(notification.updatedAt), { addSuffix: true, locale: tr })}
+          {formatDistanceToNow(new Date(notification.updatedAt ?? notification.createdAt), { addSuffix: true, locale: tr })}
         </span>
       </div>
     </div>

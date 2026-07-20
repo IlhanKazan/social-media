@@ -3,10 +3,11 @@ import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { FormInput } from '@/components/form-input';
 import { registerSchema, type RegisterFormValues } from '@/features/auth/register-schema';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse } from '@/types/api';
@@ -30,7 +31,7 @@ function Checkbox({
             value ? 'border-primary bg-primary' : 'border-neutral-400'
           }`}
         >
-          {value && <Text className="text-xs font-bold text-white">✓</Text>}
+          {value && <Text className="text-xs font-sans-bold text-white">✓</Text>}
         </View>
         <Text className="ml-3 flex-1 text-neutral-700 dark:text-neutral-300">{label}</Text>
       </Pressable>
@@ -41,6 +42,7 @@ function Checkbox({
 
 export default function RegisterScreen() {
   const [serverError, setServerError] = useState<string | null>(null);
+  const keyboardHeight = useKeyboardHeight();
   const {
     control,
     handleSubmit,
@@ -74,7 +76,7 @@ export default function RegisterScreen() {
     onError: (error: { response?: { data?: ErrorResponse } }) => {
       const data = error.response?.data;
       const fieldError = data?.fieldErrors ? Object.values(data.fieldErrors)[0] : null;
-      setServerError(fieldError ?? data?.message ?? 'Registration failed. Check your connection.');
+      setServerError(fieldError ?? data?.message ?? 'Kayıt olunamadı. Bağlantını kontrol et.');
     },
   });
 
@@ -84,23 +86,22 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white dark:bg-neutral-950"
-    >
+    <View className="flex-1 bg-white dark:bg-neutral-950">
       <ScrollView
         contentContainerClassName="flex-grow justify-center px-8 py-12"
+        contentContainerStyle={{ paddingBottom: keyboardHeight + 24 }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text className="mb-6 text-center text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-          Create account
+        <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
+          Hesap oluştur
         </Text>
+        <Text className="mb-6 mt-1.5 text-center text-base text-neutral-500">SocialHan&apos;a katıl</Text>
 
         <FormInput
           control={control}
           name="username"
           error={errors.username?.message}
-          placeholder="Username"
+          placeholder="Kullanıcı adı"
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -108,7 +109,7 @@ export default function RegisterScreen() {
           control={control}
           name="email"
           error={errors.email?.message}
-          placeholder="Email"
+          placeholder="E-posta"
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
@@ -117,20 +118,20 @@ export default function RegisterScreen() {
           control={control}
           name="displayName"
           error={errors.displayName?.message}
-          placeholder="Display name (optional)"
+          placeholder="Görünen ad (opsiyonel)"
         />
         <FormInput
           control={control}
           name="password"
           error={errors.password?.message}
-          placeholder="Password"
+          placeholder="Şifre"
           secureTextEntry
         />
         <FormInput
           control={control}
           name="confirmPassword"
           error={errors.confirmPassword?.message}
-          placeholder="Confirm password"
+          placeholder="Şifre (tekrar)"
           secureTextEntry
         />
 
@@ -141,7 +142,7 @@ export default function RegisterScreen() {
             <Checkbox
               value={value}
               onToggle={() => onChange(!value)}
-              label="I accept the Terms of Service and Privacy Policy"
+              label="Kullanım Şartları ve Gizlilik Politikası'nı kabul ediyorum"
               error={errors.acceptedTerms?.message}
             />
           )}
@@ -153,32 +154,41 @@ export default function RegisterScreen() {
             <Checkbox
               value={value}
               onToggle={() => onChange(!value)}
-              label="I confirm I meet the minimum age requirement"
+              label="Asgari yaş şartını karşıladığımı onaylıyorum"
               error={errors.confirmedAge?.message}
             />
           )}
         />
 
         {serverError && (
-          <Text className="mt-4 text-center text-sm text-red-500">{serverError}</Text>
+          <View className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+            <Text className="text-center text-sm font-sans-medium text-red-500">{serverError}</Text>
+          </View>
         )}
 
         <Pressable
-          className="mt-6 rounded-xl bg-primary py-3 active:opacity-80"
+          className={
+            registerMutation.isPending
+              ? 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary/60 py-3.5'
+              : 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80'
+          }
           disabled={registerMutation.isPending}
           onPress={handleSubmit(onSubmit)}
         >
-          <Text className="text-center text-base font-semibold text-white">
-            {registerMutation.isPending ? 'Creating…' : 'Sign up'}
+          {registerMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
+          <Text className="text-center text-base font-sans-semibold text-white">
+            {registerMutation.isPending ? 'Oluşturuluyor…' : 'Kayıt Ol'}
           </Text>
         </Pressable>
 
         <Link href="/login" asChild>
           <Pressable className="mt-6">
-            <Text className="text-center text-primary">Already have an account? Sign in</Text>
+            <Text className="text-center text-neutral-500">
+              Zaten hesabın var mı? <Text className="font-sans-semibold text-primary">Giriş yap</Text>
+            </Text>
           </Pressable>
         </Link>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

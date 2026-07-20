@@ -2,15 +2,23 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Loader2 } from 'lucide-react';
-import { useConversations } from '../hooks/use-conversations';
+import { Loader2, MoreHorizontal, Trash2 } from 'lucide-react';
+import { useConversations, useDeleteConversation } from '../hooks/use-conversations';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 export function ConversationList() {
   const { conversationId } = useParams();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useConversations();
+  const deleteConversation = useDeleteConversation();
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
 
   useEffect(() => {
@@ -46,7 +54,7 @@ export function ConversationList() {
             key={conv.id}
             to={`/messages/${conv.id}`}
             className={cn(
-              "flex items-center gap-3 p-4 border-b border-zinc-50 dark:border-zinc-900/50 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors",
+              "group flex items-center gap-3 p-4 border-b border-zinc-50 dark:border-zinc-900/50 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors",
               isActive && "bg-zinc-100 dark:bg-zinc-800/50"
             )}
           >
@@ -75,6 +83,32 @@ export function ConversationList() {
                   </span>
                 )}
               </div>
+            </div>
+
+            <div
+              className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger render={
+                  <Button variant="ghost" size="icon-sm" className="h-8 w-8 rounded-full text-muted-foreground" />
+                }>
+                  <MoreHorizontal className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onClick={() => deleteConversation.mutate(conv.id)}
+                    disabled={deleteConversation.isPending}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Sohbeti Sil</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </Link>
         );

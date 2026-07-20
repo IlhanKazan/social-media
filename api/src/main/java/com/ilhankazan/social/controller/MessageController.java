@@ -108,4 +108,13 @@ public class MessageController {
     public ResponseEntity<Integer> getUnreadCount() {
         return ResponseEntity.ok(messageManager.getTotalUnreadCount());
     }
+
+    @Operation(summary = "Delete a conversation", description = "Hides the conversation for the current participant only. It reappears automatically when a new message arrives.")
+    @ApiResponse(responseCode = "204", description = "Conversation successfully hidden")
+    @ApiResponse(responseCode = "403", description = "Access denied (not a participant)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteConversation(@PathVariable Long id) {
+        messageManager.deleteConversation(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -22,7 +22,7 @@ export default function PostDetailScreen() {
   if (post.status === 'pending') {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-950">
-        <Stack.Screen options={{ title: 'Post', headerShown: true }} />
+        <Stack.Screen options={{ title: 'Gönderi', headerShown: true }} />
         <ActivityIndicator size="large" />
       </View>
     );
@@ -31,10 +31,10 @@ export default function PostDetailScreen() {
   if (post.status === 'error' || !post.data) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-8 dark:bg-neutral-950">
-        <Stack.Screen options={{ title: 'Post', headerShown: true }} />
-        <Text className="text-center text-neutral-500">This post could not be loaded.</Text>
+        <Stack.Screen options={{ title: 'Gönderi', headerShown: true }} />
+        <Text className="text-center text-neutral-500">Gönderi yüklenemedi.</Text>
         <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => post.refetch()}>
-          <Text className="font-semibold text-white">Retry</Text>
+          <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
         </Pressable>
       </View>
     );
@@ -42,7 +42,7 @@ export default function PostDetailScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: 'Post', headerShown: true }} />
+      <Stack.Screen options={{ title: 'Gönderi', headerShown: true }} />
 
       <FlatList
         data={replyItems}
@@ -53,18 +53,37 @@ export default function PostDetailScreen() {
               <PostCard key={ancestor.id} post={ancestor} />
             ))}
             <PostCard post={post.data} pressable={false} />
-            {post.data.likeCount > 0 && (
-              <Pressable
-                className="border-b border-neutral-100 px-4 py-3 active:bg-neutral-50 dark:border-neutral-800 dark:active:bg-neutral-900"
-                onPress={() => router.push(`/post/${postId}/likers`)}
-              >
-                <Text className="text-sm text-neutral-700 dark:text-neutral-300">
-                  <Text className="font-bold text-neutral-900 dark:text-neutral-50">{post.data.likeCount}</Text> beğeni
-                </Text>
-              </Pressable>
+            {(post.data.repostCount > 0 || post.data.likeCount > 0 || post.data.viewCount > 0) && (
+              <View className="flex-row gap-4 border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
+                {post.data.repostCount > 0 && (
+                  <Pressable
+                    className="active:opacity-60"
+                    onPress={() => router.push(`/post/${postId}/reposters`)}
+                  >
+                    <Text className="text-sm text-neutral-700 dark:text-neutral-300">
+                      <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.repostCount}</Text> repost
+                    </Text>
+                  </Pressable>
+                )}
+                {post.data.likeCount > 0 && (
+                  <Pressable
+                    className="active:opacity-60"
+                    onPress={() => router.push(`/post/${postId}/likers`)}
+                  >
+                    <Text className="text-sm text-neutral-700 dark:text-neutral-300">
+                      <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.likeCount}</Text> beğeni
+                    </Text>
+                  </Pressable>
+                )}
+                {post.data.viewCount > 0 && (
+                  <Text className="text-sm text-neutral-700 dark:text-neutral-300">
+                    <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.viewCount}</Text> görüntülenme
+                  </Text>
+                )}
+              </View>
             )}
             <View className="border-b border-neutral-100 px-4 py-2 dark:border-neutral-800">
-              <Text className="text-sm font-bold text-neutral-500">Replies</Text>
+              <Text className="text-sm font-sans-bold text-neutral-500">Yanıtlar</Text>
             </View>
           </>
         }
@@ -82,7 +101,7 @@ export default function PostDetailScreen() {
             </View>
           ) : (
             <View className="items-center px-8 py-8">
-              <Text className="text-center text-neutral-500">No replies yet.</Text>
+              <Text className="text-center text-neutral-500">Henüz yanıt yok.</Text>
             </View>
           )
         }

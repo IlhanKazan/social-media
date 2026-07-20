@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,6 +102,13 @@ public class PostService {
             throw new EntityNotFoundException("Post not found");
         }
         return post;
+    }
+
+    // Separate REQUIRES_NEW transaction: the caller (PostManager.getById) is
+    // readOnly, and a bulk UPDATE can't run inside a readOnly transaction.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void incrementViewCount(Long postId) {
+        postRepository.incrementViewCount(postId);
     }
 
     private static final int MAX_ANCESTOR_DEPTH = 20;

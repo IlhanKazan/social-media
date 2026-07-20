@@ -106,4 +106,9 @@ public class NotificationService {
     public void delete(Long id) {
         notificationRepository.deleteById(id);
     }
+
+    @Transactional
+    public void deleteAll(Long userId) {
+        notificationRepository.deleteAllByRecipientId(userId);
+    }
 }

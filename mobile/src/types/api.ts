@@ -129,6 +129,7 @@ export interface PostResponse {
   moderationStatus: ModerationStatus;
   adminStatus: AdminStatus;
   isEdited: boolean;
+  viewCount: number;
 }
 
 export interface FeedItemResponse {
@@ -156,6 +157,11 @@ export type NotificationType =
   | 'QUOTE_REPOST'
   | 'MODERATION_ALERT'
   | 'RECOMMENDATION';
+
+export interface CombinedSearchResponse {
+  users: PublicAccountResponse[];
+  posts: PostResponse[];
+}
 
 export interface NotificationPreferences {
   likes: boolean;

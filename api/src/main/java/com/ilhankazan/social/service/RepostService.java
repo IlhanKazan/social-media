@@ -5,6 +5,8 @@ import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.entity.Repost;
 import com.ilhankazan.social.repository.RepostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,5 +58,10 @@ public class RepostService {
     public Set<Long> getRepostedByMe(Long accountId, List<Long> postIds) {
         if (postIds.isEmpty()) return Collections.emptySet();
         return Set.copyOf(repostRepository.findRepostedPostIdsByUser(accountId, postIds));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Account> getReposters(Long postId, Pageable pageable) {
+        return repostRepository.findRepostersByPostId(postId, pageable);
     }
 }

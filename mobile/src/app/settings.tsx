@@ -1,5 +1,6 @@
+import * as WebBrowser from 'expo-web-browser';
 import { Stack } from 'expo-router';
-import { LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
+import { ChevronRight, LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
@@ -12,20 +13,28 @@ import {
   useSendVerification,
   useUpdateNotificationPreferences,
 } from '@/features/settings/queries';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
+import { WEB_URL } from '@/lib/env';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore, type ThemeMode } from '@/stores/theme-store';
 import type { NotificationPreferences } from '@/types/api';
 
+const LEGAL_LINKS: { label: string; path: string }[] = [
+  { label: 'Hakkında', path: '/about' },
+  { label: 'Gizlilik Politikası', path: '/privacy' },
+  { label: 'Kullanım Şartları', path: '/terms' },
+];
+
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
-  { mode: 'light', label: 'Light', Icon: Sun },
-  { mode: 'dark', label: 'Dark', Icon: Moon },
-  { mode: 'system', label: 'System', Icon: Monitor },
+  { mode: 'light', label: 'Aydınlık', Icon: Sun },
+  { mode: 'dark', label: 'Karanlık', Icon: Moon },
+  { mode: 'system', label: 'Sistem', Icon: Monitor },
 ];
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <View className="border-b border-neutral-100 px-4 py-5 dark:border-neutral-800">
-      <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
+      <Text className="text-lg font-sans-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
       {subtitle && <Text className="mt-0.5 text-sm text-neutral-500">{subtitle}</Text>}
       <View className="mt-4">{children}</View>
     </View>
@@ -33,12 +42,12 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 }
 
 const PREF_ROWS: { key: keyof NotificationPreferences; label: string }[] = [
-  { key: 'likes', label: 'Likes' },
-  { key: 'reposts', label: 'Reposts' },
-  { key: 'follows', label: 'New followers' },
-  { key: 'replies', label: 'Replies' },
-  { key: 'mentions', label: 'Mentions' },
-  { key: 'recommendations', label: 'Recommendations' },
+  { key: 'likes', label: 'Beğeniler' },
+  { key: 'reposts', label: 'Yeniden paylaşımlar' },
+  { key: 'follows', label: 'Yeni takipçiler' },
+  { key: 'replies', label: 'Yanıtlar' },
+  { key: 'mentions', label: 'Bahsetmeler' },
+  { key: 'recommendations', label: 'Senin için öneriler' },
 ];
 
 function NotificationPreferencesControls() {
@@ -65,6 +74,7 @@ function NotificationPreferencesControls() {
 
 export default function SettingsScreen() {
   const { data: me } = useMe();
+  const keyboardHeight = useKeyboardHeight();
   const logout = useAuthStore((s) => s.logout);
   const mode = useThemeStore((s) => s.mode);
   const setMode = useThemeStore((s) => s.setMode);
@@ -80,46 +90,46 @@ export default function SettingsScreen() {
 
   const submitPassword = () => {
     if (newPassword.length < 6) {
-      Alert.alert('Weak password', 'New password must be at least 6 characters.');
+      Alert.alert('Zayıf şifre', 'Yeni şifre en az 6 karakter olmalı.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Mismatch', 'New passwords do not match.');
+      Alert.alert('Uyuşmuyor', 'Yeni şifreler eşleşmiyor.');
       return;
     }
     if (oldPassword === newPassword) {
-      Alert.alert('Same password', 'New password cannot equal the old one.');
+      Alert.alert('Aynı şifre', 'Yeni şifre eskisiyle aynı olamaz.');
       return;
     }
     changePassword.mutate({ oldPassword, newPassword });
   };
 
   const confirmLogoutAll = () =>
-    Alert.alert('Log out everywhere?', 'All your sessions, including this device, will end.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Log out all', style: 'destructive', onPress: () => logoutAll.mutate() },
+    Alert.alert('Her yerden çıkış yapılsın mı?', 'Bu cihaz dahil tüm oturumların sonlanacak.', [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Tümünden çık', style: 'destructive', onPress: () => logoutAll.mutate() },
     ]);
 
   const confirmDelete = () =>
-    Alert.alert('Delete account?', 'This is permanent. Your posts, likes and messages will be erased.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteAccount.mutate() },
+    Alert.alert('Hesap silinsin mi?', 'Bu işlem kalıcıdır. Gönderilerin, beğenilerin ve mesajların silinecek.', [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Sil', style: 'destructive', onPress: () => deleteAccount.mutate() },
     ]);
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: 'Settings', headerShown: true }} />
-      <ScrollView keyboardShouldPersistTaps="handled">
+      <Stack.Screen options={{ title: 'Ayarlar', headerShown: true }} />
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: keyboardHeight + 24 }}>
         {me && (
-          <Section title="Account">
-            <Text className="text-sm text-neutral-500">Email</Text>
-            <Text className="mt-0.5 text-[15px] font-medium text-neutral-900 dark:text-neutral-50">
+          <Section title="Hesap">
+            <Text className="text-sm text-neutral-500">E-posta</Text>
+            <Text className="mt-0.5 text-[15px] font-sans-medium text-neutral-900 dark:text-neutral-50">
               {me.email}
             </Text>
           </Section>
         )}
 
-        <Section title="Appearance" subtitle="Customize the app theme.">
+        <Section title="Görünüm" subtitle="Uygulama temasını özelleştir.">
           <View className="flex-row gap-2">
             {THEME_OPTIONS.map(({ mode: m, label, Icon }) => {
               const active = mode === m;
@@ -134,7 +144,7 @@ export default function SettingsScreen() {
                   onPress={() => setMode(m)}
                 >
                   <Icon size={16} color={active ? '#ffffff' : '#737373'} />
-                  <Text className={active ? 'font-semibold text-white' : 'font-medium text-neutral-500'}>
+                  <Text className={active ? 'font-sans-semibold text-white' : 'font-sans-medium text-neutral-500'}>
                     {label}
                   </Text>
                 </Pressable>
@@ -143,33 +153,33 @@ export default function SettingsScreen() {
           </View>
         </Section>
 
-        <Section title="Notifications" subtitle="Choose which push notifications you receive.">
+        <Section title="Bildirim Tercihleri" subtitle="Hangi anlık bildirimleri alacağını seç.">
           <NotificationPreferencesControls />
         </Section>
 
         {me && !me.emailVerified && (
-          <Section title="Verify email" subtitle="Confirm your email to earn the verified badge.">
+          <Section title="E-posta doğrulama" subtitle="Mavi tik rozeti için e-postanı doğrula.">
             <Pressable
               className="self-start rounded-xl border border-neutral-300 px-5 py-2.5 active:opacity-70 dark:border-neutral-700"
               onPress={() =>
                 sendVerification.mutate(undefined, {
-                  onSuccess: () => Alert.alert('Sent', 'Check your inbox for the verification email.'),
-                  onError: () => Alert.alert('Error', 'Could not send the verification email.'),
+                  onSuccess: () => Alert.alert('Gönderildi', 'Doğrulama e-postası için gelen kutunu kontrol et.'),
+                  onError: () => Alert.alert('Hata', 'Doğrulama e-postası gönderilemedi.'),
                 })
               }
               disabled={sendVerification.isPending}
             >
-              <Text className="font-semibold text-neutral-900 dark:text-neutral-50">
-                {sendVerification.isPending ? 'Sending…' : 'Send verification email'}
+              <Text className="font-sans-semibold text-neutral-900 dark:text-neutral-50">
+                {sendVerification.isPending ? 'Gönderiliyor…' : 'Doğrulama e-postası gönder'}
               </Text>
             </Pressable>
           </Section>
         )}
 
-        <Section title="Change password" subtitle="You'll be logged out after changing it.">
+        <Section title="Şifre değiştir" subtitle="Değiştirdikten sonra oturumun kapanacak.">
           <TextInput
             className="mb-3 rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-            placeholder="Current password"
+            placeholder="Mevcut şifre"
             placeholderTextColor="#737373"
             secureTextEntry
             value={oldPassword}
@@ -177,7 +187,7 @@ export default function SettingsScreen() {
           />
           <TextInput
             className="mb-3 rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-            placeholder="New password"
+            placeholder="Yeni şifre"
             placeholderTextColor="#737373"
             secureTextEntry
             value={newPassword}
@@ -185,7 +195,7 @@ export default function SettingsScreen() {
           />
           <TextInput
             className="mb-3 rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-            placeholder="Confirm new password"
+            placeholder="Yeni şifre (tekrar)"
             placeholderTextColor="#737373"
             secureTextEntry
             value={confirmPassword}
@@ -200,41 +210,58 @@ export default function SettingsScreen() {
             onPress={submitPassword}
             disabled={!oldPassword || !newPassword || !confirmPassword || changePassword.isPending}
           >
-            <Text className="font-semibold text-white">
-              {changePassword.isPending ? 'Updating…' : 'Update password'}
+            <Text className="font-sans-semibold text-white">
+              {changePassword.isPending ? 'Güncelleniyor…' : 'Şifreyi güncelle'}
             </Text>
           </Pressable>
         </Section>
 
-        <Section title="Session" subtitle="Manage your sessions.">
+        <Section title="Oturum" subtitle="Oturumlarını yönet.">
           <Pressable
             className="mb-3 flex-row items-center gap-2 self-start rounded-xl border border-neutral-300 px-5 py-2.5 active:opacity-70 dark:border-neutral-700"
             onPress={() => logout()}
           >
             <LogOut size={16} color="#737373" />
-            <Text className="font-semibold text-neutral-900 dark:text-neutral-50">Log out</Text>
+            <Text className="font-sans-semibold text-neutral-900 dark:text-neutral-50">Çıkış yap</Text>
           </Pressable>
           <Pressable
             className="self-start rounded-xl border border-neutral-300 px-5 py-2.5 active:opacity-70 dark:border-neutral-700"
             onPress={confirmLogoutAll}
             disabled={logoutAll.isPending}
           >
-            <Text className="font-semibold text-neutral-900 dark:text-neutral-50">Log out of all devices</Text>
+            <Text className="font-sans-semibold text-neutral-900 dark:text-neutral-50">Tüm cihazlardan çıkış yap</Text>
           </Pressable>
         </Section>
 
-        <Section title="Danger zone">
+        <Section title="Yasal">
+          {LEGAL_LINKS.map(({ label, path }, index) => (
+            <Pressable
+              key={path}
+              className={
+                index < LEGAL_LINKS.length - 1
+                  ? 'flex-row items-center justify-between border-b border-neutral-100 py-3 active:opacity-70 dark:border-neutral-800'
+                  : 'flex-row items-center justify-between py-3 active:opacity-70'
+              }
+              onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}${path}`)}
+            >
+              <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">{label}</Text>
+              <ChevronRight size={18} color="#a3a3a3" />
+            </Pressable>
+          ))}
+        </Section>
+
+        <Section title="Tehlikeli bölge">
           <View className="flex-row items-center gap-2">
             <ShieldAlert size={18} color="#ef4444" />
-            <Text className="text-sm text-neutral-500">These actions cannot be undone.</Text>
+            <Text className="text-sm text-neutral-500">Bu işlemler geri alınamaz.</Text>
           </View>
           <Pressable
             className="mt-3 self-start rounded-xl border border-red-500/40 bg-red-500/5 px-5 py-2.5 active:opacity-70"
             onPress={confirmDelete}
             disabled={deleteAccount.isPending}
           >
-            <Text className="font-semibold text-red-500">
-              {deleteAccount.isPending ? 'Deleting…' : 'Delete account'}
+            <Text className="font-sans-semibold text-red-500">
+              {deleteAccount.isPending ? 'Siliniyor…' : 'Hesabı sil'}
             </Text>
           </Pressable>
         </Section>

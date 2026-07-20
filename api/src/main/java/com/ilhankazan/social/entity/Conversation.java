@@ -32,6 +32,12 @@ public class Conversation {
     @Column(name = "last_message_at")
     private Instant lastMessageAt;
 
+    @Column(name = "hidden_for_a_at")
+    private Instant hiddenForAAt;
+
+    @Column(name = "hidden_for_b_at")
+    private Instant hiddenForBAt;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

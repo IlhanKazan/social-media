@@ -2,16 +2,16 @@ import { z } from 'zod';
 
 export const registerSchema = z
   .object({
-    username: z.string().min(3, 'At least 3 characters').max(30, 'At most 30 characters'),
-    email: z.string().email('Enter a valid email'),
-    password: z.string().min(6, 'At least 6 characters').max(100, 'At most 100 characters'),
+    username: z.string().trim().min(3, 'En az 3 karakter').max(30, 'En fazla 30 karakter'),
+    email: z.string().trim().email('Geçerli bir e-posta girin'),
+    password: z.string().min(6, 'En az 6 karakter').max(100, 'En fazla 100 karakter'),
     confirmPassword: z.string(),
-    displayName: z.string().max(50, 'At most 50 characters').optional().or(z.literal('')),
-    acceptedTerms: z.boolean().refine((v) => v, 'You must accept the Terms and Privacy Policy'),
-    confirmedAge: z.boolean().refine((v) => v, 'You must confirm you meet the minimum age'),
+    displayName: z.string().trim().max(50, 'En fazla 50 karakter').optional().or(z.literal('')),
+    acceptedTerms: z.boolean().refine((v) => v, 'Şartları ve Gizlilik Politikası\'nı kabul etmelisin'),
+    confirmedAge: z.boolean().refine((v) => v, 'Asgari yaş şartını sağladığını onaylamalısın'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'Şifreler eşleşmiyor',
     path: ['confirmPassword'],
   });
 

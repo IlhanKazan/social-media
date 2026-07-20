@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  identifier: z.string().min(1, 'Username or Email is required'),
+  identifier: z.string().trim().min(1, 'Username or Email is required'),
   password: z.string().min(1, 'Password is required'),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const registerSchema = z.object({
-  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, 'Sadece harf, rakam ve alt çizgi'),
-  email: z.string().email('Geçerli bir e-posta girin').max(254),
-  displayName: z.string().max(50).optional(),
+  username: z.string().trim().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, 'Sadece harf, rakam ve alt çizgi'),
+  email: z.string().trim().email('Geçerli bir e-posta girin').max(254),
+  displayName: z.string().trim().max(50).optional(),
   password: z.string().min(6, 'Şifre en az 6 karakter olmalı').max(72),
   confirmPassword: z.string(),
   acceptedTerms: z.boolean().refine((v) => v === true, {
@@ -26,7 +26,7 @@ export const registerSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Geçerli bir e-posta adresi giriniz.'),
+  email: z.string().trim().email('Geçerli bir e-posta adresi giriniz.'),
 });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 

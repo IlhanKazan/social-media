@@ -55,7 +55,8 @@ public interface PostMapper {
                 null, dummyAuthor, null, null, null, 0L, 0L, 0L, 0L, false, false, false, false,
                 quotedPost.getModerationStatus(),
                 quotedPost.getAdminStatus(),
-                quotedPost.getCreatedAt()
+                quotedPost.getCreatedAt(),
+                0L
             );
         }
 

@@ -1,6 +1,9 @@
 package com.ilhankazan.social.repository;
 
+import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Repost;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +17,9 @@ import java.util.Optional;
 public interface RepostRepository extends JpaRepository<Repost, Long> {
 
     Optional<Repost> findByAccountIdAndPostId(Long accountId, Long postId);
+
+    @Query("SELECT r.account FROM Repost r WHERE r.post.id = :postId AND r.deletedAt IS NULL ORDER BY r.createdAt DESC")
+    Page<Account> findRepostersByPostId(@Param("postId") Long postId, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Repost r SET r.deletedAt = CURRENT_TIMESTAMP WHERE r.account.id = :accountId AND r.deletedAt IS NULL")

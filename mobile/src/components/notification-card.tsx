@@ -1,4 +1,3 @@
-import { formatDistanceToNowStrict } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
@@ -16,6 +15,8 @@ import {
 import { Pressable, Text, View } from 'react-native';
 
 import { useDeleteNotification, useMarkAsRead } from '@/features/notifications/queries';
+import { useNow } from '@/hooks/use-now';
+import { formatShortRelativeTime } from '@/lib/relative-time';
 import type { NotificationResponse } from '@/types/api';
 
 interface Props {
@@ -41,7 +42,7 @@ function Avatar({ notification }: { notification: NotificationResponse }) {
   }
   return (
     <View className="h-9 w-9 items-center justify-center rounded-full bg-neutral-300 dark:bg-neutral-700">
-      <Text className="text-xs font-bold text-neutral-700 dark:text-neutral-200">
+      <Text className="text-xs font-sans-bold text-neutral-700 dark:text-neutral-200">
         {notification.actor?.username.substring(0, 2).toUpperCase()}
       </Text>
     </View>
@@ -82,6 +83,7 @@ export function NotificationCard({ notification }: Props) {
   const markAsRead = useMarkAsRead();
   const deleteNotification = useDeleteNotification();
   const isSystem = notification.type === 'MODERATION_ALERT' || !notification.actor;
+  const now = useNow();
 
   const handlePress = () => {
     if (notification.readAt === null) {
@@ -111,11 +113,11 @@ export function NotificationCard({ notification }: Props) {
           </Pressable>
         </View>
 
-        <Text className="text-[15px] leading-snug text-neutral-900 dark:text-neutral-50">
+        <Text className="text-[16px] leading-[22px] text-neutral-900 dark:text-neutral-50">
           {isSystem ? (
-            <Text className="font-bold text-red-500">Sistem Bildirimi </Text>
+            <Text className="font-sans-bold text-red-500">Sistem Bildirimi </Text>
           ) : (
-            <Text className="font-bold">
+            <Text className="font-sans-bold">
               {(notification.actor?.displayName || notification.actor?.username) + ' '}
               {notification.count > 1 && (
                 <Text className="font-normal text-neutral-500">{`ve ${notification.count - 1} kişi daha `}</Text>
@@ -125,8 +127,8 @@ export function NotificationCard({ notification }: Props) {
           <Text className="text-neutral-700 dark:text-neutral-300">{message(notification.type)}</Text>
         </Text>
 
-        <Text className="mt-1 text-sm text-neutral-500">
-          {formatDistanceToNowStrict(new Date(notification.updatedAt), { addSuffix: true })}
+        <Text className="mt-1 text-[13px] text-neutral-500">
+          {formatShortRelativeTime(notification.updatedAt ?? notification.createdAt, now)}
         </Text>
       </View>
     </Pressable>
