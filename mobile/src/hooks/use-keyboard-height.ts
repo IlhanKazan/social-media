@@ -13,10 +13,20 @@ export function useKeyboardHeight() {
 
     const show = Keyboard.addListener(showEvent, (e) => setHeight(e.endCoordinates.height));
     const hide = Keyboard.addListener(hideEvent, () => setHeight(0));
+    // Android's keyboardDidShow can be late/missed on the very first open of a
+    // session (IME cold start); keyboardDidChangeFrame fires reliably and acts
+    // as a backstop so the composer doesn't stay hidden behind the keyboard.
+    const changeFrame =
+      Platform.OS === 'android'
+        ? Keyboard.addListener('keyboardDidChangeFrame', (e) => {
+            if (e.endCoordinates.height > 0) setHeight(e.endCoordinates.height);
+          })
+        : null;
 
     return () => {
       show.remove();
       hide.remove();
+      changeFrame?.remove();
     };
   }, []);
 

@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { Redirect, Tabs } from 'expo-router';
 import { Bell, Home, Mail, Search } from 'lucide-react-native';
 import { Platform, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUnreadMessageCount } from '@/features/messaging/queries';
 import { useUnreadCount } from '@/features/notifications/queries';
@@ -53,6 +54,7 @@ export default function TabsLayout() {
   const dark = colorScheme === 'dark';
   const unreadCount = useUnreadCount(!!token);
   const unreadMessages = useUnreadMessageCount();
+  const insets = useSafeAreaInsets();
 
   if (!token) {
     return <Redirect href="/login" />;
@@ -73,8 +75,9 @@ export default function TabsLayout() {
           borderTopColor: border,
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
-          height: Platform.OS === 'ios' ? 84 : 62,
+          height: (Platform.OS === 'ios' ? 49 : 56) + insets.bottom,
           paddingTop: 6,
+          paddingBottom: insets.bottom,
         },
         tabBarLabelStyle: { fontFamily: 'Inter_500Medium', fontSize: 11 },
         headerStyle: { backgroundColor: bg },

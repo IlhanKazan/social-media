@@ -14,6 +14,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SessionGate } from '@/components/session-gate';
 import { MessagingProvider } from '@/features/messaging/messaging-provider';
@@ -59,36 +60,38 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={theme}>
-        <SessionGate>
-          <WebSocketProvider>
-            <MessagingProvider>
-              <PushNotificationProvider>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: background },
-                    headerStyle: { backgroundColor: background },
-                    headerShadowVisible: false,
-                    headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 18, color: foreground },
-                    headerTintColor: foreground,
-                  }}
-                >
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="conversation/[id]" />
-                  <Stack.Screen name="user/[username]/index" />
-                  <Stack.Screen name="user/[username]/follows" />
-                  <Stack.Screen name="settings" />
-                  <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-                </Stack>
-              </PushNotificationProvider>
-            </MessagingProvider>
-          </WebSocketProvider>
-        </SessionGate>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={theme}>
+          <SessionGate>
+            <WebSocketProvider>
+              <MessagingProvider>
+                <PushNotificationProvider>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: background },
+                      headerStyle: { backgroundColor: background },
+                      headerShadowVisible: false,
+                      headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 18, color: foreground },
+                      headerTintColor: foreground,
+                    }}
+                  >
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="conversation/[id]" />
+                    <Stack.Screen name="user/[username]/index" />
+                    <Stack.Screen name="user/[username]/follows" />
+                    <Stack.Screen name="settings" />
+                    <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+                  </Stack>
+                </PushNotificationProvider>
+              </MessagingProvider>
+            </WebSocketProvider>
+          </SessionGate>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
