@@ -1,5 +1,6 @@
+import * as WebBrowser from 'expo-web-browser';
 import { Stack } from 'expo-router';
-import { LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
+import { ChevronRight, LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
@@ -13,9 +14,16 @@ import {
   useUpdateNotificationPreferences,
 } from '@/features/settings/queries';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
+import { WEB_URL } from '@/lib/env';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore, type ThemeMode } from '@/stores/theme-store';
 import type { NotificationPreferences } from '@/types/api';
+
+const LEGAL_LINKS: { label: string; path: string }[] = [
+  { label: 'Hakkında', path: '/about' },
+  { label: 'Gizlilik Politikası', path: '/privacy' },
+  { label: 'Kullanım Şartları', path: '/terms' },
+];
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
   { mode: 'light', label: 'Aydınlık', Icon: Sun },
@@ -223,6 +231,23 @@ export default function SettingsScreen() {
           >
             <Text className="font-sans-semibold text-neutral-900 dark:text-neutral-50">Tüm cihazlardan çıkış yap</Text>
           </Pressable>
+        </Section>
+
+        <Section title="Yasal">
+          {LEGAL_LINKS.map(({ label, path }, index) => (
+            <Pressable
+              key={path}
+              className={
+                index < LEGAL_LINKS.length - 1
+                  ? 'flex-row items-center justify-between border-b border-neutral-100 py-3 active:opacity-70 dark:border-neutral-800'
+                  : 'flex-row items-center justify-between py-3 active:opacity-70'
+              }
+              onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}${path}`)}
+            >
+              <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">{label}</Text>
+              <ChevronRight size={18} color="#a3a3a3" />
+            </Pressable>
+          ))}
         </Section>
 
         <Section title="Tehlikeli bölge">
