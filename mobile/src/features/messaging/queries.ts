@@ -94,6 +94,31 @@ export function useSendDmImage(conversationId: number) {
   });
 }
 
+export function useSharePostToDm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      conversationId,
+      postId,
+      caption,
+    }: {
+      conversationId: number;
+      postId: number;
+      caption?: string;
+    }) => {
+      const { data } = await api.post<MessageResponse>(`/conversations/${conversationId}/messages/share`, {
+        postId,
+        caption: caption?.trim() || null,
+      });
+      return data;
+    },
+    onSuccess: (_data, { conversationId }) => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      void queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+    },
+  });
+}
+
 export function useMarkConversationRead() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -104,6 +129,18 @@ export function useMarkConversationRead() {
       void queryClient.invalidateQueries({ queryKey: ['conversations'] });
       void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
       void queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+    },
+  });
+}
+
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (conversationId: number) => {
+      await api.delete(`/conversations/${conversationId}`);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
 }

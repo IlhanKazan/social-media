@@ -1,12 +1,14 @@
-import { formatDistanceToNowStrict } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { BadgeCheck, CornerDownRight, Heart, MessageSquare, MoreHorizontal, Pencil, Quote, Repeat2, Trash2 } from 'lucide-react-native';
+import { BadgeCheck, CornerDownRight, Heart, MessageSquare, MoreHorizontal, Pencil, Quote, Repeat2, Send, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
+import { ShareToDmSheet } from '@/components/share-to-dm-sheet';
 import { useDeletePost, useToggleLike, useToggleRepost } from '@/features/posts/queries';
+import { useNow } from '@/hooks/use-now';
+import { formatShortRelativeTime } from '@/lib/relative-time';
 import { useAuthStore } from '@/stores/auth-store';
 import type { PostResponse, PublicAccountResponse } from '@/types/api';
 
@@ -43,6 +45,7 @@ function ActionRow({ post }: { post: PostResponse }) {
   const toggleLike = useToggleLike();
   const toggleRepost = useToggleRepost();
   const [repostSheetOpen, setRepostSheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   return (
     <View className="mt-2.5 flex-row items-center gap-10">
@@ -68,8 +71,15 @@ function ActionRow({ post }: { post: PostResponse }) {
                 },
               }),
           },
+          {
+            label: 'Mesajla Paylaş',
+            icon: Send,
+            onPress: () => setShareOpen(true),
+          },
         ]}
       />
+
+      <ShareToDmSheet visible={shareOpen} onClose={() => setShareOpen(false)} postId={post.id} />
       <Pressable
         className="flex-row items-center gap-1.5 active:opacity-60"
         hitSlop={10}
@@ -152,6 +162,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
   const showReplyContext = !!post.parentPostId && !!post.parentPostAuthorUsername;
   const [ownSheetOpen, setOwnSheetOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const now = useNow();
 
   return (
     <Pressable
@@ -204,7 +215,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
               </Pressable>
               <Text className="text-[15px] text-neutral-500">·</Text>
               <Text className="text-[15px] text-neutral-500">
-                {formatDistanceToNowStrict(new Date(post.createdAt))}
+                {formatShortRelativeTime(post.createdAt, now)}
               </Text>
               {post.isEdited && <Text className="text-[13px] italic text-neutral-500">(düzenlendi)</Text>}
             </View>

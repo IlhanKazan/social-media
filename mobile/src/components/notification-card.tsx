@@ -1,4 +1,3 @@
-import { formatDistanceToNowStrict } from 'date-fns';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
@@ -16,6 +15,8 @@ import {
 import { Pressable, Text, View } from 'react-native';
 
 import { useDeleteNotification, useMarkAsRead } from '@/features/notifications/queries';
+import { useNow } from '@/hooks/use-now';
+import { formatShortRelativeTime } from '@/lib/relative-time';
 import type { NotificationResponse } from '@/types/api';
 
 interface Props {
@@ -82,6 +83,7 @@ export function NotificationCard({ notification }: Props) {
   const markAsRead = useMarkAsRead();
   const deleteNotification = useDeleteNotification();
   const isSystem = notification.type === 'MODERATION_ALERT' || !notification.actor;
+  const now = useNow();
 
   const handlePress = () => {
     if (notification.readAt === null) {
@@ -126,7 +128,7 @@ export function NotificationCard({ notification }: Props) {
         </Text>
 
         <Text className="mt-1 text-[13px] text-neutral-500">
-          {formatDistanceToNowStrict(new Date(notification.updatedAt ?? notification.createdAt), { addSuffix: true })}
+          {formatShortRelativeTime(notification.updatedAt ?? notification.createdAt, now)}
         </Text>
       </View>
     </Pressable>
