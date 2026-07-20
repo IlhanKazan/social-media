@@ -15,11 +15,11 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1
 ENTRYPOINT ["java", \
-  "-XX:+UseSerialGC", \
-  "-Xmx160m", "-Xms64m", \
-  "-XX:MaxMetaspaceSize=192m", \
-  "-XX:ReservedCodeCacheSize=48m", \
-  "-XX:MaxDirectMemorySize=32m", \
-  "-Xss512k", \
+  "-XX:+UseG1GC", \
+  "-Xmx768m", "-Xms256m", \
+  "-XX:MaxMetaspaceSize=256m", \
+  "-XX:ReservedCodeCacheSize=64m", \
+  "-XX:MaxDirectMemorySize=64m", \
+  "-Xss1m", \
   "-XX:+ExitOnOutOfMemoryError", \
   "-jar", "app.jar"]
