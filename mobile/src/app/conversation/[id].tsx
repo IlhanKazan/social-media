@@ -2,41 +2,115 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ImagePlus, Send, X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   Pressable,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useMessaging } from '@/features/messaging/messaging-provider';
-import { useMarkConversationRead, useMessages, useSendDmImage } from '@/features/messaging/queries';
+import {
+  useConversations,
+  useMarkConversationRead,
+  useMessages,
+  useSendDmImage,
+} from '@/features/messaging/queries';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { useAuthStore } from '@/stores/auth-store';
 import type { MessageResponse, SharedPostPreview } from '@/types/api';
 
 function SharedPostCard({ post }: { post: SharedPostPreview }) {
+  const router = useRouter();
   return (
-    <View className="mt-1 rounded-xl border border-neutral-200 p-2 dark:border-neutral-700">
-      <Text className="text-xs font-sans-bold text-neutral-900 dark:text-neutral-50">
-        {post.author.displayName || post.author.username}
-      </Text>
+    <Pressable
+      className="my-1 w-60 rounded-xl border border-neutral-200 bg-white p-2.5 active:opacity-80 dark:border-neutral-700 dark:bg-neutral-900"
+      onPress={() => router.push(`/post/${post.id}`)}
+    >
+      <View className="mb-1 flex-row items-center gap-1.5">
+        {post.author.profileImageUrl ? (
+          <Image
+            source={{ uri: post.author.profileImageUrl }}
+            style={{ width: 20, height: 20, borderRadius: 10 }}
+            contentFit="cover"
+          />
+        ) : (
+          <View className="h-5 w-5 items-center justify-center rounded-full bg-neutral-300 dark:bg-neutral-700">
+            <Text className="text-[9px] font-sans-bold text-neutral-700 dark:text-neutral-200">
+              {post.author.username.substring(0, 1).toUpperCase()}
+            </Text>
+          </View>
+        )}
+        <Text className="shrink text-[13px] font-sans-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
+          {post.author.displayName || post.author.username}
+        </Text>
+        <Text className="shrink text-[13px] text-neutral-500" numberOfLines={1}>
+          @{post.author.username}
+        </Text>
+      </View>
       {post.contentSnippet && (
-        <Text className="mt-0.5 text-xs text-neutral-500" numberOfLines={3}>
+        <Text className="text-[13px] leading-snug text-neutral-900 dark:text-neutral-50" numberOfLines={3}>
           {post.contentSnippet}
         </Text>
       )}
-    </View>
+      {post.imageUrl && (
+        <Image
+          source={{ uri: post.imageUrl }}
+          style={{ marginTop: 6, borderRadius: 8, width: '100%', height: 128 }}
+          contentFit="cover"
+        />
+      )}
+    </Pressable>
   );
 }
 
-function MessageBubble({ message, mine }: { message: MessageResponse; mine: boolean }) {
+function ChatImage({
+  uri,
+  width,
+  onPress,
+}: {
+  uri: string;
+  width: number;
+  onPress: () => void;
+}) {
+  const [aspectRatio, setAspectRatio] = useState(1);
+  const height = Math.min(Math.max(width / aspectRatio, 140), 340);
+  return (
+    <Pressable onPress={onPress} className="active:opacity-90">
+      <Image
+        source={{ uri }}
+        style={{ width, height }}
+        contentFit="cover"
+        onLoad={(e) => {
+          if (e.source.width && e.source.height) {
+            setAspectRatio(e.source.width / e.source.height);
+          }
+        }}
+      />
+    </Pressable>
+  );
+}
+
+function MessageBubble({
+  message,
+  mine,
+  imageWidth,
+  onImagePress,
+}: {
+  message: MessageResponse;
+  mine: boolean;
+  imageWidth: number;
+  onImagePress: (uri: string) => void;
+}) {
   const [showDetails, setShowDetails] = useState(false);
 
   const detailText = () => {
@@ -49,6 +123,9 @@ function MessageBubble({ message, mine }: { message: MessageResponse; mine: bool
     return `${time} · İletildi`;
   };
 
+  const hasText = !!message.content;
+  const hasImage = !!message.imageUrl;
+
   return (
     <Pressable
       className={`my-0.5 max-w-[80%] ${mine ? 'self-end' : 'self-start'}`}
@@ -57,20 +134,30 @@ function MessageBubble({ message, mine }: { message: MessageResponse; mine: bool
       <View
         className={
           mine
-            ? 'rounded-2xl rounded-br-md bg-primary px-3.5 py-2'
-            : 'rounded-2xl rounded-bl-md bg-neutral-200 px-3.5 py-2 dark:bg-neutral-800'
+            ? 'overflow-hidden rounded-2xl rounded-br-md bg-primary'
+            : 'overflow-hidden rounded-2xl rounded-bl-md bg-neutral-200 dark:bg-neutral-800'
         }
       >
-        {message.imageUrl && (
-          <Image
-            source={{ uri: message.imageUrl }}
-            style={{ width: 200, height: 200, borderRadius: 12, marginBottom: message.content ? 6 : 0 }}
-            contentFit="cover"
+        {hasImage && (
+          <ChatImage
+            uri={message.imageUrl!}
+            width={imageWidth}
+            onPress={() => onImagePress(message.imageUrl!)}
           />
         )}
-        {message.sharedPost && <SharedPostCard post={message.sharedPost} />}
-        {message.content && (
-          <Text className={mine ? 'text-[16px] text-white' : 'text-[16px] text-neutral-900 dark:text-neutral-50'}>
+        {message.sharedPost && (
+          <View className="px-1.5 pt-0.5">
+            <SharedPostCard post={message.sharedPost} />
+          </View>
+        )}
+        {hasText && (
+          <Text
+            className={
+              mine
+                ? 'px-3.5 py-2 text-[16px] leading-[22px] text-white'
+                : 'px-3.5 py-2 text-[16px] leading-[22px] text-neutral-900 dark:text-neutral-50'
+            }
+          >
             {message.content}
           </Text>
         )}
@@ -88,13 +175,21 @@ export default function ConversationScreen() {
   const params = useLocalSearchParams<{ id: string; name?: string }>();
   const conversationId = Number(params.id);
   const account = useAuthStore((s) => s.account);
+  const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
 
   const query = useMessages(conversationId);
+  const conversations = useConversations();
   const markRead = useMarkConversationRead();
   const { sendMessage, setActiveConversationId } = useMessaging();
   const sendImage = useSendDmImage(conversationId);
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
+
+  const otherParticipant = conversations.data?.pages
+    .flatMap((page) => page.content)
+    .find((c) => c.id === conversationId)?.otherParticipant;
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -148,11 +243,51 @@ export default function ConversationScreen() {
 
   const canSend = (draft.trim().length > 0 || !!imageUri) && !sendImage.isPending;
   const keyboardHeight = useKeyboardHeight();
+  const insets = useSafeAreaInsets();
+  const bubbleImageWidth = Math.min(screenWidth * 0.66, 280);
+  // While the keyboard is closed the composer still needs to clear the system
+  // nav bar under edge-to-edge; once it's open, keyboardHeight already does that.
+  const composerBottomPadding = keyboardHeight > 0 ? 8 : insets.bottom + 8;
 
   return (
     <View style={{ flex: 1, paddingBottom: keyboardHeight }}>
       <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: params.name ?? 'Sohbet', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: params.name ?? 'Sohbet',
+          headerTitle: () => (
+            <Pressable
+              className="flex-row items-center gap-2.5 active:opacity-70"
+              onPress={() => {
+                if (otherParticipant) router.push(`/user/${otherParticipant.username}`);
+              }}
+            >
+              {otherParticipant?.profileImageUrl ? (
+                <Image
+                  source={{ uri: otherParticipant.profileImageUrl }}
+                  style={{ width: 34, height: 34, borderRadius: 17 }}
+                  contentFit="cover"
+                />
+              ) : (
+                <View className="h-[34px] w-[34px] items-center justify-center rounded-full bg-neutral-300 dark:bg-neutral-700">
+                  <Text className="text-xs font-sans-bold text-neutral-700 dark:text-neutral-200">
+                    {(otherParticipant?.username ?? params.name ?? '?').substring(0, 2).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <View>
+                <Text className="text-[15px] font-sans-bold leading-tight text-neutral-900 dark:text-neutral-50">
+                  {otherParticipant?.displayName || otherParticipant?.username || params.name || 'Sohbet'}
+                </Text>
+                {otherParticipant && (
+                  <Text className="text-xs text-neutral-500">@{otherParticipant.username}</Text>
+                )}
+              </View>
+            </Pressable>
+          ),
+        }}
+      />
 
       {query.status === 'pending' ? (
         <View className="flex-1 items-center justify-center">
@@ -171,7 +306,12 @@ export default function ConversationScreen() {
           inverted
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
-            <MessageBubble message={item} mine={item.sender.id === account?.id} />
+            <MessageBubble
+              message={item}
+              mine={item.sender.id === account?.id}
+              imageWidth={bubbleImageWidth}
+              onImagePress={setViewerUri}
+            />
           )}
           contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8 }}
           onEndReached={() => {
@@ -195,9 +335,37 @@ export default function ConversationScreen() {
         />
       )}
 
-      <View className="border-t border-neutral-100 dark:border-neutral-800">
+      <Modal
+        visible={!!viewerUri}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setViewerUri(null)}
+      >
+        <View className="flex-1 items-center justify-center bg-black/95">
+          <Pressable className="absolute inset-0" onPress={() => setViewerUri(null)} />
+          {viewerUri && (
+            <Image
+              source={{ uri: viewerUri }}
+              style={{ width: '100%', height: '80%' }}
+              contentFit="contain"
+            />
+          )}
+          <Pressable
+            className="absolute right-4 top-14 h-10 w-10 items-center justify-center rounded-full bg-white/10 active:bg-white/25"
+            onPress={() => setViewerUri(null)}
+          >
+            <X size={22} color="#ffffff" />
+          </Pressable>
+        </View>
+      </Modal>
+
+      <View
+        className="border-t border-neutral-100 px-3 pt-2 dark:border-neutral-800"
+        style={{ paddingBottom: composerBottomPadding }}
+      >
         {imageUri && (
-          <View className="flex-row px-3 pt-2">
+          <View className="flex-row pb-2 pt-1">
             <View>
               <Image source={{ uri: imageUri }} style={{ width: 84, height: 84, borderRadius: 12 }} contentFit="cover" />
               <Pressable
@@ -210,31 +378,36 @@ export default function ConversationScreen() {
             </View>
           </View>
         )}
-        <View className="flex-row items-end gap-2 px-3 py-2">
+        <View className="flex-row items-end rounded-2xl border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-800 dark:bg-neutral-900">
           <Pressable
-            className="h-11 w-11 items-center justify-center rounded-full active:bg-neutral-100 dark:active:bg-neutral-900"
+            className="mb-0.5 ml-0.5 h-10 w-10 items-center justify-center rounded-xl active:bg-neutral-200 dark:active:bg-neutral-800"
             onPress={pickImage}
             disabled={sendImage.isPending || !!imageUri}
           >
             <ImagePlus size={22} color={imageUri ? '#a3a3a3' : '#208AEF'} />
           </Pressable>
           <TextInput
-            className="max-h-28 flex-1 rounded-2xl bg-neutral-100 px-4 py-2.5 text-[16px] text-neutral-900 dark:bg-neutral-900 dark:text-neutral-50"
-            placeholder="Mesaj"
+            className="flex-1 px-3 text-[16px] text-neutral-900 dark:text-neutral-50"
+            style={{ minHeight: 44, maxHeight: 132, paddingTop: 11, paddingBottom: 11 }}
+            placeholder="Yeni mesaj..."
             placeholderTextColor="#737373"
             multiline
             value={draft}
             onChangeText={setDraft}
           />
           <Pressable
-            className={canSend ? 'h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-80' : 'h-11 w-11 items-center justify-center rounded-full bg-primary/40'}
+            className={
+              canSend
+                ? 'mb-0.5 mr-0.5 h-10 w-10 items-center justify-center rounded-xl bg-primary active:opacity-80'
+                : 'mb-0.5 mr-0.5 h-10 w-10 items-center justify-center rounded-xl bg-primary/40'
+            }
             onPress={handleSend}
             disabled={!canSend}
           >
             {sendImage.isPending ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <Send size={20} color="#ffffff" />
+              <Send size={18} color="#ffffff" />
             )}
           </Pressable>
         </View>
