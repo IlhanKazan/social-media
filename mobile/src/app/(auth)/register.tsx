@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { FormInput } from '@/components/form-input';
 import { registerSchema, type RegisterFormValues } from '@/features/auth/register-schema';
@@ -76,7 +76,7 @@ export default function RegisterScreen() {
     onError: (error: { response?: { data?: ErrorResponse } }) => {
       const data = error.response?.data;
       const fieldError = data?.fieldErrors ? Object.values(data.fieldErrors)[0] : null;
-      setServerError(fieldError ?? data?.message ?? 'Registration failed. Check your connection.');
+      setServerError(fieldError ?? data?.message ?? 'Kayıt olunamadı. Bağlantını kontrol et.');
     },
   });
 
@@ -92,9 +92,10 @@ export default function RegisterScreen() {
         contentContainerStyle={{ paddingBottom: keyboardHeight + 24 }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text className="mb-6 text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
-          Create account
+        <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
+          Hesap oluştur
         </Text>
+        <Text className="mb-6 mt-1.5 text-center text-base text-neutral-500">SocialHan&apos;a katıl</Text>
 
         <FormInput
           control={control}
@@ -117,7 +118,7 @@ export default function RegisterScreen() {
           control={control}
           name="displayName"
           error={errors.displayName?.message}
-          placeholder="Display name (optional)"
+          placeholder="Görünen ad (opsiyonel)"
         />
         <FormInput
           control={control}
@@ -141,7 +142,7 @@ export default function RegisterScreen() {
             <Checkbox
               value={value}
               onToggle={() => onChange(!value)}
-              label="I accept the Terms of Service and Privacy Policy"
+              label="Kullanım Şartları ve Gizlilik Politikası'nı kabul ediyorum"
               error={errors.acceptedTerms?.message}
             />
           )}
@@ -153,21 +154,28 @@ export default function RegisterScreen() {
             <Checkbox
               value={value}
               onToggle={() => onChange(!value)}
-              label="I confirm I meet the minimum age requirement"
+              label="Asgari yaş şartını karşıladığımı onaylıyorum"
               error={errors.confirmedAge?.message}
             />
           )}
         />
 
         {serverError && (
-          <Text className="mt-4 text-center text-sm text-red-500">{serverError}</Text>
+          <View className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+            <Text className="text-center text-sm font-sans-medium text-red-500">{serverError}</Text>
+          </View>
         )}
 
         <Pressable
-          className="mt-6 rounded-xl bg-primary py-3 active:opacity-80"
+          className={
+            registerMutation.isPending
+              ? 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary/60 py-3.5'
+              : 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80'
+          }
           disabled={registerMutation.isPending}
           onPress={handleSubmit(onSubmit)}
         >
+          {registerMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
           <Text className="text-center text-base font-sans-semibold text-white">
             {registerMutation.isPending ? 'Oluşturuluyor…' : 'Kayıt Ol'}
           </Text>
@@ -175,7 +183,9 @@ export default function RegisterScreen() {
 
         <Link href="/login" asChild>
           <Pressable className="mt-6">
-            <Text className="text-center text-primary">Zaten hesabın var mı? Giriş yap</Text>
+            <Text className="text-center text-neutral-500">
+              Zaten hesabın var mı? <Text className="font-sans-semibold text-primary">Giriş yap</Text>
+            </Text>
           </Pressable>
         </Link>
       </ScrollView>

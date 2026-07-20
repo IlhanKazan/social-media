@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 
 import { FormInput } from '@/components/form-input';
 import { mfaSchema, type MfaFormValues } from '@/features/auth/mfa-schema';
@@ -12,9 +12,9 @@ import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse, LoginResponse, MfaMethod } from '@/types/api';
 
 const METHOD_LABELS: Record<MfaMethod, string> = {
-  TOTP: 'Authenticator app',
-  EMAIL: 'Email code',
-  RECOVERY: 'Recovery code',
+  TOTP: 'Kimlik doğrulayıcı uygulama',
+  EMAIL: 'E-posta kodu',
+  RECOVERY: 'Kurtarma kodu',
 };
 
 export default function MfaScreen() {
@@ -47,14 +47,14 @@ export default function MfaScreen() {
     },
     onSuccess: (data) => useAuthStore.getState().login(data as AuthResponse),
     onError: (error: { response?: { data?: ErrorResponse } }) => {
-      setServerError(error.response?.data?.message ?? 'Verification failed.');
+      setServerError(error.response?.data?.message ?? 'Doğrulama başarısız.');
     },
   });
 
   const resendMutation = useMutation({
     mutationFn: () => api.post('/auth/mfa/resend', { mfaToken: params.mfaToken }),
-    onSuccess: () => setInfo('A new code was sent to your email.'),
-    onError: () => setServerError('Could not resend the code.'),
+    onSuccess: () => setInfo('E-postana yeni bir kod gönderildi.'),
+    onError: () => setServerError('Kod tekrar gönderilemedi.'),
   });
 
   return (
@@ -62,15 +62,15 @@ export default function MfaScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
-      <Text className="text-center text-2xl font-sans-bold text-neutral-900 dark:text-neutral-50">
-        Two-factor verification
+      <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
+        İki Adımlı Doğrulama
       </Text>
-      <Text className="mt-2 text-center text-neutral-500 dark:text-neutral-400">
-        Enter the code for: {METHOD_LABELS[method]}
+      <Text className="mt-1.5 text-center text-base text-neutral-500">
+        Doğrulama yöntemi: {METHOD_LABELS[method]}
       </Text>
 
       {methods.length > 1 && (
-        <View className="mt-4 flex-row justify-center gap-2">
+        <View className="mt-4 flex-row flex-wrap justify-center gap-2">
           {methods.map((m) => (
             <Pressable
               key={m}
@@ -99,17 +99,24 @@ export default function MfaScreen() {
 
       {info && <Text className="mt-3 text-center text-sm text-primary">{info}</Text>}
       {serverError && (
-        <Text className="mt-3 text-center text-sm text-red-500">{serverError}</Text>
+        <View className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+          <Text className="text-center text-sm font-sans-medium text-red-500">{serverError}</Text>
+        </View>
       )}
 
       <Pressable
-        className="mt-6 rounded-xl bg-primary py-3 active:opacity-80"
+        className={
+          verifyMutation.isPending
+            ? 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary/60 py-3.5'
+            : 'mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80'
+        }
         disabled={verifyMutation.isPending}
         onPress={handleSubmit((values) => {
           setServerError(null);
           verifyMutation.mutate(values);
         })}
       >
+        {verifyMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
         <Text className="text-center text-base font-sans-semibold text-white">
           {verifyMutation.isPending ? 'Doğrulanıyor…' : 'Doğrula'}
         </Text>

@@ -18,12 +18,12 @@ export function FormInput<T extends FieldValues>({ control, name, error, ...inpu
         name={name}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            className={`mt-3 rounded-xl border px-4 py-3 text-[15px] text-neutral-900 dark:text-neutral-50 ${
+            className={`mt-3 rounded-xl border px-4 py-3.5 text-[16px] text-neutral-900 dark:text-neutral-50 ${
               error
-                ? 'border-red-500'
+                ? 'border-red-500 bg-red-500/5'
                 : focused
-                  ? 'border-primary'
-                  : 'border-neutral-300 dark:border-neutral-700'
+                  ? 'border-primary bg-white dark:bg-neutral-950'
+                  : 'border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900'
             }`}
             placeholderTextColor="#71767b"
             onBlur={() => {
