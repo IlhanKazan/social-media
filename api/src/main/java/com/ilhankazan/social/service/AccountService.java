@@ -47,6 +47,11 @@ public class AccountService {
         return accountRepository.findSuggestions(currentUserId, limit);
     }
 
+    @Transactional(readOnly = true)
+    public List<Account> findByUsernamePrefix(String prefix, int limit) {
+        return accountRepository.findByUsernameStartingWith(prefix, PageRequest.of(0, limit)).getContent();
+    }
+
     @CacheEvict(value = "accountsByUsername", key = "#username")
     @Transactional
     public Account updateProfile(String username, String displayName, String bio, Integer coverPosition) {
