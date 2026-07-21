@@ -12,8 +12,10 @@ import {
   View,
 } from 'react-native';
 
+import { MentionSuggestions } from '@/components/mention-suggestions';
 import { uploadPostImage, useCreatePost, useQuoteRepost, useUpdatePost } from '@/features/posts/queries';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
+import { getActiveMentionQuery, insertMention } from '@/features/mentions/mention-utils';
 import type { ErrorResponse } from '@/types/api';
 
 const MAX_CONTENT_LENGTH = 500;
@@ -37,6 +39,14 @@ export default function ComposeScreen() {
   const [content, setContent] = useState(params.initialContent ?? '');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [cursorPos, setCursorPos] = useState(0);
+
+  const activeMentionQuery = getActiveMentionQuery(content, cursorPos);
+  const handleMentionSelect = (username: string) => {
+    const { text, cursor } = insertMention(content, cursorPos, username);
+    setContent(text);
+    setCursorPos(cursor);
+  };
 
   const createPost = useCreatePost();
   const quoteRepost = useQuoteRepost();
@@ -127,6 +137,7 @@ export default function ComposeScreen() {
           maxLength={MAX_CONTENT_LENGTH}
           value={content}
           onChangeText={setContent}
+          onSelectionChange={(e) => setCursorPos(e.nativeEvent.selection.start)}
           textAlignVertical="top"
         />
 
@@ -197,6 +208,14 @@ export default function ComposeScreen() {
         </View>
       </View>
       </View>
+
+      {activeMentionQuery !== null && (
+        // Absolutely positioned so the suggestion strip floats above the keyboard
+        // instead of pushing the TextInput/layout around while typing.
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+          <MentionSuggestions query={activeMentionQuery} onSelect={handleMentionSelect} />
+        </View>
+      )}
     </View>
   );
 }

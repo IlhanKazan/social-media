@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { LinkifiedText } from '@/components/shared/LinkifiedText';
 import type { PostResponse } from '@/types/api';
 
 interface QuoteDialogProps {
@@ -58,7 +59,7 @@ export function QuoteDialog({ post, open, onOpenChange }: QuoteDialogProps) {
               <span className="font-bold text-sm">{post.author.displayName || post.author.username}</span>
               <span className="text-xs text-muted-foreground">@{post.author.username}</span>
             </div>
-            <p className="text-sm line-clamp-3">{post.content}</p>
+            <p className="text-sm line-clamp-3"><LinkifiedText text={post.content} /></p>
           </div>
           <div className="flex justify-end">
             <Button

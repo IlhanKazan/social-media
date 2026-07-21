@@ -21,6 +21,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     Page<Account> findByUsernameContainingIgnoreCaseOrDisplayNameContainingIgnoreCase(String username, String displayName, Pageable pageable);
 
+    Page<Account> findByUsernameStartingWith(String prefix, Pageable pageable);
+
     @Query(value = """
         SELECT a.* FROM accounts a
         WHERE a.deleted_at IS NULL

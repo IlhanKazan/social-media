@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
+import { MentionText } from '@/components/mention-text';
 import { ShareToDmSheet } from '@/components/share-to-dm-sheet';
 import { useDeletePost, useToggleLike, useToggleRepost } from '@/features/posts/queries';
 import { useNow } from '@/hooks/use-now';
@@ -141,9 +142,11 @@ function QuotedPostPreview({ post }: { post: PostResponse }) {
           @{post.author.username}
         </Text>
       </View>
-      <Text className="mt-1 text-sm text-neutral-900 dark:text-neutral-50" numberOfLines={3}>
-        {post.content}
-      </Text>
+      <MentionText
+        className="mt-1 text-sm text-neutral-900 dark:text-neutral-50"
+        text={post.content}
+        numberOfLines={3}
+      />
       {post.imageUrl && (
         <Image
           source={{ uri: post.imageUrl }}
@@ -240,9 +243,10 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
             )}
           </View>
 
-          <Text className="mt-0.5 text-[16px] leading-[22px] text-neutral-900 dark:text-neutral-50">
-            {post.content}
-          </Text>
+          <MentionText
+            className="mt-0.5 text-[16px] leading-[22px] text-neutral-900 dark:text-neutral-50"
+            text={post.content}
+          />
 
           {post.imageUrl && (
             <Image

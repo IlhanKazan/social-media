@@ -18,7 +18,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MentionSuggestions } from '@/components/mention-suggestions';
+import { MentionText } from '@/components/mention-text';
 import { useMessaging } from '@/features/messaging/messaging-provider';
+import { getActiveMentionQuery, insertMention } from '@/features/mentions/mention-utils';
 import {
   useConversations,
   useMarkConversationRead,
@@ -58,9 +61,11 @@ function SharedPostCard({ post }: { post: SharedPostPreview }) {
         </Text>
       </View>
       {post.contentSnippet && (
-        <Text className="text-[13px] leading-snug text-neutral-900 dark:text-neutral-50" numberOfLines={3}>
-          {post.contentSnippet}
-        </Text>
+        <MentionText
+          className="text-[13px] leading-snug text-neutral-900 dark:text-neutral-50"
+          text={post.contentSnippet}
+          numberOfLines={3}
+        />
       )}
       {post.imageUrl && (
         <Image
@@ -151,15 +156,15 @@ function MessageBubble({
           </View>
         )}
         {hasText && (
-          <Text
+          <MentionText
             className={
               mine
                 ? 'px-3.5 py-2 text-[16px] leading-[22px] text-white'
                 : 'px-3.5 py-2 text-[16px] leading-[22px] text-neutral-900 dark:text-neutral-50'
             }
-          >
-            {message.content}
-          </Text>
+            mentionClassName={mine ? 'font-sans-bold text-white underline' : 'text-primary'}
+            text={message.content!}
+          />
         )}
       </View>
       {(showDetails || message.isOptimistic) && (
@@ -186,6 +191,15 @@ export default function ConversationScreen() {
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [viewerUri, setViewerUri] = useState<string | null>(null);
+  const [cursorPos, setCursorPos] = useState(0);
+  const [composerHeight, setComposerHeight] = useState(0);
+
+  const activeMentionQuery = getActiveMentionQuery(draft, cursorPos);
+  const handleMentionSelect = (username: string) => {
+    const { text, cursor } = insertMention(draft, cursorPos, username);
+    setDraft(text);
+    setCursorPos(cursor);
+  };
 
   const otherParticipant = conversations.data?.pages
     .flatMap((page) => page.content)
@@ -363,6 +377,7 @@ export default function ConversationScreen() {
       <View
         className="border-t border-neutral-100 px-3 pt-2 dark:border-neutral-800"
         style={{ paddingBottom: composerBottomPadding }}
+        onLayout={(e) => setComposerHeight(e.nativeEvent.layout.height)}
       >
         {imageUri && (
           <View className="flex-row pb-2 pt-1">
@@ -394,6 +409,7 @@ export default function ConversationScreen() {
             multiline
             value={draft}
             onChangeText={setDraft}
+            onSelectionChange={(e) => setCursorPos(e.nativeEvent.selection.start)}
           />
           <Pressable
             className={
@@ -413,6 +429,15 @@ export default function ConversationScreen() {
         </View>
       </View>
       </View>
+
+      {activeMentionQuery !== null && (
+        // Absolutely positioned (anchored to the measured composer height) so
+        // the suggestion strip floats above the input instead of resizing the
+        // message list every time it appears/disappears while typing.
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: composerHeight }}>
+          <MentionSuggestions query={activeMentionQuery} onSelect={handleMentionSelect} />
+        </View>
+      )}
     </View>
   );
 }

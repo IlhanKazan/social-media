@@ -7,6 +7,8 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MentionSuggestions } from '@/components/shared/MentionSuggestions';
+import { getActiveMentionQuery, insertMention } from '@/features/mentions/mention-utils';
 import { useAuthStore } from '@/stores/auth-store';
 import { Loader2, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,11 +34,28 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cursorPos, setCursorPos] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<CreatePostInput>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema),
     defaultValues: { content: '' }
   });
+
+  const content = watch('content');
+  const activeMentionQuery = getActiveMentionQuery(content ?? '', cursorPos);
+
+  const handleMentionSelect = (username: string) => {
+    const { text, cursor } = insertMention(content ?? '', cursorPos, username);
+    setValue('content', text, { shouldValidate: true });
+    setCursorPos(cursor);
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(cursor, cursor);
+    });
+  };
+
+  const { ref: contentRef, ...contentField } = register('content');
 
   useEffect(() => {
     return () => {
@@ -125,12 +144,26 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
       </Avatar>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-full pt-0.5">
-        <Textarea
-          placeholder={placeholder}
-          className="resize-none border-none shadow-none focus-visible:ring-0 px-3 py-2 text-[16px] min-h-[52px] bg-transparent text-foreground placeholder:text-muted-foreground/70 overflow-hidden"
-          aria-invalid={!!errors.content}
-          {...register('content')}
-        />
+        <div className="relative">
+          <Textarea
+            placeholder={placeholder}
+            className="resize-none border-none shadow-none focus-visible:ring-0 px-3 py-2 text-[16px] min-h-[52px] bg-transparent text-foreground placeholder:text-muted-foreground/70 overflow-hidden"
+            aria-invalid={!!errors.content}
+            {...contentField}
+            ref={(el) => {
+              contentRef(el);
+              textareaRef.current = el;
+            }}
+            onSelect={(e) => setCursorPos(e.currentTarget.selectionStart ?? 0)}
+          />
+          {activeMentionQuery !== null && (
+            <MentionSuggestions
+              query={activeMentionQuery}
+              onSelect={handleMentionSelect}
+              className="left-3 top-full mt-1"
+            />
+          )}
+        </div>
         {errors.content && (
           <span className="text-xs font-medium text-destructive mt-1 px-3">{errors.content.message}</span>
         )}

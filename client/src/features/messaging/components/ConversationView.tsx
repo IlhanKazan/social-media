@@ -13,6 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LinkifiedText } from '@/components/shared/LinkifiedText';
+import { MentionSuggestions } from '@/components/shared/MentionSuggestions';
+import { getActiveMentionQuery, insertMention } from '@/features/mentions/mention-utils';
 import { useConversations } from '../hooks/use-conversations';
 import type { MessageResponse, PageResponse } from '@/types/api';
 
@@ -24,8 +27,22 @@ export function ConversationView() {
   const navigate = useNavigate();
   const { publish, isConnected } = useWebSocket();
   const [content, setContent] = useState('');
+  const [cursorPos, setCursorPos] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sendImage = useSendDmImage(id);
+
+  const activeMentionQuery = getActiveMentionQuery(content, cursorPos);
+
+  const handleMentionSelect = (username: string) => {
+    const { text, cursor } = insertMention(content, cursorPos, username);
+    setContent(text);
+    setCursorPos(cursor);
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(cursor, cursor);
+    });
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -186,7 +203,7 @@ export function ConversationView() {
                         <span className="text-muted-foreground text-[13px] truncate">@{msg.sharedPost.author.username}</span>
                       </div>
                       {msg.sharedPost.contentSnippet && (
-                        <p className="text-[13px] leading-snug line-clamp-3 whitespace-pre-wrap">{msg.sharedPost.contentSnippet}</p>
+                        <p className="text-[13px] leading-snug line-clamp-3 whitespace-pre-wrap"><LinkifiedText text={msg.sharedPost.contentSnippet} /></p>
                       )}
                       {msg.sharedPost.imageUrl && (
                         <img src={msg.sharedPost.imageUrl} alt="" className="mt-1.5 rounded-lg w-full max-h-32 object-cover" />
@@ -205,7 +222,7 @@ export function ConversationView() {
                           : "bg-zinc-100 dark:bg-zinc-800/80 rounded-bl-sm"
                       )}
                     >
-                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                      <p className="whitespace-pre-wrap break-words"><LinkifiedText text={msg.content} /></p>
                     </button>
                   )}
 
@@ -265,18 +282,29 @@ export function ConversationView() {
           >
             <ImagePlus className="h-5 w-5" />
           </Button>
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Yeni mesaj..."
-            className="min-h-[44px] max-h-32 border-0 shadow-none resize-none bg-transparent py-3 px-4 focus-visible:ring-0"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend(e);
-              }
-            }}
-          />
+          <div className="relative flex-1">
+            <Textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onSelect={(e) => setCursorPos(e.currentTarget.selectionStart ?? 0)}
+              placeholder="Yeni mesaj..."
+              className="min-h-[44px] max-h-32 border-0 shadow-none resize-none bg-transparent py-3 px-4 focus-visible:ring-0"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
+            />
+            {activeMentionQuery !== null && (
+              <MentionSuggestions
+                query={activeMentionQuery}
+                onSelect={handleMentionSelect}
+                className="bottom-full left-0 mb-1"
+              />
+            )}
+          </div>
           <Button
             type="submit"
             size="icon"

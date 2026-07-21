@@ -14,6 +14,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +40,16 @@ public class AccountController {
     @GetMapping("/me")
     public ResponseEntity<MyAccountResponse> getCurrentUser() {
         return ResponseEntity.ok(accountManager.getCurrentUser());
+    }
+
+    @Operation(summary = "Get mention suggestions", description = "Returns a lightweight list of accounts whose username starts with the given prefix, for @mention autocomplete.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved suggestions")
+    @RateLimit(capacity = 120, minutes = 1)
+    @GetMapping("/mention-suggestions")
+    public ResponseEntity<List<PublicAccountResponse>> getMentionSuggestions(
+            @RequestParam @Size(min = 1, max = 30) String prefix,
+            @RequestParam(defaultValue = "6") @Min(1) @Max(10) int limit) {
+        return ResponseEntity.ok(accountManager.getMentionSuggestions(prefix, limit));
     }
 
     @Operation(summary = "Get public profile", description = "Returns public details of a user by their username.")

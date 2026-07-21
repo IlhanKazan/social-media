@@ -5,6 +5,7 @@ import { tr } from 'date-fns/locale';
 import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2, Flag, Send } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { LinkifiedText } from '@/components/shared/LinkifiedText';
 import { EditPostDialog } from '@/features/post/components/EditPostDialog';
 import { QuoteDialog } from './QuoteDialog';
 import { ShareToDmDialog } from './ShareToDmDialog';
@@ -294,7 +295,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                 </div>
 
                 <div className="mt-1">
-                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{post.content}</p>
+                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed"><LinkifiedText text={post.content} /></p>
 
                   {post.imageUrl && (
                     <div className="mt-3">
@@ -358,7 +359,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                           {formatDistanceToNowStrict(new Date(post.quotedPost.createdAt), { locale: tr })}
                         </span>
                       </div>
-                      <p className="text-[14px] line-clamp-3 whitespace-pre-wrap">{post.quotedPost.content}</p>
+                      <p className="text-[14px] line-clamp-3 whitespace-pre-wrap"><LinkifiedText text={post.quotedPost.content} /></p>
                       {post.quotedPost.imageUrl && (
                         <div className="mt-2 text-primary text-[13px] font-medium">Fotoğrafı gör</div>
                       )}

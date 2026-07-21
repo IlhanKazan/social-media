@@ -104,6 +104,13 @@ public class AccountManager {
         )));
     }
 
+    @Transactional(readOnly = true)
+    public List<PublicAccountResponse> getMentionSuggestions(String prefix, int limit) {
+        return accountService.findByUsernamePrefix(prefix, limit).stream()
+            .map(a -> accountMapper.toPublicResponse(a, 0L, 0L, false))
+            .toList();
+    }
+
     @Transactional
     public void deleteAccount() {
         Account account = accountService.getAccount(currentUsername());
