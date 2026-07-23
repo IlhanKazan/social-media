@@ -76,7 +76,7 @@ For a deeper technical tour, see [ARCHITECTURE.md](ARCHITECTURE.md).
 **Infrastructure**
 - Docker (multi-stage build, non-root JRE runtime), Docker Compose for local dev
 - GitHub Actions CI
-- Render (API), Supabase (PostgreSQL), Netlify (client)
+- Hetzner VPS + Coolify (self-hosted PaaS), self-hosted PostgreSQL, Cloudflare (proxy/CDN/DDoS)
 
 ## Quick start (local)
 
@@ -155,17 +155,20 @@ suite, and production build. Lint runs in report-only mode.
 
 ## Deployment
 
-The live deployment is a split topology:
+The live deployment is self-hosted on a single Hetzner VPS, behind Cloudflare
+(proxy mode: DNS, DDoS protection, CDN) and Coolify (self-hosted PaaS, Traefik
+reverse proxy with automatic Let's Encrypt TLS, push-to-deploy from GitHub):
 
-- **API** — Render Web Service running the multi-stage Docker image
-- **Database** — Supabase (managed PostgreSQL); Flyway migrates on startup
-- **Client** — Netlify static site (Vite build)
+- **API** — multi-stage Docker image (`api/Dockerfile`), deployed by Coolify
+- **Database** — PostgreSQL 16 in a container on the same VPS, internal-only
+  (not exposed publicly); Flyway migrates on startup
+- **Client** — multi-stage Docker image (`client/Dockerfile`): Vite build
+  served by nginx, with immutable caching on hashed assets
 
-Because both the Render free instance and the Supabase free project idle out,
-a scheduled `GET /actuator/health` (every 10 minutes) keeps the API awake and
-the database active. The JVM is tuned to fit a 512 MB instance (SerialGC,
-bounded heap and native regions). `/actuator/health` is the only public actuator
-endpoint; everything else requires admin auth.
+Everything runs on one CX23 instance (2 vCPU, 4 GB RAM), so the JVM is tuned
+accordingly (G1GC, `-Xmx768m`, bounded metaspace/code cache — see
+`api/Dockerfile`). `/actuator/health` is the only public actuator endpoint;
+everything else requires admin auth.
 
 ## Administration
 
