@@ -26,7 +26,11 @@ server:
     include-stacktrace: never
     include-binding-errors: never
     include-exception: false
-  forward-headers-strategy: native
+  # Not native: Tomcat's RemoteIpValve only walks past hops matching its private-IP
+  # regex, so with Cloudflare in front of Traefik it resolves getRemoteAddr() to
+  # Cloudflare's public edge IP, not the real client. ClientIpResolver does this
+  # correctly (CF-Connecting-IP, gated on the immediate peer being our own trusted proxy).
+  forward-headers-strategy: none
 
 app:
   cors:

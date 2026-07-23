@@ -5,6 +5,7 @@ import com.ilhankazan.social.manager.AccountManager;
 import com.ilhankazan.social.manager.AuthManager;
 import com.ilhankazan.social.security.AuthCookieFactory;
 import com.ilhankazan.social.security.AuthRequestOriginGuard;
+import com.ilhankazan.social.security.ClientIpResolver;
 import com.ilhankazan.social.security.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,6 +31,7 @@ public class AuthController {
     private final AccountManager accountManager;
     private final AuthCookieFactory authCookieFactory;
     private final AuthRequestOriginGuard originGuard;
+    private final ClientIpResolver clientIpResolver;
 
     @Operation(summary = "Register a new user", description = "Creates a new account and returns an access token. The refresh token is set as an HttpOnly cookie.")
     @ApiResponse(responseCode = "201", description = "User successfully registered")
@@ -191,7 +193,6 @@ public class AuthController {
     }
 
     private String clientIp(HttpServletRequest request) {
-        // X-Forwarded-For is client-controlled; forward-headers-strategy resolves the real IP into remoteAddr.
-        return request.getRemoteAddr();
+        return clientIpResolver.resolve(request);
     }
 }

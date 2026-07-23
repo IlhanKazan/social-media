@@ -81,6 +81,12 @@ app:
     window-days: ${RECOMMENDATIONS_WINDOW_DAYS:7}
     cooldown-hours: ${RECOMMENDATIONS_COOLDOWN_HOURS:24}
     batch-size: ${RECOMMENDATIONS_BATCH_SIZE:25}
+  proxy-trust:
+    # Peers we trust to hand us a real client IP via CF-Connecting-IP/X-Forwarded-For
+    # (our reverse proxy). Deliberately excludes loopback: a client hitting the app
+    # directly (local dev, tests, or anyone bypassing the proxy) must not be able to
+    # set its own forwarded-IP headers and have them trusted.
+    trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS:10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
   email:
     enabled: ${EMAIL_ENABLED:false}
     provider: resend

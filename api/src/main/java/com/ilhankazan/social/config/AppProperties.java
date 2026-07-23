@@ -59,4 +59,9 @@ public class AppProperties {
         int cooldownHours,
         int batchSize
     ) {}
+
+    @ConfigurationProperties(prefix = "app.proxy-trust")
+    public record ProxyTrustProperties(
+        List<String> trustedProxyCidrs
+    ) {}
 }
