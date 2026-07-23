@@ -34,11 +34,13 @@ export const useAuthStore = create<AuthState>()(
       }),
       logout: async () => {
         try {
+          const token = useAuthStore.getState().token;
           await axios.post(authUrl('/logout'), null, {
             withCredentials: true,
-            headers: useAuthStore.getState().token
-              ? { Authorization: `Bearer ${useAuthStore.getState().token}` }
-              : undefined,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
           });
         } catch {
           // best-effort server-side revocation; clear local state regardless
@@ -58,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
             const { data } = await axios.post<AuthResponse>(
               authUrl('/refresh'),
               null,
-              { withCredentials: true }
+              { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
             );
             set({ token: data.accessToken, account: data.account });
             return true;
