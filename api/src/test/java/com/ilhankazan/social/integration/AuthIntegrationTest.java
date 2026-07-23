@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,6 +104,26 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void shouldReturn415NotServerErrorWhenRefreshSentAsFormUrlEncoded() {
+        // axios defaults a bodiless POST to Content-Type: application/x-www-form-urlencoded,
+        // which has no message converter for MobileRefreshRequest. Must surface as 415, not 500.
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.add("X-Client-Platform", "mobile");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            "/api/v1/auth/refresh",
+            HttpMethod.POST,
+            new HttpEntity<>("", headers),
+            String.class
+        );
+
+        assertThat(response.getStatusCode())
+            .as("Body: " + response.getBody())
+            .isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     private String extractRefreshCookieValue(String setCookieHeader) {
