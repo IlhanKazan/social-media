@@ -1,0 +1,151 @@
+{
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "identifierPlaceholder": "Username or email",
+      "passwordPlaceholder": "Password",
+      "submit": "Sign In",
+      "submitPending": "Signing in…",
+      "forgotPassword": "Forgot your password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "genericError": "Couldn't sign in. Check your connection.",
+      "identifierRequired": "Username or email is required",
+      "passwordRequired": "Password is required"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join SocialHan",
+      "usernamePlaceholder": "Username",
+      "emailPlaceholder": "Email",
+      "displayNamePlaceholder": "Display name (optional)",
+      "passwordPlaceholder": "Password",
+      "confirmPasswordPlaceholder": "Password (confirm)",
+      "acceptTerms": "I accept the Terms of Service and Privacy Policy",
+      "confirmAge": "I confirm I meet the minimum age requirement",
+      "submit": "Sign Up",
+      "submitPending": "Creating…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "genericError": "Couldn't sign up. Check your connection.",
+      "usernameMin": "At least 3 characters",
+      "usernameMax": "At most 30 characters",
+      "emailInvalid": "Enter a valid email",
+      "passwordMin": "At least 6 characters",
+      "passwordMax": "At most 100 characters",
+      "displayNameMax": "At most 50 characters",
+      "mustAcceptTerms": "You must accept the Terms and Privacy Policy",
+      "mustConfirmAge": "You must confirm you meet the minimum age",
+      "passwordsMismatch": "Passwords do not match"
+    },
+    "forgotPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email and we'll send you a link",
+      "emailPlaceholder": "Email",
+      "submit": "Send Reset Link",
+      "submitPending": "Sending…",
+      "sentMessage": "If this email is registered, a reset link has been sent. The link lets you set a new password on the web app; then sign in again here.",
+      "backToLogin": "Back to sign in",
+      "emailInvalid": "Enter a valid email"
+    },
+    "mfa": {
+      "title": "Two-Factor Authentication",
+      "methodLabel": "Verification method: {{method}}",
+      "methodTotp": "Authenticator app",
+      "methodEmail": "Email code",
+      "methodRecovery": "Recovery code",
+      "codePlaceholder": "Verification code",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "resendEmailCode": "Resend email code",
+      "resendSuccess": "A new code has been sent to your email.",
+      "resendError": "Couldn't resend the code.",
+      "verifyError": "Verification failed."
+    },
+    "codeRequired": "Code is required"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": {
+      "title": "Account",
+      "emailLabel": "Email"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize the app's theme.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose the app's display language.",
+      "turkish": "Türkçe",
+      "english": "English"
+    },
+    "notificationPreferences": {
+      "title": "Notification Preferences",
+      "subtitle": "Choose which push notifications you want to receive."
+    },
+    "emailVerification": {
+      "title": "Email Verification",
+      "subtitle": "Verify your email for the blue check badge.",
+      "sendButton": "Send verification email",
+      "sendButtonPending": "Sending…",
+      "successTitle": "Sent",
+      "successBody": "Check your inbox for the verification email.",
+      "errorTitle": "Error",
+      "errorBody": "Couldn't send the verification email."
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "You'll be signed out after changing it.",
+      "currentPlaceholder": "Current password",
+      "newPlaceholder": "New password",
+      "confirmPlaceholder": "New password (confirm)",
+      "submit": "Update Password",
+      "submitPending": "Updating…",
+      "weakPasswordTitle": "Weak password",
+      "weakPasswordBody": "New password must be at least 6 characters.",
+      "mismatchTitle": "Doesn't match",
+      "mismatchBody": "New passwords don't match.",
+      "sameTitle": "Same password",
+      "sameBody": "New password can't be the same as the old one."
+    },
+    "session": {
+      "title": "Session",
+      "subtitle": "Manage your sessions.",
+      "signOut": "Sign Out",
+      "signOutAll": "Sign Out of All Devices",
+      "signOutAllConfirmTitle": "Sign out everywhere?",
+      "signOutAllConfirmBody": "This will end all your sessions, including this device.",
+      "cancel": "Cancel",
+      "confirmSignOutAll": "Sign out of all"
+    },
+    "legal": {
+      "title": "Legal",
+      "about": "About",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "disclaimer": "These actions cannot be undone.",
+      "deleteAccount": "Delete Account",
+      "deleteAccountPending": "Deleting…",
+      "deleteConfirmTitle": "Delete your account?",
+      "deleteConfirmBody": "This action is permanent. Your posts, likes, and messages will be deleted.",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete"
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Likes",
+    "reposts": "Reposts",
+    "follows": "New followers",
+    "replies": "Replies",
+    "mentions": "Mentions",
+    "recommendations": "Recommendations for you"
+  }
+}

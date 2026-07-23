@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { FormInput } from '@/components/form-input';
-import { registerSchema, type RegisterFormValues } from '@/features/auth/register-schema';
+import { createRegisterSchema, type RegisterFormValues } from '@/features/auth/register-schema';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -41,8 +42,10 @@ function Checkbox({
 }
 
 export default function RegisterScreen() {
+  const { t, i18n } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
   const keyboardHeight = useKeyboardHeight();
+  const registerSchema = useMemo(() => createRegisterSchema(t), [t, i18n.language]);
   const {
     control,
     handleSubmit,
@@ -76,7 +79,7 @@ export default function RegisterScreen() {
     onError: (error: { response?: { data?: ErrorResponse } }) => {
       const data = error.response?.data;
       const fieldError = data?.fieldErrors ? Object.values(data.fieldErrors)[0] : null;
-      setServerError(fieldError ?? data?.message ?? 'Kayıt olunamadı. Bağlantını kontrol et.');
+      setServerError(fieldError ?? data?.message ?? t('auth.register.genericError'));
     },
   });
 
@@ -93,15 +96,15 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
-          Hesap oluştur
+          {t('auth.register.title')}
         </Text>
-        <Text className="mb-6 mt-1.5 text-center text-base text-neutral-500">SocialHan&apos;a katıl</Text>
+        <Text className="mb-6 mt-1.5 text-center text-base text-neutral-500">{t('auth.register.subtitle')}</Text>
 
         <FormInput
           control={control}
           name="username"
           error={errors.username?.message}
-          placeholder="Kullanıcı adı"
+          placeholder={t('auth.register.usernamePlaceholder')}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -109,7 +112,7 @@ export default function RegisterScreen() {
           control={control}
           name="email"
           error={errors.email?.message}
-          placeholder="E-posta"
+          placeholder={t('auth.register.emailPlaceholder')}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
@@ -118,20 +121,20 @@ export default function RegisterScreen() {
           control={control}
           name="displayName"
           error={errors.displayName?.message}
-          placeholder="Görünen ad (opsiyonel)"
+          placeholder={t('auth.register.displayNamePlaceholder')}
         />
         <FormInput
           control={control}
           name="password"
           error={errors.password?.message}
-          placeholder="Şifre"
+          placeholder={t('auth.register.passwordPlaceholder')}
           secureTextEntry
         />
         <FormInput
           control={control}
           name="confirmPassword"
           error={errors.confirmPassword?.message}
-          placeholder="Şifre (tekrar)"
+          placeholder={t('auth.register.confirmPasswordPlaceholder')}
           secureTextEntry
         />
 
@@ -142,7 +145,7 @@ export default function RegisterScreen() {
             <Checkbox
               value={value}
               onToggle={() => onChange(!value)}
-              label="Kullanım Şartları ve Gizlilik Politikası'nı kabul ediyorum"
+              label={t('auth.register.acceptTerms')}
               error={errors.acceptedTerms?.message}
             />
           )}
@@ -154,7 +157,7 @@ export default function RegisterScreen() {
             <Checkbox
               value={value}
               onToggle={() => onChange(!value)}
-              label="Asgari yaş şartını karşıladığımı onaylıyorum"
+              label={t('auth.register.confirmAge')}
               error={errors.confirmedAge?.message}
             />
           )}
@@ -177,14 +180,14 @@ export default function RegisterScreen() {
         >
           {registerMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
           <Text className="text-center text-base font-sans-semibold text-white">
-            {registerMutation.isPending ? 'Oluşturuluyor…' : 'Kayıt Ol'}
+            {registerMutation.isPending ? t('auth.register.submitPending') : t('auth.register.submit')}
           </Text>
         </Pressable>
 
         <Link href="/login" asChild>
           <Pressable className="mt-6">
             <Text className="text-center text-neutral-500">
-              Zaten hesabın var mı? <Text className="font-sans-semibold text-primary">Giriş yap</Text>
+              {t('auth.register.haveAccount')} <Text className="font-sans-semibold text-primary">{t('auth.register.signIn')}</Text>
             </Text>
           </Pressable>
         </Link>

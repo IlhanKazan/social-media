@@ -26,6 +26,9 @@ import { WebSocketProvider } from '@/lib/ws';
 // Import for its side effect: rehydrating the theme store re-applies the saved
 // mode to NativeWind before first paint.
 import '@/stores/theme-store';
+// Side effect: initializes i18next and applies the persisted/device language
+// before first paint.
+import '@/stores/language-store';
 
 void SplashScreen.preventAutoHideAsync();
 

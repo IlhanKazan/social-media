@@ -1,18 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Link, router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 
 import { FormInput } from '@/components/form-input';
-import { loginSchema, type LoginFormValues } from '@/features/auth/login-schema';
+import { createLoginSchema, type LoginFormValues } from '@/features/auth/login-schema';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse, LoginResponse } from '@/types/api';
 
 export default function LoginScreen() {
+  const { t, i18n } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
+  const loginSchema = useMemo(() => createLoginSchema(t), [t, i18n.language]);
   const {
     control,
     handleSubmit,
@@ -38,7 +41,7 @@ export default function LoginScreen() {
       await useAuthStore.getState().login(data as AuthResponse);
     },
     onError: (error: { response?: { data?: ErrorResponse } }) => {
-      setServerError(error.response?.data?.message ?? 'Giriş yapılamadı. Bağlantını kontrol et.');
+      setServerError(error.response?.data?.message ?? t('auth.login.genericError'));
     },
   });
 
@@ -53,15 +56,15 @@ export default function LoginScreen() {
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
       <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
-        Tekrar hoş geldin
+        {t('auth.login.title')}
       </Text>
-      <Text className="mb-8 mt-1.5 text-center text-base text-neutral-500">Hesabına giriş yap</Text>
+      <Text className="mb-8 mt-1.5 text-center text-base text-neutral-500">{t('auth.login.subtitle')}</Text>
 
       <FormInput
         control={control}
         name="identifier"
         error={errors.identifier?.message}
-        placeholder="Kullanıcı adı veya e-posta"
+        placeholder={t('auth.login.identifierPlaceholder')}
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -69,7 +72,7 @@ export default function LoginScreen() {
         control={control}
         name="password"
         error={errors.password?.message}
-        placeholder="Şifre"
+        placeholder={t('auth.login.passwordPlaceholder')}
         secureTextEntry
       />
 
@@ -90,19 +93,19 @@ export default function LoginScreen() {
       >
         {loginMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
         <Text className="text-center text-base font-sans-semibold text-white">
-          {loginMutation.isPending ? 'Giriş yapılıyor…' : 'Giriş Yap'}
+          {loginMutation.isPending ? t('auth.login.submitPending') : t('auth.login.submit')}
         </Text>
       </Pressable>
 
       <Link href="/forgot-password" asChild>
         <Pressable className="mt-5">
-          <Text className="text-center text-primary">Şifreni mi unuttun?</Text>
+          <Text className="text-center text-primary">{t('auth.login.forgotPassword')}</Text>
         </Pressable>
       </Link>
       <Link href="/register" asChild>
         <Pressable className="mt-3">
           <Text className="text-center text-neutral-500">
-            Hesabın yok mu? <Text className="font-sans-semibold text-primary">Kayıt ol</Text>
+            {t('auth.login.noAccount')} <Text className="font-sans-semibold text-primary">{t('auth.login.signUp')}</Text>
           </Text>
         </Pressable>
       </Link>

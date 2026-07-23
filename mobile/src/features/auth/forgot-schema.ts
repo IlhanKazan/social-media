@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 
-export const forgotSchema = z.object({
-  email: z.string().trim().email('Geçerli bir e-posta girin'),
-});
+export function createForgotSchema(t: TFunction) {
+  return z.object({
+    email: z.string().trim().email(t('auth.forgotPassword.emailInvalid')),
+  });
+}
 
-export type ForgotFormValues = z.infer<typeof forgotSchema>;
+export type ForgotFormValues = z.infer<ReturnType<typeof createForgotSchema>>;

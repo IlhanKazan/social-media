@@ -3,21 +3,22 @@ import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 
 import { FormInput } from '@/components/form-input';
-import { mfaSchema, type MfaFormValues } from '@/features/auth/mfa-schema';
+import { createMfaSchema, type MfaFormValues } from '@/features/auth/mfa-schema';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse, LoginResponse, MfaMethod } from '@/types/api';
 
-const METHOD_LABELS: Record<MfaMethod, string> = {
-  TOTP: 'Kimlik doğrulayıcı uygulama',
-  EMAIL: 'E-posta kodu',
-  RECOVERY: 'Kurtarma kodu',
-};
-
 export default function MfaScreen() {
+  const { t, i18n } = useTranslation();
+  const methodLabels: Record<MfaMethod, string> = {
+    TOTP: t('auth.mfa.methodTotp'),
+    EMAIL: t('auth.mfa.methodEmail'),
+    RECOVERY: t('auth.mfa.methodRecovery'),
+  };
   const params = useLocalSearchParams<{ mfaToken: string; methods: string }>();
   const methods = useMemo(
     () => (params.methods ? (params.methods.split(',') as MfaMethod[]) : []),
@@ -27,6 +28,7 @@ export default function MfaScreen() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
+  const mfaSchema = useMemo(() => createMfaSchema(t), [t, i18n.language]);
   const {
     control,
     handleSubmit,
@@ -47,14 +49,14 @@ export default function MfaScreen() {
     },
     onSuccess: (data) => useAuthStore.getState().login(data as AuthResponse),
     onError: (error: { response?: { data?: ErrorResponse } }) => {
-      setServerError(error.response?.data?.message ?? 'Doğrulama başarısız.');
+      setServerError(error.response?.data?.message ?? t('auth.mfa.verifyError'));
     },
   });
 
   const resendMutation = useMutation({
     mutationFn: () => api.post('/auth/mfa/resend', { mfaToken: params.mfaToken }),
-    onSuccess: () => setInfo('E-postana yeni bir kod gönderildi.'),
-    onError: () => setServerError('Kod tekrar gönderilemedi.'),
+    onSuccess: () => setInfo(t('auth.mfa.resendSuccess')),
+    onError: () => setServerError(t('auth.mfa.resendError')),
   });
 
   return (
@@ -63,10 +65,10 @@ export default function MfaScreen() {
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
       <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
-        İki Adımlı Doğrulama
+        {t('auth.mfa.title')}
       </Text>
       <Text className="mt-1.5 text-center text-base text-neutral-500">
-        Doğrulama yöntemi: {METHOD_LABELS[method]}
+        {t('auth.mfa.methodLabel', { method: methodLabels[method] })}
       </Text>
 
       {methods.length > 1 && (
@@ -80,7 +82,7 @@ export default function MfaScreen() {
               onPress={() => setMethod(m)}
             >
               <Text className={m === method ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}>
-                {METHOD_LABELS[m]}
+                {methodLabels[m]}
               </Text>
             </Pressable>
           ))}
@@ -91,7 +93,7 @@ export default function MfaScreen() {
         control={control}
         name="code"
         error={errors.code?.message}
-        placeholder="Doğrulama kodu"
+        placeholder={t('auth.mfa.codePlaceholder')}
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType={method === 'RECOVERY' ? 'default' : 'number-pad'}
@@ -118,7 +120,7 @@ export default function MfaScreen() {
       >
         {verifyMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
         <Text className="text-center text-base font-sans-semibold text-white">
-          {verifyMutation.isPending ? 'Doğrulanıyor…' : 'Doğrula'}
+          {verifyMutation.isPending ? t('auth.mfa.verifying') : t('auth.mfa.verify')}
         </Text>
       </Pressable>
 
@@ -128,7 +130,7 @@ export default function MfaScreen() {
           disabled={resendMutation.isPending}
           onPress={() => resendMutation.mutate()}
         >
-          <Text className="text-center text-primary">E-posta kodunu tekrar gönder</Text>
+          <Text className="text-center text-primary">{t('auth.mfa.resendEmailCode')}</Text>
         </Pressable>
       )}
     </KeyboardAvoidingView>

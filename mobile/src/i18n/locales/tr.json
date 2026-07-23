@@ -1,0 +1,151 @@
+{
+  "auth": {
+    "login": {
+      "title": "Tekrar hoş geldin",
+      "subtitle": "Hesabına giriş yap",
+      "identifierPlaceholder": "Kullanıcı adı veya e-posta",
+      "passwordPlaceholder": "Şifre",
+      "submit": "Giriş Yap",
+      "submitPending": "Giriş yapılıyor…",
+      "forgotPassword": "Şifreni mi unuttun?",
+      "noAccount": "Hesabın yok mu?",
+      "signUp": "Kayıt ol",
+      "genericError": "Giriş yapılamadı. Bağlantını kontrol et.",
+      "identifierRequired": "Kullanıcı adı veya e-posta gerekli",
+      "passwordRequired": "Şifre gerekli"
+    },
+    "register": {
+      "title": "Hesap oluştur",
+      "subtitle": "SocialHan'a katıl",
+      "usernamePlaceholder": "Kullanıcı adı",
+      "emailPlaceholder": "E-posta",
+      "displayNamePlaceholder": "Görünen ad (opsiyonel)",
+      "passwordPlaceholder": "Şifre",
+      "confirmPasswordPlaceholder": "Şifre (tekrar)",
+      "acceptTerms": "Kullanım Şartları ve Gizlilik Politikası'nı kabul ediyorum",
+      "confirmAge": "Asgari yaş şartını karşıladığımı onaylıyorum",
+      "submit": "Kayıt Ol",
+      "submitPending": "Oluşturuluyor…",
+      "haveAccount": "Zaten hesabın var mı?",
+      "signIn": "Giriş yap",
+      "genericError": "Kayıt olunamadı. Bağlantını kontrol et.",
+      "usernameMin": "En az 3 karakter",
+      "usernameMax": "En fazla 30 karakter",
+      "emailInvalid": "Geçerli bir e-posta girin",
+      "passwordMin": "En az 6 karakter",
+      "passwordMax": "En fazla 100 karakter",
+      "displayNameMax": "En fazla 50 karakter",
+      "mustAcceptTerms": "Şartları ve Gizlilik Politikası'nı kabul etmelisin",
+      "mustConfirmAge": "Asgari yaş şartını sağladığını onaylamalısın",
+      "passwordsMismatch": "Şifreler eşleşmiyor"
+    },
+    "forgotPassword": {
+      "title": "Şifreni Sıfırla",
+      "subtitle": "E-posta adresini gir, sana bağlantı gönderelim",
+      "emailPlaceholder": "E-posta",
+      "submit": "Sıfırlama Bağlantısı Gönder",
+      "submitPending": "Gönderiliyor…",
+      "sentMessage": "Bu e-posta kayıtlıysa bir sıfırlama bağlantısı gönderildi. Bağlantı web uygulamasında yeni şifre belirlemeni sağlar; ardından buradan tekrar giriş yap.",
+      "backToLogin": "Girişe geri dön",
+      "emailInvalid": "Geçerli bir e-posta girin"
+    },
+    "mfa": {
+      "title": "İki Adımlı Doğrulama",
+      "methodLabel": "Doğrulama yöntemi: {{method}}",
+      "methodTotp": "Kimlik doğrulayıcı uygulama",
+      "methodEmail": "E-posta kodu",
+      "methodRecovery": "Kurtarma kodu",
+      "codePlaceholder": "Doğrulama kodu",
+      "verify": "Doğrula",
+      "verifying": "Doğrulanıyor…",
+      "resendEmailCode": "E-posta kodunu tekrar gönder",
+      "resendSuccess": "E-postana yeni bir kod gönderildi.",
+      "resendError": "Kod tekrar gönderilemedi.",
+      "verifyError": "Doğrulama başarısız."
+    },
+    "codeRequired": "Kod gerekli"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "account": {
+      "title": "Hesap",
+      "emailLabel": "E-posta"
+    },
+    "appearance": {
+      "title": "Görünüm",
+      "subtitle": "Uygulama temasını özelleştir.",
+      "light": "Aydınlık",
+      "dark": "Karanlık",
+      "system": "Sistem"
+    },
+    "language": {
+      "title": "Dil",
+      "subtitle": "Uygulamanın görüntülenme dilini seç.",
+      "turkish": "Türkçe",
+      "english": "English"
+    },
+    "notificationPreferences": {
+      "title": "Bildirim Tercihleri",
+      "subtitle": "Hangi anlık bildirimleri alacağını seç."
+    },
+    "emailVerification": {
+      "title": "E-posta doğrulama",
+      "subtitle": "Mavi tik rozeti için e-postanı doğrula.",
+      "sendButton": "Doğrulama e-postası gönder",
+      "sendButtonPending": "Gönderiliyor…",
+      "successTitle": "Gönderildi",
+      "successBody": "Doğrulama e-postası için gelen kutunu kontrol et.",
+      "errorTitle": "Hata",
+      "errorBody": "Doğrulama e-postası gönderilemedi."
+    },
+    "changePassword": {
+      "title": "Şifre değiştir",
+      "subtitle": "Değiştirdikten sonra oturumun kapanacak.",
+      "currentPlaceholder": "Mevcut şifre",
+      "newPlaceholder": "Yeni şifre",
+      "confirmPlaceholder": "Yeni şifre (tekrar)",
+      "submit": "Şifreyi güncelle",
+      "submitPending": "Güncelleniyor…",
+      "weakPasswordTitle": "Zayıf şifre",
+      "weakPasswordBody": "Yeni şifre en az 6 karakter olmalı.",
+      "mismatchTitle": "Uyuşmuyor",
+      "mismatchBody": "Yeni şifreler eşleşmiyor.",
+      "sameTitle": "Aynı şifre",
+      "sameBody": "Yeni şifre eskisiyle aynı olamaz."
+    },
+    "session": {
+      "title": "Oturum",
+      "subtitle": "Oturumlarını yönet.",
+      "signOut": "Çıkış yap",
+      "signOutAll": "Tüm cihazlardan çıkış yap",
+      "signOutAllConfirmTitle": "Her yerden çıkış yapılsın mı?",
+      "signOutAllConfirmBody": "Bu cihaz dahil tüm oturumların sonlanacak.",
+      "cancel": "Vazgeç",
+      "confirmSignOutAll": "Tümünden çık"
+    },
+    "legal": {
+      "title": "Yasal",
+      "about": "Hakkında",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Şartları"
+    },
+    "dangerZone": {
+      "title": "Tehlikeli bölge",
+      "disclaimer": "Bu işlemler geri alınamaz.",
+      "deleteAccount": "Hesabı sil",
+      "deleteAccountPending": "Siliniyor…",
+      "deleteConfirmTitle": "Hesap silinsin mi?",
+      "deleteConfirmBody": "Bu işlem kalıcıdır. Gönderilerin, beğenilerin ve mesajların silinecek.",
+      "cancel": "Vazgeç",
+      "confirmDelete": "Sil"
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Beğeniler",
+    "reposts": "Yeniden paylaşımlar",
+    "follows": "Yeni takipçiler",
+    "replies": "Yanıtlar",
+    "mentions": "Bahsetmeler",
+    "recommendations": "Senin için öneriler"
+  }
+}
