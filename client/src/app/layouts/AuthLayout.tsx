@@ -1,6 +1,10 @@
 import { Outlet, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function AuthLayout() {
+  const { t } = useTranslation();
+  const features = t('auth.layout.features', { returnObjects: true }) as string[];
+
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="flex flex-col justify-center bg-background px-8 py-12 sm:px-12 lg:px-20 xl:px-32">
@@ -20,18 +24,17 @@ export function AuthLayout() {
         <div className="relative flex h-full flex-col justify-end p-16 text-white">
           <div className="max-w-md space-y-6">
             <div className="inline-flex rounded-full bg-zinc-800/50 px-4 py-1.5 text-sm font-medium text-zinc-300 backdrop-blur-sm border border-zinc-700/50">
-              Gerçek zamanlı sosyal ağ
+              {t('auth.layout.badge')}
             </div>
             <h2 className="text-5xl font-bold leading-tight tracking-tighter">
-              Düşüncelerini anında dünyayla paylaş.
+              {t('auth.layout.heading')}
             </h2>
             <p className="text-xl text-zinc-400 font-light leading-relaxed">
-              Gönderiler, konu zincirleri ve direkt mesajlar; hepsi anlık.
-              Sade, hızlı ve modern bir sosyal deneyim.
+              {t('auth.layout.subtext')}
             </p>
           </div>
           <div className="mt-12 flex flex-wrap gap-2 border-t border-zinc-800 pt-8">
-            {['Gerçek zamanlı akış', 'Direkt mesajlar', 'Konu zincirleri'].map((feature) => (
+            {features.map((feature) => (
               <span
                 key={feature}
                 className="rounded-full border border-zinc-700/50 bg-zinc-800/40 px-3 py-1 text-sm text-zinc-400"

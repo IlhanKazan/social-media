@@ -3,9 +3,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { registerSchema, type RegisterInput } from './schemas';
+import { createRegisterSchema, type RegisterInput } from './schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,8 +15,11 @@ import { Loader2 } from 'lucide-react';
 import type { AuthResponse, ErrorResponse } from '@/types/api';
 
 export function RegisterPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+
+  const registerSchema = useMemo(() => createRegisterSchema(t), [t, i18n.language]);
 
   const { register, handleSubmit, formState: { errors }, setError } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -38,7 +43,7 @@ export function RegisterPage() {
       } else if (error.response?.data?.message) {
         setError('root', { message: error.response.data.message });
       } else {
-        setError('root', { message: 'Kayıt olunamadı. Lütfen tekrar dene.' });
+        setError('root', { message: t('auth.register.genericError') });
       }
     }
   });
@@ -51,16 +56,16 @@ export function RegisterPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Aramıza katıl</h1>
-        <p className="text-muted-foreground font-light text-lg">Hesabını oluştur ve akışta yerini al.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('auth.register.title')}</h1>
+        <p className="text-muted-foreground font-light text-lg">{t('auth.register.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="username" className={errors.username ? "text-destructive" : ""}>Kullanıcı Adı</Label>
+          <Label htmlFor="username" className={errors.username ? "text-destructive" : ""}>{t('auth.register.usernameLabel')}</Label>
           <Input
             id="username"
-            placeholder="ilhankazan"
+            placeholder={t('auth.register.usernamePlaceholder')}
             className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.username ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.username}
             {...register('username')}
@@ -71,11 +76,11 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className={errors.email ? "text-destructive" : ""}>E-posta</Label>
+          <Label htmlFor="email" className={errors.email ? "text-destructive" : ""}>{t('auth.register.emailLabel')}</Label>
           <Input
             id="email"
             type="email"
-            placeholder="mail@ornek.com"
+            placeholder={t('auth.register.emailPlaceholder')}
             className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.email ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.email}
             {...register('email')}
@@ -86,10 +91,10 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="displayName" className={errors.displayName ? "text-destructive" : ""}>Görünen Ad (İsteğe bağlı)</Label>
+          <Label htmlFor="displayName" className={errors.displayName ? "text-destructive" : ""}>{t('auth.register.displayNameLabel')}</Label>
           <Input
             id="displayName"
-            placeholder="İlhan Kazan"
+            placeholder={t('auth.register.displayNamePlaceholder')}
             className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.displayName ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.displayName}
             {...register('displayName')}
@@ -100,7 +105,7 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>Şifre</Label>
+          <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>{t('auth.register.passwordLabel')}</Label>
           <Input
             id="password"
             type="password"
@@ -115,7 +120,7 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className={errors.confirmPassword ? "text-destructive" : ""}>Şifre Tekrarı</Label>
+          <Label htmlFor="confirmPassword" className={errors.confirmPassword ? "text-destructive" : ""}>{t('auth.register.confirmPasswordLabel')}</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -138,10 +143,11 @@ export function RegisterPage() {
                 {...register('acceptedTerms')}
               />
               <span>
-                <Link to="/terms" target="_blank" className="font-medium text-primary hover:underline">Kullanım Şartları</Link>
-                {' '}ve{' '}
-                <Link to="/privacy" target="_blank" className="font-medium text-primary hover:underline">Gizlilik Politikası</Link>
-                {"'nı okudum ve kabul ediyorum."}
+                {t('auth.register.termsPrefix')}
+                <Link to="/terms" target="_blank" className="font-medium text-primary hover:underline">{t('auth.register.termsLink')}</Link>
+                {t('auth.register.termsAnd')}
+                <Link to="/privacy" target="_blank" className="font-medium text-primary hover:underline">{t('auth.register.privacyLink')}</Link>
+                {t('auth.register.termsSuffix')}
               </span>
             </label>
             {errors.acceptedTerms && (
@@ -156,7 +162,7 @@ export function RegisterPage() {
                 className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary"
                 {...register('confirmedAge')}
               />
-              <span>13 yaşında veya daha büyük olduğumu onaylıyorum.</span>
+              <span>{t('auth.register.ageConfirm')}</span>
             </label>
             {errors.confirmedAge && (
               <p className="text-xs font-medium text-destructive">{errors.confirmedAge.message}</p>
@@ -171,14 +177,14 @@ export function RegisterPage() {
         )}
 
         <Button type="submit" className="w-full h-12 text-base font-semibold transition-transform active:scale-95" disabled={mutation.isPending}>
-          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Kayıt Ol'}
+          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.register.submit')}
         </Button>
       </form>
 
       <div className="text-center text-sm text-muted-foreground">
-        Zaten hesabın var mı?{' '}
+        {t('auth.register.haveAccount')}{' '}
         <Link to="/login" className="font-bold text-primary hover:underline transition-colors">
-          Giriş yap
+          {t('auth.register.signIn')}
         </Link>
       </div>
     </div>

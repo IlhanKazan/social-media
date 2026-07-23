@@ -3,9 +3,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { loginSchema, type LoginInput } from './schemas';
+import { createLoginSchema, type LoginInput } from './schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,10 +15,13 @@ import { Loader2 } from 'lucide-react';
 import type { LoginResponse, ErrorResponse } from '@/types/api';
 
 export function LoginPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const login = useAuthStore((state) => state.login);
   const from = location.state?.from?.pathname || '/';
+
+  const loginSchema = useMemo(() => createLoginSchema(t), [t, i18n.language]);
 
   const { register, handleSubmit, formState: { errors }, setError } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -47,7 +52,7 @@ export function LoginPage() {
           setError(field as keyof LoginInput, { message: msg });
         });
       } else {
-        setError('root', { message: error.response?.data?.message || 'Giriş yapılamadı. Bilgilerini kontrol et.' });
+        setError('root', { message: error.response?.data?.message || t('auth.login.genericError') });
       }
     }
   });
@@ -55,18 +60,18 @@ export function LoginPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Tekrar hoş geldin</h1>
-        <p className="text-muted-foreground font-light text-lg">Hesabına giriş yap ve akışa katıl.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('auth.login.title')}</h1>
+        <p className="text-muted-foreground font-light text-lg">{t('auth.login.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="identifier" className={errors.identifier ? "text-destructive" : ""}>
-            Kullanıcı Adı veya E-posta
+            {t('auth.login.identifierLabel')}
           </Label>
           <Input
             id="identifier"
-            placeholder="kullanici@ornek.com"
+            placeholder={t('auth.login.identifierPlaceholder')}
             className={`h-12 bg-zinc-50/50 transition-all focus:bg-white ${errors.identifier ? "border-destructive focus:ring-destructive/20" : ""}`}
             aria-invalid={!!errors.identifier}
             {...register('identifier')}
@@ -76,8 +81,8 @@ export function LoginPage() {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>Şifre</Label>
-            <Link to="/forgot-password" className="text-xs font-medium text-primary hover:underline">Şifremi unuttum?</Link>
+            <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>{t('auth.login.passwordLabel')}</Label>
+            <Link to="/forgot-password" className="text-xs font-medium text-primary hover:underline">{t('auth.login.forgotPassword')}</Link>
           </div>
           <Input
             id="password"
@@ -97,14 +102,14 @@ export function LoginPage() {
         )}
 
         <Button type="submit" className="w-full h-12 text-base font-semibold transition-transform active:scale-95" disabled={mutation.isPending}>
-          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Giriş Yap'}
+          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.login.submit')}
         </Button>
       </form>
 
       <div className="text-center text-sm text-muted-foreground">
-        Hesabın yok mu?{' '}
+        {t('auth.login.noAccount')}{' '}
         <Link to="/register" className="font-bold text-primary hover:underline transition-colors">
-          Hemen kaydol
+          {t('auth.login.signUp')}
         </Link>
       </div>
     </div>

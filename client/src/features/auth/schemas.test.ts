@@ -1,10 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
+import i18n from '@/i18n';
 import {
-  loginSchema,
-  registerSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
+  createLoginSchema,
+  createRegisterSchema,
+  createForgotPasswordSchema,
+  createResetPasswordSchema,
 } from './schemas';
+
+beforeAll(async () => {
+  await i18n.changeLanguage('tr');
+});
+
+const loginSchema = createLoginSchema(i18n.t);
+const registerSchema = createRegisterSchema(i18n.t);
+const forgotPasswordSchema = createForgotPasswordSchema(i18n.t);
+const resetPasswordSchema = createResetPasswordSchema(i18n.t);
 
 describe('auth schemas', () => {
   it('login requires both identifier and password', () => {

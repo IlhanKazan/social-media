@@ -1,11 +1,13 @@
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
-import { resetPasswordSchema, type ResetPasswordInput } from './schemas';
+import { createResetPasswordSchema, type ResetPasswordInput } from './schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +15,12 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import type { ErrorResponse } from '@/types/api';
 
 export function ResetPasswordPage() {
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
+
+  const resetPasswordSchema = useMemo(() => createResetPasswordSchema(t), [t, i18n.language]);
 
   const { register, handleSubmit, formState: { errors }, setError } = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
@@ -30,14 +35,14 @@ export function ResetPasswordPage() {
       });
     },
     onSuccess: () => {
-      toast.success('Şifreniz başarıyla güncellendi.', {
-        description: 'Yeni şifrenizle giriş yapabilirsiniz.'
+      toast.success(t('auth.resetPassword.successTitle'), {
+        description: t('auth.resetPassword.successDescription')
       });
       navigate('/login');
     },
     onError: (error) => {
       setError('root', {
-        message: error.response?.data?.message || 'Şifre sıfırlanırken bir hata oluştu. Linkin süresi dolmuş olabilir.'
+        message: error.response?.data?.message || t('auth.resetPassword.genericError')
       });
     }
   });
@@ -48,10 +53,10 @@ export function ResetPasswordPage() {
         <div className="flex justify-center">
           <AlertCircle className="h-12 w-12 text-destructive" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Geçersiz Bağlantı</h1>
-        <p className="text-muted-foreground">Şifre sıfırlama token'ı bulunamadı. Lütfen e-postanızdaki bağlantıyı kontrol edin.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('auth.resetPassword.invalidLinkTitle')}</h1>
+        <p className="text-muted-foreground">{t('auth.resetPassword.invalidLinkBody')}</p>
         <Link to="/forgot-password">
-          <Button variant="outline" className="mt-4">Yeni bağlantı iste</Button>
+          <Button variant="outline" className="mt-4">{t('auth.resetPassword.requestNewLink')}</Button>
         </Link>
       </div>
     );
@@ -60,13 +65,13 @@ export function ResetPasswordPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Yeni Şifre Belirle</h1>
-        <p className="text-muted-foreground font-light text-lg">Lütfen hesabın için yeni ve güçlü bir şifre gir.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('auth.resetPassword.title')}</h1>
+        <p className="text-muted-foreground font-light text-lg">{t('auth.resetPassword.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="newPassword" className={errors.newPassword ? "text-destructive" : ""}>Yeni Şifre</Label>
+          <Label htmlFor="newPassword" className={errors.newPassword ? "text-destructive" : ""}>{t('auth.resetPassword.newPasswordLabel')}</Label>
           <Input
             id="newPassword"
             type="password"
@@ -78,7 +83,7 @@ export function ResetPasswordPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className={errors.confirmPassword ? "text-destructive" : ""}>Şifre Tekrarı</Label>
+          <Label htmlFor="confirmPassword" className={errors.confirmPassword ? "text-destructive" : ""}>{t('auth.resetPassword.confirmPasswordLabel')}</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -96,7 +101,7 @@ export function ResetPasswordPage() {
         )}
 
         <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={mutation.isPending}>
-          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Şifreyi Güncelle'}
+          {mutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.resetPassword.submit')}
         </Button>
       </form>
     </div>

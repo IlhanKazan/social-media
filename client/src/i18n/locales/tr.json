@@ -1,0 +1,207 @@
+{
+  "auth": {
+    "layout": {
+      "badge": "Gerçek zamanlı sosyal ağ",
+      "heading": "Düşüncelerini anında dünyayla paylaş.",
+      "subtext": "Gönderiler, konu zincirleri ve direkt mesajlar; hepsi anlık. Sade, hızlı ve modern bir sosyal deneyim.",
+      "features": ["Gerçek zamanlı akış", "Direkt mesajlar", "Konu zincirleri"]
+    },
+    "login": {
+      "title": "Tekrar hoş geldin",
+      "subtitle": "Hesabına giriş yap ve akışa katıl.",
+      "identifierLabel": "Kullanıcı Adı veya E-posta",
+      "identifierPlaceholder": "kullanici@ornek.com",
+      "passwordLabel": "Şifre",
+      "forgotPassword": "Şifremi unuttum?",
+      "submit": "Giriş Yap",
+      "noAccount": "Hesabın yok mu?",
+      "signUp": "Hemen kaydol",
+      "genericError": "Giriş yapılamadı. Bilgilerini kontrol et.",
+      "identifierRequired": "Kullanıcı adı veya e-posta gerekli",
+      "passwordRequired": "Şifre gerekli"
+    },
+    "register": {
+      "title": "Aramıza katıl",
+      "subtitle": "Hesabını oluştur ve akışta yerini al.",
+      "usernameLabel": "Kullanıcı Adı",
+      "usernamePlaceholder": "ilhankazan",
+      "emailLabel": "E-posta",
+      "emailPlaceholder": "mail@ornek.com",
+      "displayNameLabel": "Görünen Ad (İsteğe bağlı)",
+      "displayNamePlaceholder": "İlhan Kazan",
+      "passwordLabel": "Şifre",
+      "confirmPasswordLabel": "Şifre Tekrarı",
+      "termsPrefix": "",
+      "termsLink": "Kullanım Şartları",
+      "termsAnd": " ve ",
+      "privacyLink": "Gizlilik Politikası",
+      "termsSuffix": "'nı okudum ve kabul ediyorum.",
+      "ageConfirm": "13 yaşında veya daha büyük olduğumu onaylıyorum.",
+      "submit": "Kayıt Ol",
+      "haveAccount": "Zaten hesabın var mı?",
+      "signIn": "Giriş yap",
+      "genericError": "Kayıt olunamadı. Lütfen tekrar dene.",
+      "usernameFormat": "Sadece harf, rakam ve alt çizgi",
+      "emailInvalid": "Geçerli bir e-posta girin",
+      "passwordMin": "Şifre en az 6 karakter olmalı",
+      "mustAcceptTerms": "Devam etmek için Şartlar ve Gizlilik Politikası'nı kabul etmelisin",
+      "mustConfirmAge": "13 yaş ve üzerinde olduğunu onaylamalısın",
+      "passwordsMismatch": "Şifreler eşleşmiyor"
+    },
+    "forgotPassword": {
+      "title": "Şifreni mi unuttun?",
+      "subtitle": "E-posta adresini gir, sana bir sıfırlama bağlantısı gönderelim.",
+      "emailLabel": "E-posta Adresi",
+      "emailPlaceholder": "mail@ornek.com",
+      "submit": "Sıfırlama Bağlantısı Gönder",
+      "checkEmailTitle": "E-postanı kontrol et",
+      "checkEmailBody": "Eğer bu e-posta adresiyle kayıtlı bir hesabın varsa, şifre sıfırlama bağlantısını gönderdik.",
+      "backToLogin": "Giriş sayfasına dön",
+      "emailInvalid": "Geçerli bir e-posta adresi giriniz."
+    },
+    "resetPassword": {
+      "title": "Yeni Şifre Belirle",
+      "subtitle": "Lütfen hesabın için yeni ve güçlü bir şifre gir.",
+      "newPasswordLabel": "Yeni Şifre",
+      "confirmPasswordLabel": "Şifre Tekrarı",
+      "submit": "Şifreyi Güncelle",
+      "invalidLinkTitle": "Geçersiz Bağlantı",
+      "invalidLinkBody": "Şifre sıfırlama token'ı bulunamadı. Lütfen e-postanızdaki bağlantıyı kontrol edin.",
+      "requestNewLink": "Yeni bağlantı iste",
+      "successTitle": "Şifreniz başarıyla güncellendi.",
+      "successDescription": "Yeni şifrenizle giriş yapabilirsiniz.",
+      "genericError": "Şifre sıfırlanırken bir hata oluştu. Linkin süresi dolmuş olabilir.",
+      "passwordMin": "Şifre en az 8 karakter olmalıdır.",
+      "passwordsMismatch": "Şifreler eşleşmiyor."
+    },
+    "mfa": {
+      "totpTitle": "İki adımlı doğrulama",
+      "totpDesc": "Authenticator uygulamandaki 6 haneli kodu gir.",
+      "emailTitle": "İki adımlı doğrulama",
+      "emailDesc": "E-postana gönderdiğimiz 6 haneli kodu gir.",
+      "recoveryTitle": "Kurtarma kodu",
+      "recoveryDesc": "Kurtarma kodlarından birini gir.",
+      "codeLabel": "Doğrulama kodu",
+      "recoveryCodeLabel": "Kurtarma kodu",
+      "recoveryPlaceholder": "kurtarma kodu",
+      "verify": "Doğrula ve giriş yap",
+      "verifying": "Doğrulanıyor…",
+      "useAuthenticatorCode": "Authenticator kodu kullan",
+      "useEmailCode": "E-posta kodu kullan",
+      "resendCode": "Kodu tekrar gönder",
+      "backToNormalCode": "Normal koda dön",
+      "useRecoveryCode": "Kurtarma kodu kullan",
+      "backToLogin": "Girişe dön",
+      "resendSuccess": "Yeni kod e-postana gönderildi.",
+      "resendError": "Kod gönderilemedi.",
+      "verifyError": "Doğrulanamadı. Lütfen tekrar dene."
+    },
+    "verifyEmail": {
+      "invalidTitle": "Geçersiz Bağlantı",
+      "invalidBody": "E-posta doğrulama linki eksik veya hatalı.",
+      "backHome": "Ana Sayfaya Dön",
+      "verifyingTitle": "Doğrulanıyor...",
+      "verifyingBody": "Lütfen bekleyin, e-posta adresiniz onaylanıyor.",
+      "successTitle": "E-posta Doğrulandı!",
+      "successBody": "Hesabınız başarıyla onaylandı. Mavi tik rozetiniz profilinize eklendi.",
+      "goToFeed": "Akışa Git",
+      "failedTitle": "Doğrulama Başarısız",
+      "failedBodyFallback": "Bağlantının süresi dolmuş olabilir.",
+      "requestNewLink": "Yeni Bağlantı İste"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "appearance": {
+      "title": "Görünüm",
+      "subtitle": "Uygulama temanı özelleştir.",
+      "light": "Aydınlık",
+      "dark": "Karanlık",
+      "system": "Sistem"
+    },
+    "language": {
+      "title": "Dil",
+      "subtitle": "Uygulamanın görüntülenme dilini seç.",
+      "turkish": "Türkçe",
+      "english": "English",
+      "system": "Sistem"
+    },
+    "notificationPreferences": {
+      "title": "Bildirim Tercihleri",
+      "subtitle": "Hangi bildirimler için anlık bildirim (push) almak istediğini seç."
+    },
+    "emailVerification": {
+      "title": "Hesap Doğrulama",
+      "subtitle": "E-posta adresini onayla ve mavi tik rozetini al.",
+      "statusLabel": "E-posta Durumu",
+      "checking": "Kontrol ediliyor...",
+      "verified": "Hesabınız doğrulandı. Mavi tik rozetine sahipsiniz.",
+      "notVerified": "E-posta adresiniz henüz doğrulanmadı.",
+      "sendVerification": "Doğrulama Gönder",
+      "successToastTitle": "Doğrulama e-postası gönderildi",
+      "successToastDescription": "Lütfen gelen kutunuzu kontrol edin.",
+      "rateLimitedToastTitle": "Çok fazla istek attınız",
+      "rateLimitedToastDescription": "Lütfen daha sonra tekrar deneyin.",
+      "errorToastTitle": "Bir hata oluştu",
+      "errorToastDescription": "Doğrulama e-postası gönderilemedi."
+    },
+    "changePassword": {
+      "title": "Şifre Değiştir",
+      "subtitle": "Hesap güvenliğiniz için şifrenizi güçlü tutun.",
+      "currentPasswordLabel": "Mevcut Şifreniz",
+      "newPasswordLabel": "Yeni Şifre",
+      "confirmPasswordLabel": "Yeni Şifre (Tekrar)",
+      "submit": "Şifreyi Güncelle",
+      "minLengthError": "Yeni şifreniz en az 6 karakter olmalıdır.",
+      "mismatchError": "Yeni şifreler birbiriyle eşleşmiyor.",
+      "sameAsOldError": "Yeni şifreniz eski şifrenizle aynı olamaz."
+    },
+    "security": {
+      "title": "Güvenlik",
+      "subtitle": "Hesabına ikinci bir doğrulama katmanı ekle."
+    },
+    "session": {
+      "title": "Oturum",
+      "subtitle": "Oturumunu yönet.",
+      "signOutTitle": "Oturumu Kapat",
+      "signOutSubtitle": "Sadece bu cihazdan çıkış yaparsın.",
+      "signOut": "Çıkış Yap"
+    },
+    "dangerZone": {
+      "title": "Güvenlik & Tehlikeli İşlemler",
+      "subtitle": "Bu alandaki işlemler geri alınamaz.",
+      "signOutAllTitle": "Tüm Cihazlardan Çıkış Yap",
+      "signOutAllSubtitle": "Şu anki cihazın dahil tüm oturumlarını sonlandırır.",
+      "signOutAll": "Tümünden Çıkış Yap",
+      "confirmTitle": "Emin misin?",
+      "signOutAllConfirmBody": "Bilgisayarın, telefonun ve diğer tüm aktif cihazlarındaki oturumların kapatılacak ve tekrar giriş yapman gerekecek.",
+      "cancel": "İptal",
+      "confirmSignOutAll": "Evet, Çıkış Yap",
+      "signingOut": "Çıkış Yapılıyor...",
+      "deleteAccountTitle": "Hesabımı Sil",
+      "deleteAccountSubtitle": "Gönderilerin, etkileşimlerin ve tüm verilerin kalıcı olarak silinir.",
+      "deleteAccount": "Hesabımı Sil",
+      "deleteConfirmTitle": "Kalıcı Silme İşlemi",
+      "deleteConfirmBody": "Bu işlemi geri alamazsın. Hesabın, gönderilerin, beğenilerin ve mesajların tamamen silinecek. Hesabını silmek istediğine emin misin?",
+      "giveUp": "Vazgeç",
+      "confirmDelete": "Evet, Hesabımı Sil",
+      "deleting": "Siliniyor..."
+    },
+    "legal": {
+      "title": "Yasal",
+      "subtitle": "Politikalar ve proje hakkında bilgi.",
+      "about": "Hakkında",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Şartları",
+      "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir."
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Beğeniler",
+    "reposts": "Yeniden paylaşımlar",
+    "follows": "Yeni takipçiler",
+    "replies": "Yanıtlar",
+    "mentions": "Bahsetmeler",
+    "recommendations": "Senin için öneriler"
+  }
+}

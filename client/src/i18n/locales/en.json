@@ -1,0 +1,207 @@
+{
+  "auth": {
+    "layout": {
+      "badge": "Real-time social network",
+      "heading": "Share your thoughts with the world instantly.",
+      "subtext": "Posts, threads, and direct messages — all instant. A clean, fast, modern social experience.",
+      "features": ["Real-time feed", "Direct messages", "Threads"]
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account and join the feed.",
+      "identifierLabel": "Username or Email",
+      "identifierPlaceholder": "user@example.com",
+      "passwordLabel": "Password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up now",
+      "genericError": "Couldn't sign in. Check your details.",
+      "identifierRequired": "Username or Email is required",
+      "passwordRequired": "Password is required"
+    },
+    "register": {
+      "title": "Join us",
+      "subtitle": "Create your account and take your place in the feed.",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "ilhankazan",
+      "emailLabel": "Email",
+      "emailPlaceholder": "mail@example.com",
+      "displayNameLabel": "Display Name (Optional)",
+      "displayNamePlaceholder": "Ilhan Kazan",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "termsPrefix": "I have read and accept the ",
+      "termsLink": "Terms of Service",
+      "termsAnd": " and ",
+      "privacyLink": "Privacy Policy",
+      "termsSuffix": ".",
+      "ageConfirm": "I confirm I'm 13 years or older.",
+      "submit": "Sign Up",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "genericError": "Couldn't sign up. Please try again.",
+      "usernameFormat": "Letters, numbers, and underscores only",
+      "emailInvalid": "Enter a valid email",
+      "passwordMin": "Password must be at least 6 characters",
+      "mustAcceptTerms": "You must accept the Terms and Privacy Policy to continue",
+      "mustConfirmAge": "You must confirm you're 13 or older",
+      "passwordsMismatch": "Passwords do not match"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send you a reset link.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "mail@example.com",
+      "submit": "Send Reset Link",
+      "checkEmailTitle": "Check your email",
+      "checkEmailBody": "If an account exists with this email, we've sent a password reset link.",
+      "backToLogin": "Back to sign in",
+      "emailInvalid": "Enter a valid email address."
+    },
+    "resetPassword": {
+      "title": "Set a New Password",
+      "subtitle": "Please enter a new, strong password for your account.",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "submit": "Update Password",
+      "invalidLinkTitle": "Invalid Link",
+      "invalidLinkBody": "No password reset token was found. Please check the link in your email.",
+      "requestNewLink": "Request a new link",
+      "successTitle": "Your password has been updated.",
+      "successDescription": "You can now sign in with your new password.",
+      "genericError": "Something went wrong resetting your password. The link may have expired.",
+      "passwordMin": "Password must be at least 8 characters.",
+      "passwordsMismatch": "Passwords do not match."
+    },
+    "mfa": {
+      "totpTitle": "Two-factor authentication",
+      "totpDesc": "Enter the 6-digit code from your authenticator app.",
+      "emailTitle": "Two-factor authentication",
+      "emailDesc": "Enter the 6-digit code we sent to your email.",
+      "recoveryTitle": "Recovery code",
+      "recoveryDesc": "Enter one of your recovery codes.",
+      "codeLabel": "Verification code",
+      "recoveryCodeLabel": "Recovery code",
+      "recoveryPlaceholder": "recovery code",
+      "verify": "Verify and sign in",
+      "verifying": "Verifying…",
+      "useAuthenticatorCode": "Use authenticator code",
+      "useEmailCode": "Use email code",
+      "resendCode": "Resend code",
+      "backToNormalCode": "Back to normal code",
+      "useRecoveryCode": "Use recovery code",
+      "backToLogin": "Back to sign in",
+      "resendSuccess": "A new code has been sent to your email.",
+      "resendError": "Couldn't send the code.",
+      "verifyError": "Couldn't verify. Please try again."
+    },
+    "verifyEmail": {
+      "invalidTitle": "Invalid Link",
+      "invalidBody": "The email verification link is missing or invalid.",
+      "backHome": "Back to Home",
+      "verifyingTitle": "Verifying…",
+      "verifyingBody": "Please wait while we confirm your email address.",
+      "successTitle": "Email Verified!",
+      "successBody": "Your account has been successfully confirmed. The blue check badge has been added to your profile.",
+      "goToFeed": "Go to Feed",
+      "failedTitle": "Verification Failed",
+      "failedBodyFallback": "The link may have expired.",
+      "requestNewLink": "Request New Link"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize the app's theme.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose the app's display language.",
+      "turkish": "Türkçe",
+      "english": "English",
+      "system": "System"
+    },
+    "notificationPreferences": {
+      "title": "Notification Preferences",
+      "subtitle": "Choose which notifications you want to receive as push notifications."
+    },
+    "emailVerification": {
+      "title": "Email Verification",
+      "subtitle": "Confirm your email address and get the blue check badge.",
+      "statusLabel": "Email Status",
+      "checking": "Checking...",
+      "verified": "Your account is verified. You have the blue check badge.",
+      "notVerified": "Your email address hasn't been verified yet.",
+      "sendVerification": "Send Verification",
+      "successToastTitle": "Verification email sent",
+      "successToastDescription": "Please check your inbox.",
+      "rateLimitedToastTitle": "Too many requests",
+      "rateLimitedToastDescription": "Please try again later.",
+      "errorToastTitle": "Something went wrong",
+      "errorToastDescription": "Couldn't send the verification email."
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "Keep your password strong for account security.",
+      "currentPasswordLabel": "Current Password",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "New Password (Confirm)",
+      "submit": "Update Password",
+      "minLengthError": "Your new password must be at least 6 characters.",
+      "mismatchError": "Your new passwords don't match.",
+      "sameAsOldError": "Your new password can't be the same as your old password."
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "Add a second layer of verification to your account."
+    },
+    "session": {
+      "title": "Session",
+      "subtitle": "Manage your session.",
+      "signOutTitle": "Sign Out",
+      "signOutSubtitle": "You'll only be signed out on this device.",
+      "signOut": "Sign Out"
+    },
+    "dangerZone": {
+      "title": "Security & Dangerous Actions",
+      "subtitle": "Actions in this section can't be undone.",
+      "signOutAllTitle": "Sign Out of All Devices",
+      "signOutAllSubtitle": "Ends all your active sessions, including this device.",
+      "signOutAll": "Sign Out of All",
+      "confirmTitle": "Are you sure?",
+      "signOutAllConfirmBody": "Your sessions on your computer, phone, and all other active devices will be closed and you'll need to sign in again.",
+      "cancel": "Cancel",
+      "confirmSignOutAll": "Yes, Sign Out",
+      "signingOut": "Signing Out...",
+      "deleteAccountTitle": "Delete My Account",
+      "deleteAccountSubtitle": "Your posts, interactions, and all your data will be permanently deleted.",
+      "deleteAccount": "Delete My Account",
+      "deleteConfirmTitle": "Permanent Deletion",
+      "deleteConfirmBody": "This action cannot be undone. Your account, posts, likes, and messages will be completely deleted. Are you sure you want to delete your account?",
+      "giveUp": "Cancel",
+      "confirmDelete": "Yes, Delete My Account",
+      "deleting": "Deleting..."
+    },
+    "legal": {
+      "title": "Legal",
+      "subtitle": "Policies and information about the project.",
+      "about": "About",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "disclaimer": "SocialHan is a portfolio/demo project, not a commercial service."
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Likes",
+    "reposts": "Reposts",
+    "follows": "New followers",
+    "replies": "Replies",
+    "mentions": "Mentions",
+    "recommendations": "Recommendations for you"
+  }
+}
