@@ -3,6 +3,7 @@ package com.ilhankazan.social.service;
 import com.ilhankazan.social.entity.AuditLog;
 import com.ilhankazan.social.event.AuditLogEvent;
 import com.ilhankazan.social.repository.AuditLogRepository;
+import com.ilhankazan.social.security.ClientIpResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ public class AuditLogService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final AuditLogRepository auditLogRepository;
+    private final ClientIpResolver clientIpResolver;
 
     public void record(String action, String targetType, Long targetId, Map<String, Object> metadata) {
         String username = null;
@@ -37,9 +39,7 @@ public class AuditLogService {
             var attrs = RequestContextHolder.getRequestAttributes();
             if (attrs instanceof ServletRequestAttributes sra) {
                 var req = sra.getRequest();
-                ip = req.getHeader("X-Forwarded-For");
-                if (ip == null) ip = req.getRemoteAddr();
-                else ip = ip.split(",")[0].trim();
+                ip = clientIpResolver.resolve(req);
                 ua = req.getHeader("User-Agent");
             }
         } catch (Exception ignored) {}

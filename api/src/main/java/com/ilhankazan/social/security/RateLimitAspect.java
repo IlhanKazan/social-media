@@ -24,6 +24,7 @@ import java.time.Duration;
 public class RateLimitAspect {
 
     private final RateLimitStore rateLimitStore;
+    private final ClientIpResolver clientIpResolver;
 
     @Around("@annotation(rateLimit)")
     public Object enforceRateLimit(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
@@ -34,8 +35,7 @@ public class RateLimitAspect {
         if (auth != null && auth.isAuthenticated() && !auth.getPrincipal().equals("anonymousUser")) {
             keyPrefix = "user:" + auth.getName();
         } else {
-            // X-Forwarded-For is client-controlled; forward-headers-strategy resolves the real IP into remoteAddr.
-            keyPrefix = "ip:" + request.getRemoteAddr();
+            keyPrefix = "ip:" + clientIpResolver.resolve(request);
         }
 
         String key = keyPrefix + "-" + joinPoint.getSignature().getName();
