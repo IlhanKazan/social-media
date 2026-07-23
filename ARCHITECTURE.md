@@ -8,11 +8,13 @@ For a feature overview and setup, see [README.md](README.md).
 ## System topology
 
 ```text
-        Browser (React 19 SPA, Netlify)
+        Browser (React 19 SPA, nginx via Coolify)
             |  HTTPS (REST)        |  WSS (SockJS + STOMP)
             v                      v
+        Cloudflare (proxy, DNS, DDoS) -> Coolify / Traefik (TLS)
+            v
    +-------------------------------------------+
-   |        Spring Boot API (Render, Docker)   |
+   |     Spring Boot API (Docker, Coolify)     |
    |                                           |
    |  Security filter chain                    |
    |   JWT filter -> read-only filter -> authz |
@@ -25,7 +27,8 @@ For a feature overview and setup, see [README.md](README.md).
         |                 |              |
         v                 v              v
    PostgreSQL        Cloudinary     OpenAI / Resend
-   (Supabase)        (images)       (moderation / email)
+   (self-hosted,     (images)       (moderation / email)
+    same VPS)
 ```
 
 The API is a single Spring Boot monolith. State lives in PostgreSQL; images in

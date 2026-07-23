@@ -17,7 +17,6 @@ new frontend, new everything.
 ├── api/                  # Spring Boot 3.4 monolith (Java 21)
 ├── client/               # React 19 + TypeScript SPA (Vite)
 ├── docker-compose.yml    # Local dev stack (postgres + api)
-├── render.yaml           # Render.com IaC
 ├── PLAN.md               # Master plan (single source of truth)
 ├── CLAUDE.md             # This file
 ├── README.md             # Public-facing project intro
@@ -56,7 +55,7 @@ new frontend, new everything.
 **Infra**
 - Docker (multi-stage builds, eclipse-temurin 21 JRE runtime)
 - Docker Compose for local dev
-- Render.com for hosting (Web Service for api, Static Site for client, managed Postgres)
+- Hetzner VPS + Coolify (self-hosted PaaS) for hosting; Cloudflare in front (proxy, DNS, DDoS)
 - GitHub Actions for CI
 
 ## Conventions
