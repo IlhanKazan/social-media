@@ -3,7 +3,7 @@ import { LegalTitle, LegalSection, LegalList, DemoDisclaimer } from './LegalPros
 export function PrivacyPage() {
   return (
     <article>
-      <LegalTitle title="Gizlilik Politikası & KVKK Aydınlatma Metni" updated="21 Haziran 2026" />
+      <LegalTitle title="Gizlilik Politikası & KVKK Aydınlatma Metni" updated="23 Temmuz 2026" />
 
       <DemoDisclaimer />
 
@@ -45,17 +45,17 @@ export function PrivacyPage() {
 
       <LegalSection title="Hizmet sağlayıcılar ve yurt dışı aktarım">
         <p>
-          Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Bunların tümü ABD
-          merkezlidir; bu nedenle verileriniz yurt dışına aktarılır:
+          Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Ana uygulama ve
+          veritabanı Almanya'da (AB içinde) barındırılır; Cloudflare, Cloudinary, Resend ve OpenAI
+          ABD merkezlidir ve bu dördüne yapılan aktarımlar yurt dışı aktarım sayılır:
         </p>
         <LegalList
           items={[
-            'Render — uygulama (API) barındırma.',
-            'Supabase — PostgreSQL veritabanı barındırma.',
-            'Netlify — ön yüz (web arayüzü) barındırma ve içerik dağıtım ağı (CDN).',
-            'Cloudinary — görsel depolama ve sunumu.',
-            'Resend — işlemsel e-posta gönderimi (ör. şifre sıfırlama).',
-            'OpenAI — gönderi içeriğinin otomatik moderasyonu.',
+            'Hetzner (Almanya, AB içi) — API, veritabanı ve ön yüzün barındırıldığı sunucu.',
+            'Cloudflare (ABD) — DNS, DDoS koruması ve içerik dağıtım ağı (CDN).',
+            'Cloudinary (ABD) — görsel depolama ve sunumu.',
+            'Resend (ABD) — işlemsel e-posta gönderimi (ör. şifre sıfırlama).',
+            'OpenAI (ABD) — gönderi içeriğinin otomatik moderasyonu.',
           ]}
         />
       </LegalSection>
@@ -97,8 +97,9 @@ export function PrivacyPage() {
         <p>
           SocialHan is a portfolio/demo project. We process account data (username, email, hashed
           password), profile data, content, direct messages with images, and technical logs (IP for
-          security/audit). Processors are US-based (Render, Supabase, Netlify, Cloudinary, Resend, OpenAI), so
-          data is transferred abroad. Sending post content to OpenAI for moderation, cross-border
+          security/audit). The app and database are hosted on Hetzner (Germany, EU). Cloudflare,
+          Cloudinary, Resend, and OpenAI are US-based, so data reaching those four involves a
+          cross-border transfer. Sending post content to OpenAI for moderation, cross-border
           transfer, and any marketing email require your explicit consent, collected at registration.
           On account deletion, content is soft-deleted then permanently removed after 30 days,
           including images on Cloudinary. You may access, correct or erase your data via Settings or by

@@ -18,7 +18,7 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class AuthService {
 
-    public static final String CONSENT_VERSION = "2026-06-1";
+    public static final String CONSENT_VERSION = "2026-07-1";
 
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
