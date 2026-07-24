@@ -149,7 +149,9 @@
     "recommendations": "Senin için öneriler"
   },
   "common": {
-    "retry": "Tekrar Dene"
+    "retry": "Tekrar Dene",
+    "cancel": "Vazgeç",
+    "searching": "Aranıyor..."
   },
   "feed": {
     "followingTab": "Takip Edilen",
@@ -303,5 +305,12 @@
     "save": "Kaydet",
     "updateFailedTitle": "Güncellenemedi",
     "updateFailedBody": "Bir şeyler ters gitti. Lütfen tekrar dene."
+  },
+  "nav": {
+    "home": "Anasayfa",
+    "search": "Ara",
+    "notifications": "Bildirimler",
+    "messages": "Mesajlar",
+    "profile": "Profil"
   }
 }

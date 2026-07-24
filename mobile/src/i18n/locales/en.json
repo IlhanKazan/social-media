@@ -149,7 +149,9 @@
     "recommendations": "Recommendations for you"
   },
   "common": {
-    "retry": "Retry"
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "searching": "Searching..."
   },
   "feed": {
     "followingTab": "Following",
@@ -303,5 +305,12 @@
     "save": "Save",
     "updateFailedTitle": "Couldn't update",
     "updateFailedBody": "Something went wrong. Please try again."
+  },
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "profile": "Profile"
   }
 }
