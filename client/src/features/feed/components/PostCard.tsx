@@ -1,11 +1,11 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { formatDistanceToNow, formatDistanceToNowStrict } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2, Flag, Send } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useDateLocale } from '@/hooks/use-date-locale';
 import { LinkifiedText } from '@/components/shared/LinkifiedText';
 import { EditPostDialog } from '@/features/post/components/EditPostDialog';
 import { QuoteDialog } from './QuoteDialog';
@@ -38,6 +38,7 @@ interface PostCardProps {
 
 export function PostCard({ post, feedType = 'POST', reposter, connector = 'none' }: PostCardProps) {
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const hasTopConnector = connector === 'top' || connector === 'both';
   const hasBottomConnector = connector === 'bottom' || connector === 'both';
   const showReplyContext = !hasTopConnector && !!post.parentPostId && !!post.parentPostAuthorUsername;
@@ -232,7 +233,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
 
                     <span className="text-muted-foreground text-sm shrink-0">·</span>
                     <span className="text-muted-foreground text-[15px] shrink-0 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: tr })}
+                      {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: dateLocale })}
                     </span>
 
                     {post.isEdited === true && (
@@ -358,7 +359,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                         <span className="text-muted-foreground text-[14px] truncate">@{post.quotedPost.author.username}</span>
                         <span className="text-muted-foreground text-sm shrink-0">·</span>
                         <span className="text-muted-foreground text-[14px] shrink-0">
-                          {formatDistanceToNowStrict(new Date(post.quotedPost.createdAt), { locale: tr })}
+                          {formatDistanceToNowStrict(new Date(post.quotedPost.createdAt), { locale: dateLocale })}
                         </span>
                       </div>
                       <p className="text-[14px] line-clamp-3 whitespace-pre-wrap"><LinkifiedText text={post.quotedPost.content} /></p>

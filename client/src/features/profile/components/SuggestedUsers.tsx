@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Loader2, BadgeCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSuggestions } from '../hooks/use-suggestions';
 import { useFollowUser } from '../hooks/use-follow-user';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function SuggestedUsers({ layout = 'vertical', className }: Props) {
+  const { t } = useTranslation();
   const { data: suggestions, isLoading, isError } = useSuggestions(10);
 
   if (isLoading) {
@@ -30,7 +32,7 @@ export function SuggestedUsers({ layout = 'vertical', className }: Props) {
   if (layout === 'horizontal') {
     return (
       <div className={cn("w-full py-4 border-b border-zinc-100 dark:border-zinc-800/50", className)}>
-        <h3 className="mb-3 px-4 font-bold text-lg">Kimi Takip Etmeli</h3>
+        <h3 className="mb-3 px-4 font-bold text-lg">{t('profile.suggestedTitle')}</h3>
         <div className="flex w-full gap-3 overflow-x-auto pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
           <div className="w-1 shrink-0 snap-start" />
             {suggestions.map((user) => (
@@ -44,7 +46,7 @@ export function SuggestedUsers({ layout = 'vertical', className }: Props) {
 
   return (
     <div className={cn("rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/30", className)}>
-      <h3 className="mb-4 font-bold text-[17px]">Kimi Takip Etmeli</h3>
+      <h3 className="mb-4 font-bold text-[17px]">{t('profile.suggestedTitle')}</h3>
       <div className="flex flex-col gap-4">
         {suggestions.map((user) => (
           <SuggestedUserItem key={user.id} user={user} />
@@ -56,6 +58,7 @@ export function SuggestedUsers({ layout = 'vertical', className }: Props) {
 
 
 function SuggestedUserItem({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const followMutation = useFollowUser(user.username, user.id);
 
   return (
@@ -81,13 +84,14 @@ function SuggestedUserItem({ user }: { user: PublicAccountResponse }) {
         onClick={() => followMutation.mutate(user.isFollowing)}
         disabled={followMutation.isPending}
       >
-        {user.isFollowing ? 'Ediliyor' : 'Takip Et'}
+        {user.isFollowing ? t('profile.followShort') : t('profile.follow')}
       </Button>
     </div>
   );
 }
 
 function SuggestedUserCard({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const followMutation = useFollowUser(user.username, user.id);
 
   return (
@@ -113,7 +117,7 @@ function SuggestedUserCard({ user }: { user: PublicAccountResponse }) {
         onClick={() => followMutation.mutate(user.isFollowing)}
         disabled={followMutation.isPending}
       >
-        {user.isFollowing ? 'Ediliyor' : 'Takip Et'}
+        {user.isFollowing ? t('profile.followShort') : t('profile.follow')}
       </Button>
     </div>
   );

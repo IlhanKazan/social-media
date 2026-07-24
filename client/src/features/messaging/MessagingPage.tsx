@@ -1,9 +1,11 @@
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ConversationList } from './components/ConversationList';
 import { ConversationView } from './components/ConversationView';
 import { cn } from '@/lib/utils';
 
 export function MessagingPage() {
+  const { t } = useTranslation();
   const { conversationId } = useParams();
 
   return (
@@ -18,7 +20,7 @@ export function MessagingPage() {
         )}
       >
         <div className="px-4 py-3 border-b bg-background/95 backdrop-blur z-10 sticky top-0">
-          <h2 className="text-xl font-bold">Mesajlar</h2>
+          <h2 className="text-xl font-bold">{t('messaging.title')}</h2>
         </div>
         <ConversationList />
       </div>

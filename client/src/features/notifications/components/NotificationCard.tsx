@@ -1,8 +1,10 @@
 import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { Heart, UserPlus, AtSign, CornerDownRight, Bell, Repeat2, Quote, ShieldAlert, Trash2, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { NotificationResponse } from '@/types/api';
 import { cn } from '@/lib/utils';
+import { useDateLocale } from '@/hooks/use-date-locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {useDeleteNotification, useMarkAsRead} from '../hooks/use-notifications';
 import { useNotificationStore } from '@/stores/notification-store';
@@ -12,7 +14,23 @@ interface Props {
   readonly notification: NotificationResponse;
 }
 
+function getMessage(t: TFunction, type: NotificationResponse['type']) {
+  switch (type) {
+    case 'LIKE': return t('notifications.types.like');
+    case 'REPLY': return t('notifications.types.reply');
+    case 'MENTION': return t('notifications.types.mention');
+    case 'FOLLOW': return t('notifications.types.follow');
+    case 'REPOST': return t('notifications.types.repost');
+    case 'QUOTE_REPOST': return t('notifications.types.quoteRepost');
+    case 'MODERATION_ALERT': return t('notifications.types.moderationAlert');
+    case 'RECOMMENDATION': return t('notifications.types.recommendation');
+    default: return t('notifications.types.default');
+  }
+}
+
 export function NotificationCard({ notification }: Props) {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const markAsRead = useMarkAsRead();
   const decrementUnread = useNotificationStore((state) => state.decrementUnread);
   const navigate = useNavigate();
@@ -46,20 +64,6 @@ export function NotificationCard({ notification }: Props) {
       case 'MODERATION_ALERT': return <ShieldAlert className="h-6 w-6 text-destructive" />;
       case 'RECOMMENDATION': return <Sparkles className="h-6 w-6 text-amber-500 fill-amber-500/20" />;
       default: return <Bell className="h-6 w-6 text-muted-foreground" />;
-    }
-  };
-
-  const getMessage = () => {
-    switch (notification.type) {
-      case 'LIKE': return 'gönderini beğendi.';
-      case 'REPLY': return 'sana bir yanıt verdi.';
-      case 'MENTION': return 'senden bahsetti.';
-      case 'FOLLOW': return 'seni takip etmeye başladı.';
-      case 'REPOST': return 'gönderini yeniden paylaştı.';
-      case 'QUOTE_REPOST': return 'gönderini alıntıladı.';
-      case 'MODERATION_ALERT': return 'Gönderin topluluk kuralları ihlali sebebiyle gizlendi.';
-      case 'RECOMMENDATION': return 'beğenebileceğin bir gönderi paylaştı.';
-      default: return 'yeni bir bildirim gönderdi.';
     }
   };
 
@@ -110,23 +114,23 @@ export function NotificationCard({ notification }: Props) {
 
         <div className="text-[15px] leading-snug">
           {isSystemNotification ? (
-            <span className="font-bold mr-1 text-destructive">Sistem Bildirimi</span>
+            <span className="font-bold mr-1 text-destructive">{t('notifications.systemNotification')}</span>
           ) : (
             <span className="font-bold mr-1">
               {notification.actor?.displayName || notification.actor?.username}
               {notification.count > 1 && (
-                <span className="font-normal text-muted-foreground"> ve {notification.count - 1} kişi daha</span>
+                <span className="font-normal text-muted-foreground"> {t('notifications.moreCount', { count: notification.count - 1 })}</span>
               )}
             </span>
           )}
 
           <span className={isSystemNotification ? "text-muted-foreground block mt-0.5" : ""}>
-             {getMessage()}
+             {getMessage(t, notification.type)}
           </span>
         </div>
 
         <span className="text-sm text-muted-foreground mt-1">
-          {formatDistanceToNow(new Date(notification.updatedAt ?? notification.createdAt), { addSuffix: true, locale: tr })}
+          {formatDistanceToNow(new Date(notification.updatedAt ?? notification.createdAt), { addSuffix: true, locale: dateLocale })}
         </span>
       </div>
     </div>

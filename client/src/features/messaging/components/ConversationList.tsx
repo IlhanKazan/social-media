@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { Loader2, MoreHorizontal, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useDateLocale } from '@/hooks/use-date-locale';
 import { useConversations, useDeleteConversation } from '../hooks/use-conversations';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +17,8 @@ import {
 import { cn } from '@/lib/utils';
 
 export function ConversationList() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const { conversationId } = useParams();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useConversations();
   const deleteConversation = useDeleteConversation();
@@ -36,13 +39,13 @@ export function ConversationList() {
   }
 
   if (status === 'error') {
-    return <div className="p-4 text-center text-sm text-destructive">Sohbetler yüklenemedi.</div>;
+    return <div className="p-4 text-center text-sm text-destructive">{t('messaging.list.loadError')}</div>;
   }
 
   const conversations = data.pages.flatMap((page) => page.content);
 
   if (conversations.length === 0) {
-    return <div className="p-8 text-center text-muted-foreground text-sm">Henüz bir mesajın yok.</div>;
+    return <div className="p-8 text-center text-muted-foreground text-sm">{t('messaging.list.empty')}</div>;
   }
 
   return (
@@ -69,7 +72,7 @@ export function ConversationList() {
                 </span>
                 {conv.lastMessageAt && (
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false, locale: tr })}
+                    {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false, locale: dateLocale })}
                   </span>
                 )}
               </div>
@@ -105,7 +108,7 @@ export function ConversationList() {
                     disabled={deleteConversation.isPending}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    <span>Sohbeti Sil</span>
+                    <span>{t('messaging.list.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

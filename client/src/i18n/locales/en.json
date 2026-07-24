@@ -160,6 +160,35 @@
       "title": "Security",
       "subtitle": "Add a second layer of verification to your account."
     },
+    "mfaEmail": {
+      "title": "Email Two-Factor Authentication (2FA)",
+      "enabledDesc": "On. Every sign-in asks for a 6-digit code sent to your email.",
+      "disabledDesc": "Protect your sign-ins with a one-time code sent to your email.",
+      "passwordPlaceholder": "Enter your password",
+      "disable": "Disable",
+      "verifyFirstWarning": "You need to verify your email first to turn this on (\"Email Verification\" above).",
+      "verifyFirstToast": "You need to verify your email first.",
+      "enable": "Enable",
+      "codePlaceholder": "6-digit code from your email",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "totp": {
+      "title": "Authenticator App (TOTP)",
+      "enabledDesc": "On. Sign-in asks for the code from your authenticator app.",
+      "disabledDesc": "Generate codes with an app like Google Authenticator or 1Password. No email needed.",
+      "recoveryCopySuccess": "Recovery codes copied.",
+      "recoverySaveWarning": "Save your recovery codes now — they won't be shown again. Use them to sign in if you lose your phone.",
+      "copy": "Copy",
+      "savedFinish": "I saved them, finish",
+      "passwordPlaceholder": "Enter your password",
+      "disable": "Disable",
+      "scanInstructions": "Scan the QR with your app, or enter this key manually:",
+      "codePlaceholder": "6-digit code from your app",
+      "confirmAndEnable": "Confirm and enable",
+      "cancel": "Cancel",
+      "setup": "Set up"
+    },
     "session": {
       "title": "Session",
       "subtitle": "Manage your session.",
@@ -319,5 +348,82 @@
     "sidebarPlaceholder": "Search...",
     "viewAllResults": "See all results for \"{{query}}\"",
     "noResults": "No results found"
+  },
+  "messaging": {
+    "title": "Messages",
+    "list": {
+      "loadError": "Couldn't load conversations.",
+      "empty": "No messages yet.",
+      "delete": "Delete Conversation"
+    },
+    "conversation": {
+      "selectPrompt": "Select a message",
+      "imageDialogTitle": "Photo",
+      "postUnavailable": "This post is no longer available",
+      "sending": "Sending...",
+      "seen": "Seen",
+      "inputPlaceholder": "New message..."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All as Read",
+    "deleteAll": "Delete All",
+    "deleteAllConfirmTitle": "Delete all notifications?",
+    "deleteAllConfirmDesc": "This action cannot be undone.",
+    "cancel": "Cancel",
+    "loadErrorTitle": "Couldn't load",
+    "loadErrorDesc": "Something went wrong loading notifications.",
+    "emptyTitle": "No Notifications",
+    "emptyUnreadDesc": "You have no unread notifications.",
+    "emptyAllDesc": "No notifications yet.",
+    "tabAll": "All",
+    "tabUnread": "Unread",
+    "systemNotification": "System Notification",
+    "moreCount": "and {{count}} more",
+    "types": {
+      "like": "liked your post.",
+      "reply": "replied to you.",
+      "mention": "mentioned you.",
+      "follow": "started following you.",
+      "repost": "reposted your post.",
+      "quoteRepost": "quoted your post.",
+      "moderationAlert": "Your post was hidden for violating community guidelines.",
+      "recommendation": "shared a post you might like.",
+      "default": "sent you a new notification."
+    }
+  },
+  "profile": {
+    "userNotFound": "User not found.",
+    "joinedOn": "Joined {{date}}",
+    "followingLabel": "Following",
+    "followersLabel": "Followers",
+    "tabPosts": "Posts",
+    "tabReplies": "Replies",
+    "tabLikes": "Likes",
+    "loadError": "Couldn't load.",
+    "noPosts": "No posts.",
+    "noReplies": "No replies.",
+    "noLikedPosts": "No liked posts.",
+    "editProfile": "Edit Profile",
+    "coverAlt": "Cover",
+    "dragToAlign": "Drag to align",
+    "displayNameLabel": "Display Name",
+    "bioLabel": "Bio",
+    "cancel": "Cancel",
+    "save": "Save",
+    "photoUpdated": "Photo updated",
+    "photoUploadFailed": "Couldn't upload photo",
+    "photoRemoved": "Photo removed",
+    "photoRemoveFailed": "Couldn't remove photo",
+    "profileUpdated": "Profile updated",
+    "profileUpdateFailed": "Couldn't update profile",
+    "removeFollowerTitle": "Remove Follower",
+    "following": "Following",
+    "follow": "Follow",
+    "followShort": "Following",
+    "suggestedTitle": "Who to Follow",
+    "displayNameMax": "Maximum 50 characters",
+    "bioMax": "Maximum 160 characters"
   }
 }

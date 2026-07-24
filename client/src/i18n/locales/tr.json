@@ -160,6 +160,35 @@
       "title": "Güvenlik",
       "subtitle": "Hesabına ikinci bir doğrulama katmanı ekle."
     },
+    "mfaEmail": {
+      "title": "E-posta ile İki Adımlı Doğrulama (2FA)",
+      "enabledDesc": "Açık. Her girişte e-postana gönderilen 6 haneli kod istenir.",
+      "disabledDesc": "Girişlerini e-postana gönderilen tek kullanımlık kodla koru.",
+      "passwordPlaceholder": "Şifreni gir",
+      "disable": "Devre dışı bırak",
+      "verifyFirstWarning": "Bunu açmak için önce e-posta adresini doğrulamalısın (yukarıdaki \"Hesap Doğrulama\").",
+      "verifyFirstToast": "Önce e-posta adresini doğrulamalısın.",
+      "enable": "Etkinleştir",
+      "codePlaceholder": "E-postandaki 6 haneli kod",
+      "confirm": "Onayla",
+      "cancel": "Vazgeç"
+    },
+    "totp": {
+      "title": "Authenticator Uygulaması (TOTP)",
+      "enabledDesc": "Açık. Girişte authenticator uygulamandaki kodu istiyoruz.",
+      "disabledDesc": "Google Authenticator, 1Password gibi bir uygulamayla kod üret. E-posta gerektirmez.",
+      "recoveryCopySuccess": "Kurtarma kodları kopyalandı.",
+      "recoverySaveWarning": "Kurtarma kodlarını şimdi kaydet — bir daha gösterilmeyecek. Telefonunu kaybedersen bunlarla girersin.",
+      "copy": "Kopyala",
+      "savedFinish": "Kaydettim, bitir",
+      "passwordPlaceholder": "Şifreni gir",
+      "disable": "Devre dışı bırak",
+      "scanInstructions": "Uygulamanla QR'ı tara veya bu anahtarı elle gir:",
+      "codePlaceholder": "Uygulamadaki 6 haneli kod",
+      "confirmAndEnable": "Onayla ve aç",
+      "cancel": "Vazgeç",
+      "setup": "Kur"
+    },
     "session": {
       "title": "Oturum",
       "subtitle": "Oturumunu yönet.",
@@ -319,5 +348,82 @@
     "sidebarPlaceholder": "Ara...",
     "viewAllResults": "\"{{query}}\" için tüm sonuçları gör",
     "noResults": "Sonuç bulunamadı"
+  },
+  "messaging": {
+    "title": "Mesajlar",
+    "list": {
+      "loadError": "Sohbetler yüklenemedi.",
+      "empty": "Henüz bir mesajın yok.",
+      "delete": "Sohbeti Sil"
+    },
+    "conversation": {
+      "selectPrompt": "Bir mesaj seç",
+      "imageDialogTitle": "Fotoğraf",
+      "postUnavailable": "Bu gönderi artık mevcut değil",
+      "sending": "Gönderiliyor...",
+      "seen": "Görüldü",
+      "inputPlaceholder": "Yeni mesaj..."
+    }
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "deleteAll": "Tümünü Sil",
+    "deleteAllConfirmTitle": "Tüm bildirimler silinsin mi?",
+    "deleteAllConfirmDesc": "Bu işlem geri alınamaz.",
+    "cancel": "Vazgeç",
+    "loadErrorTitle": "Yüklenemedi",
+    "loadErrorDesc": "Bildirimler getirilirken bir sorun oluştu.",
+    "emptyTitle": "Bildirim Yok",
+    "emptyUnreadDesc": "Okunmamış bildiriminiz yok.",
+    "emptyAllDesc": "Henüz bildiriminiz yok.",
+    "tabAll": "Tümü",
+    "tabUnread": "Okunmayanlar",
+    "systemNotification": "Sistem Bildirimi",
+    "moreCount": "ve {{count}} kişi daha",
+    "types": {
+      "like": "gönderini beğendi.",
+      "reply": "sana bir yanıt verdi.",
+      "mention": "senden bahsetti.",
+      "follow": "seni takip etmeye başladı.",
+      "repost": "gönderini yeniden paylaştı.",
+      "quoteRepost": "gönderini alıntıladı.",
+      "moderationAlert": "Gönderin topluluk kuralları ihlali sebebiyle gizlendi.",
+      "recommendation": "beğenebileceğin bir gönderi paylaştı.",
+      "default": "yeni bir bildirim gönderdi."
+    }
+  },
+  "profile": {
+    "userNotFound": "Kullanıcı bulunamadı.",
+    "joinedOn": "{{date}} tarihinde katıldı",
+    "followingLabel": "Takip Edilen",
+    "followersLabel": "Takipçi",
+    "tabPosts": "Gönderiler",
+    "tabReplies": "Yanıtlar",
+    "tabLikes": "Beğeniler",
+    "loadError": "Yüklenemedi.",
+    "noPosts": "Gönderi yok.",
+    "noReplies": "Yanıt yok.",
+    "noLikedPosts": "Beğenilen gönderi yok.",
+    "editProfile": "Profili Düzenle",
+    "coverAlt": "Kapak",
+    "dragToAlign": "Sürükleyerek hizala",
+    "displayNameLabel": "Görünen Ad",
+    "bioLabel": "Biyografi",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "photoUpdated": "Fotoğraf güncellendi",
+    "photoUploadFailed": "Fotoğraf yüklenemedi",
+    "photoRemoved": "Fotoğraf kaldırıldı",
+    "photoRemoveFailed": "Fotoğraf kaldırılamadı",
+    "profileUpdated": "Profil güncellendi",
+    "profileUpdateFailed": "Profil güncellenemedi",
+    "removeFollowerTitle": "Takipçiyi Çıkar",
+    "following": "Takip Ediliyor",
+    "follow": "Takip Et",
+    "followShort": "Ediliyor",
+    "suggestedTitle": "Kimi Takip Etmeli",
+    "displayNameMax": "Maksimum 50 karakter",
+    "bioMax": "Maksimum 160 karakter"
   }
 }
