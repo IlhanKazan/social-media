@@ -108,6 +108,12 @@
       "failedTitle": "Verification Failed",
       "failedBodyFallback": "The link may have expired.",
       "requestNewLink": "Request New Link"
+    },
+    "softGate": {
+      "title": "Join SocialHan",
+      "description": "You need an account to like, reply, follow, and send messages. It only takes a few seconds.",
+      "createAccount": "Create account",
+      "signIn": "Sign in"
     }
   },
   "settings": {
@@ -234,7 +240,13 @@
     "recommendations": "Recommendations for you"
   },
   "common": {
-    "retry": "Retry"
+    "retry": "Retry",
+    "searching": "Searching...",
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "description": "We ran into a problem while running the app. Don't worry, we've logged it. Please try reloading the page.",
+      "reload": "Reload Page"
+    }
   },
   "feed": {
     "headerFeed": "Feed",
@@ -381,6 +393,8 @@
     "tabUnread": "Unread",
     "systemNotification": "System Notification",
     "moreCount": "and {{count}} more",
+    "toastWarningTitle": "Warning",
+    "toastNewTitle": "New Notification",
     "types": {
       "like": "liked your post.",
       "reply": "replied to you.",
@@ -425,5 +439,18 @@
     "suggestedTitle": "Who to Follow",
     "displayNameMax": "Maximum 50 characters",
     "bioMax": "Maximum 160 characters"
+  },
+  "nav": {
+    "feed": "Feed",
+    "explore": "Explore",
+    "search": "Search",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "profile": "Profile",
+    "settings": "Settings",
+    "adminPanel": "Admin Panel",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "signIn": "Sign in"
   }
 }

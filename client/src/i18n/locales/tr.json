@@ -108,6 +108,12 @@
       "failedTitle": "Doğrulama Başarısız",
       "failedBodyFallback": "Bağlantının süresi dolmuş olabilir.",
       "requestNewLink": "Yeni Bağlantı İste"
+    },
+    "softGate": {
+      "title": "SocialHan'a katıl",
+      "description": "Beğenmek, yanıtlamak, takip etmek ve mesaj göndermek için bir hesabın olmalı. Birkaç saniye sürer.",
+      "createAccount": "Hesap oluştur",
+      "signIn": "Giriş yap"
     }
   },
   "settings": {
@@ -234,7 +240,13 @@
     "recommendations": "Senin için öneriler"
   },
   "common": {
-    "retry": "Tekrar Dene"
+    "retry": "Tekrar Dene",
+    "searching": "Aranıyor...",
+    "errorBoundary": {
+      "title": "Beklenmedik bir hata oluştu",
+      "description": "Uygulama çalışırken bir sorunla karşılaştık. Endişelenme, bu durumu kaydettik. Lütfen sayfayı yenilemeyi dene.",
+      "reload": "Sayfayı Yenile"
+    }
   },
   "feed": {
     "headerFeed": "Akış",
@@ -381,6 +393,8 @@
     "tabUnread": "Okunmayanlar",
     "systemNotification": "Sistem Bildirimi",
     "moreCount": "ve {{count}} kişi daha",
+    "toastWarningTitle": "Uyarı",
+    "toastNewTitle": "Yeni Bildirim",
     "types": {
       "like": "gönderini beğendi.",
       "reply": "sana bir yanıt verdi.",
@@ -425,5 +439,18 @@
     "suggestedTitle": "Kimi Takip Etmeli",
     "displayNameMax": "Maksimum 50 karakter",
     "bioMax": "Maksimum 160 karakter"
+  },
+  "nav": {
+    "feed": "Akış",
+    "explore": "Keşfet",
+    "search": "Ara",
+    "notifications": "Bildirimler",
+    "messages": "Mesajlar",
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "adminPanel": "Admin Paneli",
+    "signOut": "Çıkış Yap",
+    "signUp": "Kaydol",
+    "signIn": "Giriş yap"
   }
 }

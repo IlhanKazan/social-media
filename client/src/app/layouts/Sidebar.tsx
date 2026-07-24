@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Compass, Bell, Mail, User, Settings, LogOut, Search, ShieldHalf } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { cn } from '@/lib/utils';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import {useUnreadMessageCount} from "@/features/messaging/hooks/use-messages.ts";
 
 export function Sidebar() {
+  const { t } = useTranslation();
   const account = useAuthStore((state) => state.account);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
@@ -16,17 +18,17 @@ export function Sidebar() {
 
   const navItems: { name: string; to: string; icon: typeof Home; badge?: number }[] = account
     ? [
-        { name: 'Akış', to: '/home', icon: Home },
-        { name: 'Ara', to: '/search', icon: Search },
-        { name: 'Keşfet', to: '/explore', icon: Compass },
-        { name: 'Bildirimler', to: '/notifications', icon: Bell, badge: unreadCount },
-        { name: 'Mesajlar', to: '/messages', icon: Mail, badge: unreadMessageCount },
-        { name: 'Profil', to: `/u/${account.username}`, icon: User },
-        { name: 'Ayarlar', to: '/settings', icon: Settings },
+        { name: t('nav.feed'), to: '/home', icon: Home },
+        { name: t('nav.search'), to: '/search', icon: Search },
+        { name: t('nav.explore'), to: '/explore', icon: Compass },
+        { name: t('nav.notifications'), to: '/notifications', icon: Bell, badge: unreadCount },
+        { name: t('nav.messages'), to: '/messages', icon: Mail, badge: unreadMessageCount },
+        { name: t('nav.profile'), to: `/u/${account.username}`, icon: User },
+        { name: t('nav.settings'), to: '/settings', icon: Settings },
       ]
     : [
-        { name: 'Keşfet', to: '/explore', icon: Compass },
-        { name: 'Ara', to: '/search', icon: Search },
+        { name: t('nav.explore'), to: '/explore', icon: Compass },
+        { name: t('nav.search'), to: '/search', icon: Search },
       ];
 
   return (
@@ -74,7 +76,7 @@ export function Sidebar() {
               <div className="relative flex items-center justify-center">
                 <ShieldHalf className="h-6 w-6 shrink-0" />
               </div>
-              <span className="hidden xl:block text-indigo-600 dark:text-indigo-400 font-bold">Admin Paneli</span>
+              <span className="hidden xl:block text-indigo-600 dark:text-indigo-400 font-bold">{t('nav.adminPanel')}</span>
             </NavLink>
           </div>
         )}
@@ -105,21 +107,21 @@ export function Sidebar() {
               onClick={() => void logout()}
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              <span className="hidden xl:block">Çıkış Yap</span>
+              <span className="hidden xl:block">{t('nav.signOut')}</span>
             </Button>
           </>
         ) : (
           <div className="flex w-full flex-col items-center gap-2 xl:items-stretch">
             <Button className="h-12 w-12 rounded-full xl:h-10 xl:w-full xl:rounded-lg" onClick={() => navigate('/register')}>
               <User className="h-5 w-5 shrink-0 xl:hidden" />
-              <span className="hidden xl:block">Kaydol</span>
+              <span className="hidden xl:block">{t('nav.signUp')}</span>
             </Button>
             <Button
               variant="outline"
               className="hidden h-10 w-full rounded-lg xl:block"
               onClick={() => navigate('/login')}
             >
-              Giriş yap
+              {t('nav.signIn')}
             </Button>
           </div>
         )}

@@ -1,6 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+// Class component: can't use the useTranslation hook, so read the i18next
+// singleton directly. Reactive to changeLanguage() the same as the hook.
+import i18n from '@/i18n';
 
 interface Props {
   children: ReactNode;
@@ -39,9 +42,9 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="h-10 w-10 text-destructive" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">Beklenmedik bir hata oluştu</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{i18n.t('common.errorBoundary.title')}</h1>
               <p className="text-muted-foreground text-[15px] leading-relaxed">
-                Uygulama çalışırken bir sorunla karşılaştık. Endişelenme, bu durumu kaydettik. Lütfen sayfayı yenilemeyi dene.
+                {i18n.t('common.errorBoundary.description')}
               </p>
             </div>
             {this.state.error && (
@@ -53,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
             <Button onClick={this.handleReset} className="gap-2 rounded-full px-6 mt-4">
               <RefreshCw className="h-4 w-4" />
-              Sayfayı Yenile
+              {i18n.t('common.errorBoundary.reload')}
             </Button>
           </div>
         </div>

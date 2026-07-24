@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useMentionSuggestions } from '@/features/mentions/hooks/use-mention-suggestions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function MentionSuggestions({ query, onSelect, className }: Props) {
+  const { t } = useTranslation();
   const { data, isLoading } = useMentionSuggestions(query);
   const results = data ?? [];
 
@@ -25,7 +27,7 @@ export function MentionSuggestions({ query, onSelect, className }: Props) {
       {isLoading ? (
         <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Aranıyor...
+          {t('common.searching')}
         </div>
       ) : (
         results.map((user) => (
