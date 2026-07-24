@@ -1,5 +1,6 @@
 import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
@@ -13,6 +14,7 @@ import {
 } from '@/features/notifications/queries';
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const query = useNotifications();
   const unreadCount = useUnreadCount();
   const markAllAsRead = useMarkAllAsRead();
@@ -32,9 +34,9 @@ export default function NotificationsScreen() {
   if (query.status === 'error') {
     return (
       <View className="flex-1 items-center justify-center bg-white px-8 dark:bg-neutral-950">
-        <Text className="text-center text-neutral-500">Bildirimler yüklenemedi.</Text>
+        <Text className="text-center text-neutral-500">{t('notifications.loadError')}</Text>
         <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => query.refetch()}>
-          <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
+          <Text className="font-sans-semibold text-white">{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -46,7 +48,7 @@ export default function NotificationsScreen() {
         <View className="flex-row items-center justify-end gap-5 border-b border-neutral-100 px-4 py-2 dark:border-neutral-800">
           {(unreadCount.data ?? 0) > 0 && (
             <Pressable onPress={() => markAllAsRead.mutate()} disabled={markAllAsRead.isPending}>
-              <Text className="text-sm font-sans-medium text-primary">Tümünü Okundu İşaretle</Text>
+              <Text className="text-sm font-sans-medium text-primary">{t('notifications.markAllRead')}</Text>
             </Pressable>
           )}
           <Pressable
@@ -55,7 +57,7 @@ export default function NotificationsScreen() {
             disabled={deleteAll.isPending}
           >
             <Trash2 size={14} color="#ef4444" />
-            <Text className="text-sm font-sans-medium text-red-500">Tümünü Sil</Text>
+            <Text className="text-sm font-sans-medium text-red-500">{t('notifications.deleteAll')}</Text>
           </Pressable>
         </View>
       )}
@@ -63,10 +65,10 @@ export default function NotificationsScreen() {
       <ActionSheet
         visible={deleteAllConfirmOpen}
         onClose={() => setDeleteAllConfirmOpen(false)}
-        title="Tüm bildirimler silinsin mi? Bu işlem geri alınamaz."
+        title={t('notifications.deleteAllConfirmTitle')}
         options={[
           {
-            label: 'Tümünü Sil',
+            label: t('notifications.deleteAll'),
             icon: Trash2,
             destructive: true,
             onPress: () => deleteAll.mutate(),
@@ -95,7 +97,7 @@ export default function NotificationsScreen() {
         }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center px-8 pt-24">
-            <Text className="text-center text-neutral-500">Henüz bildirim yok.</Text>
+            <Text className="text-center text-neutral-500">{t('notifications.empty')}</Text>
           </View>
         }
         ListFooterComponent={

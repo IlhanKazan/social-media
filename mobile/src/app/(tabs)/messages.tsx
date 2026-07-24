@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
@@ -25,6 +26,7 @@ function Avatar({ account }: { account: PublicAccountResponse }) {
 }
 
 function ConversationRow({ conversation }: { conversation: ConversationResponse }) {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const other = conversation.otherParticipant;
   const unread = conversation.unreadCount > 0;
@@ -46,10 +48,10 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
       <ActionSheet
         visible={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        title="Bu sohbet silinsin mi? Yeni mesaj gelirse geri görünür."
+        title={t('messaging.list.deleteConfirmTitle')}
         options={[
           {
-            label: 'Sohbeti Sil',
+            label: t('messaging.list.deleteConfirm'),
             icon: Trash2,
             destructive: true,
             onPress: () => deleteConversation.mutate(conversation.id),
@@ -74,7 +76,7 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
           </Text>
           {conversation.lastMessageAt && (
             <Text className="ml-2 text-xs text-neutral-500">
-              {formatShortRelativeTime(conversation.lastMessageAt, now)}
+              {formatShortRelativeTime(conversation.lastMessageAt, now, t, i18n.language)}
             </Text>
           )}
         </View>
@@ -87,7 +89,7 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
             }
             numberOfLines={1}
           >
-            {conversation.lastMessageContent ?? 'Sohbeti başlat'}
+            {conversation.lastMessageContent ?? t('messaging.list.startChat')}
           </Text>
           {unread && (
             <View className="ml-2 min-w-[20px] items-center rounded-full bg-primary px-1.5 py-0.5">
@@ -101,6 +103,7 @@ function ConversationRow({ conversation }: { conversation: ConversationResponse 
 }
 
 export default function MessagesScreen() {
+  const { t } = useTranslation();
   const query = useConversations();
   // Live conversation updates come from the app-wide MessagingProvider.
 
@@ -117,9 +120,9 @@ export default function MessagesScreen() {
   if (query.status === 'error') {
     return (
       <View className="flex-1 items-center justify-center bg-white px-8 dark:bg-neutral-950">
-        <Text className="text-center text-neutral-500">Sohbetler yüklenemedi.</Text>
+        <Text className="text-center text-neutral-500">{t('messaging.list.loadError')}</Text>
         <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => query.refetch()}>
-          <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
+          <Text className="font-sans-semibold text-white">{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -142,7 +145,7 @@ export default function MessagesScreen() {
         }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center px-8 pt-24">
-            <Text className="text-center text-neutral-500">Henüz sohbet yok.</Text>
+            <Text className="text-center text-neutral-500">{t('messaging.list.empty')}</Text>
           </View>
         }
         ListFooterComponent={

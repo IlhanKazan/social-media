@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { api } from '@/lib/api';
@@ -11,6 +12,7 @@ import type { PublicAccountResponse } from '@/types/api';
 type FollowType = 'followers' | 'following';
 
 function FollowRow({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const account = useAuthStore((s) => s.account);
   const [following, setFollowing] = useState(user.isFollowing);
@@ -73,7 +75,7 @@ function FollowRow({ user }: { user: PublicAccountResponse }) {
               following ? 'text-sm font-sans-bold text-neutral-900 dark:text-neutral-50' : 'text-sm font-sans-bold text-white'
             }
           >
-            {following ? 'Takip Ediliyor' : 'Takip Et'}
+            {following ? t('profile.following') : t('profile.follow')}
           </Text>
         </Pressable>
       )}
@@ -82,6 +84,7 @@ function FollowRow({ user }: { user: PublicAccountResponse }) {
 }
 
 export default function FollowsScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ username: string; type?: string; name?: string }>();
   const initialType: FollowType = params.type === 'followers' ? 'followers' : 'following';
   const [tab, setTab] = useState<FollowType>(initialType);
@@ -92,16 +95,16 @@ export default function FollowsScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: params.name ?? params.username ?? 'Takip', headerShown: true }} />
+      <Stack.Screen options={{ title: params.name ?? params.username ?? t('profile.followListDefaultTitle'), headerShown: true }} />
 
       <View className="flex-row border-b border-neutral-100 dark:border-neutral-800">
-        {(['following', 'followers'] as const).map((t) => {
-          const active = tab === t;
+        {(['following', 'followers'] as const).map((tabType) => {
+          const active = tab === tabType;
           return (
             <Pressable
-              key={t}
+              key={tabType}
               className="flex-1 items-center active:bg-neutral-50 dark:active:bg-neutral-900/40"
-              onPress={() => setTab(t)}
+              onPress={() => setTab(tabType)}
             >
               <View className="items-center py-3.5">
                 <Text
@@ -111,7 +114,7 @@ export default function FollowsScreen() {
                       : 'text-[15px] font-sans-medium text-neutral-500'
                   }
                 >
-                  {t === 'following' ? 'Takip Edilen' : 'Takipçiler'}
+                  {tabType === 'following' ? t('profile.followingLabel') : t('profile.followersTab')}
                 </Text>
                 {active && (
                   <View className="absolute bottom-0 h-[3px] w-full rounded-full bg-neutral-900 dark:bg-neutral-50" />
@@ -139,7 +142,7 @@ export default function FollowsScreen() {
             </View>
           ) : (
             <View className="items-center py-10">
-              <Text className="text-neutral-500">Henüz kimse yok.</Text>
+              <Text className="text-neutral-500">{t('profile.emptyFollowList')}</Text>
             </View>
           )
         }

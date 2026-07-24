@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { enUS, tr } from 'date-fns/locale';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ImagePlus, Send, X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -116,16 +117,18 @@ function MessageBubble({
   imageWidth: number;
   onImagePress: (uri: string) => void;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'en' ? enUS : tr;
   const [showDetails, setShowDetails] = useState(false);
 
   const detailText = () => {
-    const time = format(new Date(message.createdAt), 'd MMM HH:mm', { locale: tr });
+    const time = format(new Date(message.createdAt), 'd MMM HH:mm', { locale: dateLocale });
     if (!mine) return time;
-    if (message.isOptimistic) return 'Gönderiliyor…';
+    if (message.isOptimistic) return t('messaging.conversation.sending');
     if (message.readAt) {
-      return `${time} · Okundu ${format(new Date(message.readAt), 'HH:mm', { locale: tr })}`;
+      return `${time} · ${t('messaging.conversation.readPrefix')} ${format(new Date(message.readAt), 'HH:mm', { locale: dateLocale })}`;
     }
-    return `${time} · İletildi`;
+    return `${time} · ${t('messaging.conversation.delivered')}`;
   };
 
   const hasText = !!message.content;
@@ -177,6 +180,7 @@ function MessageBubble({
 }
 
 export default function ConversationScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string; name?: string }>();
   const conversationId = Number(params.id);
   const account = useAuthStore((s) => s.account);
@@ -213,7 +217,7 @@ export default function ConversationScreen() {
     const asset = result.assets?.[0];
     if (result.canceled || !asset) return;
     if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-      Alert.alert('Fotoğraf çok büyük', 'Fotoğraf 5MB’den küçük olmalı.');
+      Alert.alert(t('compose.imageTooLargeTitle'), t('compose.imageTooLargeBody'));
       return;
     }
     setImageUri(asset.uri);
@@ -242,7 +246,7 @@ export default function ConversationScreen() {
       sendImage.mutate(
         { uri: imageUri, caption: trimmed || undefined },
         {
-          onError: () => Alert.alert('Gönderilemedi', 'Fotoğraf yüklenirken bir hata oluştu.'),
+          onError: () => Alert.alert(t('messaging.conversation.imageUploadFailedTitle'), t('messaging.conversation.imageUploadFailedBody')),
         }
       );
       setImageUri(null);
@@ -269,7 +273,7 @@ export default function ConversationScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: params.name ?? 'Sohbet',
+          title: params.name ?? t('messaging.conversation.defaultTitle'),
           headerTitle: () => (
             <Pressable
               className="flex-row items-center gap-2.5 active:opacity-70"
@@ -292,7 +296,7 @@ export default function ConversationScreen() {
               )}
               <View>
                 <Text className="text-[15px] font-sans-bold leading-tight text-neutral-900 dark:text-neutral-50">
-                  {otherParticipant?.displayName || otherParticipant?.username || params.name || 'Sohbet'}
+                  {otherParticipant?.displayName || otherParticipant?.username || params.name || t('messaging.conversation.defaultTitle')}
                 </Text>
                 {otherParticipant && (
                   <Text className="text-xs text-neutral-500">@{otherParticipant.username}</Text>
@@ -309,9 +313,9 @@ export default function ConversationScreen() {
         </View>
       ) : query.status === 'error' ? (
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-center text-neutral-500">Mesajlar yüklenemedi.</Text>
+          <Text className="text-center text-neutral-500">{t('messaging.conversation.loadError')}</Text>
           <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => query.refetch()}>
-            <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
+            <Text className="font-sans-semibold text-white">{t('common.retry')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -343,7 +347,7 @@ export default function ConversationScreen() {
           }
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center pt-24" style={{ transform: [{ scaleY: -1 }] }}>
-              <Text className="text-neutral-500">Merhaba de 👋</Text>
+              <Text className="text-neutral-500">{t('messaging.conversation.emptyGreeting')}</Text>
             </View>
           }
         />
@@ -404,7 +408,7 @@ export default function ConversationScreen() {
           <TextInput
             className="flex-1 px-3 text-[16px] text-neutral-900 dark:text-neutral-50"
             style={{ minHeight: 44, maxHeight: 132, paddingTop: 11, paddingBottom: 11 }}
-            placeholder="Yeni mesaj..."
+            placeholder={t('messaging.conversation.inputPlaceholder')}
             placeholderTextColor="#737373"
             multiline
             value={draft}

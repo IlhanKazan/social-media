@@ -230,5 +230,78 @@
       "sendFailedTitle": "Couldn't send",
       "sendFailedBody": "Couldn't share the post."
     }
+  },
+  "messaging": {
+    "list": {
+      "loadError": "Couldn't load conversations.",
+      "empty": "No conversations yet.",
+      "startChat": "Start the conversation",
+      "deleteConfirmTitle": "Delete this conversation? It reappears if a new message arrives.",
+      "deleteConfirm": "Delete Conversation"
+    },
+    "conversation": {
+      "defaultTitle": "Conversation",
+      "loadError": "Couldn't load messages.",
+      "emptyGreeting": "Say hello 👋",
+      "inputPlaceholder": "New message...",
+      "imageUploadFailedTitle": "Couldn't send",
+      "imageUploadFailedBody": "Something went wrong uploading the photo.",
+      "sending": "Sending…",
+      "readPrefix": "Read",
+      "delivered": "Delivered"
+    }
+  },
+  "notifications": {
+    "markAllRead": "Mark All as Read",
+    "deleteAll": "Delete All",
+    "deleteAllConfirmTitle": "Delete all notifications? This action cannot be undone.",
+    "loadError": "Couldn't load notifications.",
+    "empty": "No notifications yet.",
+    "systemNotification": "System Notification",
+    "moreCount": "and {{count}} more",
+    "types": {
+      "like": "liked your post.",
+      "reply": "replied to you.",
+      "mention": "mentioned you.",
+      "follow": "started following you.",
+      "repost": "reposted your post.",
+      "quoteRepost": "quoted your post.",
+      "moderationAlert": "Your post was hidden for violating community guidelines.",
+      "recommendation": "shared a post you might like.",
+      "default": "sent you a new notification."
+    }
+  },
+  "time": {
+    "now": "now",
+    "seconds": "{{count}}s",
+    "minutes": "{{count}}m",
+    "hours": "{{count}}h",
+    "days": "{{count}}d"
+  },
+  "profile": {
+    "editProfile": "Edit Profile",
+    "following": "Following",
+    "follow": "Follow",
+    "joinedOn": "Joined {{date}}",
+    "followingLabel": "Following",
+    "followersLabel": "Followers",
+    "followersTab": "Followers",
+    "tabPosts": "Posts",
+    "tabReplies": "Replies",
+    "tabLikes": "Likes",
+    "userNotFound": "User not found.",
+    "emptyList": "Nothing here yet.",
+    "emptyFollowList": "No one here yet.",
+    "defaultTitle": "Profile",
+    "followListDefaultTitle": "Follow",
+    "displayNameLabel": "Display name",
+    "displayNamePlaceholder": "Your name",
+    "bioLabel": "About",
+    "bioPlaceholder": "Tell us about yourself",
+    "displayNameMax": "At most 50 characters",
+    "bioMax": "At most 160 characters",
+    "save": "Save",
+    "updateFailedTitle": "Couldn't update",
+    "updateFailedBody": "Something went wrong. Please try again."
   }
 }

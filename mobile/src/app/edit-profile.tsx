@@ -3,8 +3,9 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useRouter } from 'expo-router';
 import { Camera } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -15,18 +16,21 @@ import {
   View,
 } from 'react-native';
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 
 import { uploadAvatar, uploadCover, useMe, useUpdateProfile } from '@/features/profile/queries';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { useAuthStore } from '@/stores/auth-store';
 
-const schema = z.object({
-  displayName: z.string().trim().max(50, 'At most 50 characters').optional(),
-  bio: z.string().trim().max(160, 'At most 160 characters').optional(),
-});
-type FormValues = z.infer<typeof schema>;
+function createSchema(t: TFunction) {
+  return z.object({
+    displayName: z.string().trim().max(50, t('profile.displayNameMax')).optional(),
+    bio: z.string().trim().max(160, t('profile.bioMax')).optional(),
+  });
+}
+type FormValues = z.infer<ReturnType<typeof createSchema>>;
 
-async function pickImage(aspect: [number, number]): Promise<string | null> {
+async function pickImage(t: TFunction, aspect: [number, number]): Promise<string | null> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsEditing: true,
@@ -36,13 +40,14 @@ async function pickImage(aspect: [number, number]): Promise<string | null> {
   const asset = result.assets?.[0];
   if (result.canceled || !asset) return null;
   if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-    Alert.alert('Fotoğraf çok büyük', 'Fotoğraf 5MB’den küçük olmalı.');
+    Alert.alert(t('compose.imageTooLargeTitle'), t('compose.imageTooLargeBody'));
     return null;
   }
   return asset.uri;
 }
 
 export default function EditProfileScreen() {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { data: me } = useMe();
   const keyboardHeight = useKeyboardHeight();
@@ -52,6 +57,7 @@ export default function EditProfileScreen() {
   const [coverUri, setCoverUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const schema = useMemo(() => createSchema(t), [t, i18n.language]);
   const { control, handleSubmit, reset } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { displayName: '', bio: '' },
@@ -86,7 +92,7 @@ export default function EditProfileScreen() {
       );
       router.back();
     } catch {
-      Alert.alert('Güncellenemedi', 'Bir şeyler ters gitti. Lütfen tekrar dene.');
+      Alert.alert(t('profile.updateFailedTitle'), t('profile.updateFailedBody'));
     } finally {
       setSaving(false);
     }
@@ -99,7 +105,7 @@ export default function EditProfileScreen() {
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <Stack.Screen
         options={{
-          title: 'Profili Düzenle',
+          title: t('profile.editProfile'),
           presentation: 'modal',
           headerShown: true,
           headerRight: () => (
@@ -107,7 +113,7 @@ export default function EditProfileScreen() {
               {saving ? (
                 <ActivityIndicator size="small" />
               ) : (
-                <Text className="font-sans-bold text-primary">Kaydet</Text>
+                <Text className="font-sans-bold text-primary">{t('profile.save')}</Text>
               )}
             </Pressable>
           ),
@@ -116,7 +122,7 @@ export default function EditProfileScreen() {
 
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: keyboardHeight + 24 }}>
         <Pressable className="h-36 w-full bg-neutral-200 dark:bg-neutral-800" onPress={async () => {
-          const uri = await pickImage([3, 1]);
+          const uri = await pickImage(t, [3, 1]);
           if (uri) setCoverUri(uri);
         }}>
           {coverSource && (
@@ -133,7 +139,7 @@ export default function EditProfileScreen() {
           <Pressable
             className="-mt-10 h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-neutral-300 dark:border-neutral-950 dark:bg-neutral-700"
             onPress={async () => {
-              const uri = await pickImage([1, 1]);
+              const uri = await pickImage(t, [1, 1]);
               if (uri) setAvatarUri(uri);
             }}
           >
@@ -148,7 +154,7 @@ export default function EditProfileScreen() {
           </Pressable>
 
           <View className="mt-6">
-            <Text className="mb-1 text-sm font-sans-medium text-neutral-500">Görünen ad</Text>
+            <Text className="mb-1 text-sm font-sans-medium text-neutral-500">{t('profile.displayNameLabel')}</Text>
             <Controller
               control={control}
               name="displayName"
@@ -156,7 +162,7 @@ export default function EditProfileScreen() {
                 <>
                   <TextInput
                     className="rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-                    placeholder="Adın"
+                    placeholder={t('profile.displayNamePlaceholder')}
                     placeholderTextColor="#737373"
                     value={value}
                     onChangeText={onChange}
@@ -171,7 +177,7 @@ export default function EditProfileScreen() {
           </View>
 
           <View className="mt-4">
-            <Text className="mb-1 text-sm font-sans-medium text-neutral-500">Hakkında</Text>
+            <Text className="mb-1 text-sm font-sans-medium text-neutral-500">{t('profile.bioLabel')}</Text>
             <Controller
               control={control}
               name="bio"
@@ -179,7 +185,7 @@ export default function EditProfileScreen() {
                 <>
                   <TextInput
                     className="min-h-[90px] rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-900 dark:border-neutral-800 dark:text-neutral-50"
-                    placeholder="Kendinden bahset"
+                    placeholder={t('profile.bioPlaceholder')}
                     placeholderTextColor="#737373"
                     value={value}
                     onChangeText={onChange}

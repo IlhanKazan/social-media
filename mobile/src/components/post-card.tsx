@@ -161,7 +161,7 @@ function QuotedPostPreview({ post }: { post: PostResponse }) {
 }
 
 export function PostCard({ post, feedType = 'POST', reposter, pressable = true }: PostCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const account = useAuthStore((s) => s.account);
   const deletePost = useDeletePost();
@@ -223,7 +223,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
               </Pressable>
               <Text className="text-[15px] text-neutral-500">·</Text>
               <Text className="text-[15px] text-neutral-500">
-                {formatShortRelativeTime(post.createdAt, now)}
+                {formatShortRelativeTime(post.createdAt, now, t, i18n.language)}
               </Text>
               {post.isEdited && <Text className="text-[13px] italic text-neutral-500">{t('post.card.edited')}</Text>}
             </View>

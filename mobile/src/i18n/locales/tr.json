@@ -230,5 +230,78 @@
       "sendFailedTitle": "Gönderilemedi",
       "sendFailedBody": "Gönderi paylaşılamadı."
     }
+  },
+  "messaging": {
+    "list": {
+      "loadError": "Sohbetler yüklenemedi.",
+      "empty": "Henüz sohbet yok.",
+      "startChat": "Sohbeti başlat",
+      "deleteConfirmTitle": "Bu sohbet silinsin mi? Yeni mesaj gelirse geri görünür.",
+      "deleteConfirm": "Sohbeti Sil"
+    },
+    "conversation": {
+      "defaultTitle": "Sohbet",
+      "loadError": "Mesajlar yüklenemedi.",
+      "emptyGreeting": "Merhaba de 👋",
+      "inputPlaceholder": "Yeni mesaj...",
+      "imageUploadFailedTitle": "Gönderilemedi",
+      "imageUploadFailedBody": "Fotoğraf yüklenirken bir hata oluştu.",
+      "sending": "Gönderiliyor…",
+      "readPrefix": "Okundu",
+      "delivered": "İletildi"
+    }
+  },
+  "notifications": {
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "deleteAll": "Tümünü Sil",
+    "deleteAllConfirmTitle": "Tüm bildirimler silinsin mi? Bu işlem geri alınamaz.",
+    "loadError": "Bildirimler yüklenemedi.",
+    "empty": "Henüz bildirim yok.",
+    "systemNotification": "Sistem Bildirimi",
+    "moreCount": "ve {{count}} kişi daha",
+    "types": {
+      "like": "gönderini beğendi.",
+      "reply": "sana bir yanıt verdi.",
+      "mention": "senden bahsetti.",
+      "follow": "seni takip etmeye başladı.",
+      "repost": "gönderini yeniden paylaştı.",
+      "quoteRepost": "gönderini alıntıladı.",
+      "moderationAlert": "Gönderin topluluk kuralları ihlali sebebiyle gizlendi.",
+      "recommendation": "beğenebileceğin bir gönderi paylaştı.",
+      "default": "yeni bir bildirim gönderdi."
+    }
+  },
+  "time": {
+    "now": "şimdi",
+    "seconds": "{{count}}sn",
+    "minutes": "{{count}}dk",
+    "hours": "{{count}}s",
+    "days": "{{count}}g"
+  },
+  "profile": {
+    "editProfile": "Profili Düzenle",
+    "following": "Takip Ediliyor",
+    "follow": "Takip Et",
+    "joinedOn": "{{date}} tarihinde katıldı",
+    "followingLabel": "Takip Edilen",
+    "followersLabel": "Takipçi",
+    "followersTab": "Takipçiler",
+    "tabPosts": "Gönderiler",
+    "tabReplies": "Yanıtlar",
+    "tabLikes": "Beğeniler",
+    "userNotFound": "Kullanıcı bulunamadı.",
+    "emptyList": "Henüz bir şey yok.",
+    "emptyFollowList": "Henüz kimse yok.",
+    "defaultTitle": "Profil",
+    "followListDefaultTitle": "Takip",
+    "displayNameLabel": "Görünen ad",
+    "displayNamePlaceholder": "Adın",
+    "bioLabel": "Hakkında",
+    "bioPlaceholder": "Kendinden bahset",
+    "displayNameMax": "En fazla 50 karakter",
+    "bioMax": "En fazla 160 karakter",
+    "save": "Kaydet",
+    "updateFailedTitle": "Güncellenemedi",
+    "updateFailedBody": "Bir şeyler ters gitti. Lütfen tekrar dene."
   }
 }
