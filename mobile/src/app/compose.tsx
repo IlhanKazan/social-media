@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Image as ImageIcon, X } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -21,6 +22,7 @@ import type { ErrorResponse } from '@/types/api';
 const MAX_CONTENT_LENGTH = 500;
 
 export default function ComposeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{
     parentPostId?: string;
@@ -62,7 +64,7 @@ export default function ComposeScreen() {
     const asset = result.assets?.[0];
     if (result.canceled || !asset) return;
     if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-      Alert.alert('Image too large', 'The image must be smaller than 5MB.');
+      Alert.alert(t('compose.imageTooLargeTitle'), t('compose.imageTooLargeBody'));
       return;
     }
     setImageUri(asset.uri);
@@ -75,7 +77,7 @@ export default function ComposeScreen() {
       try {
         imageUrl = await uploadPostImage(imageUri);
       } catch {
-        Alert.alert('Upload failed', 'Only JPG, PNG, WEBP or GIF up to 5MB is allowed.');
+        Alert.alert(t('compose.uploadFailedTitle'), t('compose.uploadFailedBody'));
         return;
       } finally {
         setUploading(false);
@@ -86,7 +88,7 @@ export default function ComposeScreen() {
       onSuccess: () => router.back(),
       onError: (error: unknown) => {
         const data = (error as { response?: { data?: ErrorResponse } }).response?.data;
-        Alert.alert('Post failed', data?.message ?? 'Something went wrong. Please try again.');
+        Alert.alert(t('compose.postFailedTitle'), data?.message ?? t('compose.postFailedGenericBody'));
       },
     };
 
@@ -110,12 +112,12 @@ export default function ComposeScreen() {
       <Stack.Screen
         options={{
           title: editPostId
-            ? 'Gönderiyi Düzenle'
+            ? t('compose.editTitle')
             : quotePostId
-              ? 'Alıntıla'
+              ? t('compose.quoteTitle')
               : parentPostId
-                ? 'Yanıtla'
-                : 'Yeni gönderi',
+                ? t('compose.replyTitle')
+                : t('compose.newPostTitle'),
           presentation: 'modal',
           headerShown: true,
         }}
@@ -123,13 +125,13 @@ export default function ComposeScreen() {
 
       <View className="flex-1 p-4">
         {parentPostId && params.parentAuthor && (
-          <Text className="mb-2 text-sm text-neutral-500">@{params.parentAuthor} kullanıcısına yanıt</Text>
+          <Text className="mb-2 text-sm text-neutral-500">{t('compose.replyingTo', { username: params.parentAuthor })}</Text>
         )}
 
         <TextInput
           className="min-h-[120px] text-[17px] text-neutral-900 dark:text-neutral-50"
           placeholder={
-            quotePostId ? 'Düşüncelerini ekle...' : parentPostId ? 'Yanıtını gönder' : 'Neler oluyor?'
+            quotePostId ? t('compose.quotePlaceholder') : parentPostId ? t('compose.replyPlaceholder') : t('compose.newPostPlaceholder')
           }
           placeholderTextColor="#737373"
           multiline
@@ -201,7 +203,7 @@ export default function ComposeScreen() {
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
               <Text className="font-sans-bold text-white">
-                {editPostId ? 'Kaydet' : parentPostId ? 'Yanıtla' : 'Gönder'}
+                {editPostId ? t('compose.submitEdit') : parentPostId ? t('compose.submitReply') : t('compose.submitPost')}
               </Text>
             )}
           </Pressable>

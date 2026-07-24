@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Send, X } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -52,6 +53,7 @@ function ConversationOption({
 }
 
 export function ShareToDmSheet({ visible, onClose, postId }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const conversations = useConversations();
   const share = useSharePostToDm();
@@ -67,7 +69,7 @@ export function ShareToDmSheet({ visible, onClose, postId }: Props) {
           setCaption('');
           onClose();
         },
-        onError: () => Alert.alert('Gönderilemedi', 'Gönderi paylaşılamadı.'),
+        onError: () => Alert.alert(t('post.shareSheet.sendFailedTitle'), t('post.shareSheet.sendFailedBody')),
       }
     );
   };
@@ -82,7 +84,7 @@ export function ShareToDmSheet({ visible, onClose, postId }: Props) {
           >
             <View className="flex-row items-center justify-between border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
               <Text className="text-[16px] font-sans-bold text-neutral-900 dark:text-neutral-50">
-                Mesajla Paylaş
+                {t('post.shareSheet.title')}
               </Text>
               <Pressable hitSlop={10} onPress={onClose}>
                 <X size={20} color="#71767b" />
@@ -92,7 +94,7 @@ export function ShareToDmSheet({ visible, onClose, postId }: Props) {
             <View className="border-b border-neutral-100 px-4 py-2 dark:border-neutral-800">
               <TextInput
                 className="text-[15px] text-neutral-900 dark:text-neutral-50"
-                placeholder="Bir not ekle (opsiyonel)"
+                placeholder={t('post.shareSheet.captionPlaceholder')}
                 placeholderTextColor="#737373"
                 value={caption}
                 onChangeText={setCaption}
@@ -117,7 +119,7 @@ export function ShareToDmSheet({ visible, onClose, postId }: Props) {
                   />
                 )}
                 ListEmptyComponent={
-                  <Text className="px-4 py-8 text-center text-neutral-500">Henüz sohbet yok.</Text>
+                  <Text className="px-4 py-8 text-center text-neutral-500">{t('post.shareSheet.noChats')}</Text>
                 }
               />
             )}

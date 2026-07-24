@@ -147,5 +147,88 @@
     "replies": "Yanıtlar",
     "mentions": "Bahsetmeler",
     "recommendations": "Senin için öneriler"
+  },
+  "common": {
+    "retry": "Tekrar Dene"
+  },
+  "feed": {
+    "followingTab": "Takip Edilen",
+    "exploreTab": "Keşfet",
+    "loadError": "Akış yüklenemedi.",
+    "followingEmpty": "Henüz gönderi yok. Akışını doldurmak için birilerini takip et!",
+    "exploreEmpty": "Henüz gönderi yok."
+  },
+  "compose": {
+    "editTitle": "Gönderiyi Düzenle",
+    "quoteTitle": "Alıntıla",
+    "replyTitle": "Yanıtla",
+    "newPostTitle": "Yeni gönderi",
+    "replyingTo": "@{{username}} kullanıcısına yanıt",
+    "quotePlaceholder": "Düşüncelerini ekle...",
+    "replyPlaceholder": "Yanıtını gönder",
+    "newPostPlaceholder": "Neler oluyor?",
+    "imageTooLargeTitle": "Fotoğraf çok büyük",
+    "imageTooLargeBody": "Fotoğraf 5MB'den küçük olmalı.",
+    "uploadFailedTitle": "Yükleme başarısız",
+    "uploadFailedBody": "Sadece JPG, PNG, WEBP veya GIF, 5MB'a kadar yüklenebilir.",
+    "postFailedTitle": "Gönderi paylaşılamadı",
+    "postFailedGenericBody": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "submitPost": "Gönder",
+    "submitReply": "Yanıtla",
+    "submitEdit": "Kaydet"
+  },
+  "search": {
+    "placeholder": "Kişi veya gönderi ara",
+    "promptEmpty": "Aramak istediğin kelimeyi yukarıya yaz.",
+    "loadError": "Arama sonuçları getirilirken bir hata oluştu.",
+    "usersTab": "Kişiler ({{count}})",
+    "postsTab": "Gönderiler ({{count}})",
+    "noUsers": "Kullanıcı bulunamadı.",
+    "noPosts": "Gönderi bulunamadı."
+  },
+  "post": {
+    "card": {
+      "undoRepost": "Repostu Geri Al",
+      "repost": "Repost",
+      "quote": "Alıntıla",
+      "shareToDm": "Mesajla Paylaş",
+      "youReposted": "Sen paylaştın",
+      "userReposted": "{{name}} paylaştı",
+      "replyingTo": "@{{username}} kullanıcısına yanıt",
+      "edited": "(düzenlendi)",
+      "flaggedBadge": "İhlal: Gizlendi",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "deleteConfirmTitle": "Gönderi silinsin mi? Bu işlem geri alınamaz.",
+      "deleteConfirm": "Gönderiyi Sil"
+    },
+    "detail": {
+      "title": "Gönderi",
+      "loadError": "Gönderi yüklenemedi.",
+      "repostsWord": "repost",
+      "likesWord": "beğeni",
+      "viewsWord": "görüntülenme",
+      "repliesHeader": "Yanıtlar",
+      "noReplies": "Henüz yanıt yok."
+    },
+    "likers": {
+      "title": "Beğenenler",
+      "empty": "Henüz beğeni yok."
+    },
+    "reposters": {
+      "title": "Yeniden Paylaşanlar",
+      "empty": "Henüz repost yok."
+    },
+    "userRow": {
+      "following": "Takip Ediliyor",
+      "follow": "Takip Et"
+    },
+    "shareSheet": {
+      "title": "Mesajla Paylaş",
+      "captionPlaceholder": "Bir not ekle (opsiyonel)",
+      "noChats": "Henüz sohbet yok.",
+      "sendFailedTitle": "Gönderilemedi",
+      "sendFailedBody": "Gönderi paylaşılamadı."
+    }
   }
 }

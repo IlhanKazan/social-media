@@ -147,5 +147,88 @@
     "replies": "Replies",
     "mentions": "Mentions",
     "recommendations": "Recommendations for you"
+  },
+  "common": {
+    "retry": "Retry"
+  },
+  "feed": {
+    "followingTab": "Following",
+    "exploreTab": "Explore",
+    "loadError": "Couldn't load the feed.",
+    "followingEmpty": "No posts yet. Follow people to fill your feed!",
+    "exploreEmpty": "No posts yet."
+  },
+  "compose": {
+    "editTitle": "Edit Post",
+    "quoteTitle": "Quote",
+    "replyTitle": "Reply",
+    "newPostTitle": "New post",
+    "replyingTo": "Replying to @{{username}}",
+    "quotePlaceholder": "Add your thoughts...",
+    "replyPlaceholder": "Post your reply",
+    "newPostPlaceholder": "What's happening?",
+    "imageTooLargeTitle": "Photo too large",
+    "imageTooLargeBody": "Photo must be smaller than 5MB.",
+    "uploadFailedTitle": "Upload failed",
+    "uploadFailedBody": "Only JPG, PNG, WEBP or GIF up to 5MB is allowed.",
+    "postFailedTitle": "Couldn't post",
+    "postFailedGenericBody": "Something went wrong. Please try again.",
+    "submitPost": "Post",
+    "submitReply": "Reply",
+    "submitEdit": "Save"
+  },
+  "search": {
+    "placeholder": "Search people or posts",
+    "promptEmpty": "Type what you're looking for above.",
+    "loadError": "Something went wrong loading search results.",
+    "usersTab": "People ({{count}})",
+    "postsTab": "Posts ({{count}})",
+    "noUsers": "No users found.",
+    "noPosts": "No posts found."
+  },
+  "post": {
+    "card": {
+      "undoRepost": "Undo Repost",
+      "repost": "Repost",
+      "quote": "Quote",
+      "shareToDm": "Share via Message",
+      "youReposted": "You reposted",
+      "userReposted": "{{name}} reposted",
+      "replyingTo": "Replying to @{{username}}",
+      "edited": "(edited)",
+      "flaggedBadge": "Violation: Hidden",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete this post? This action cannot be undone.",
+      "deleteConfirm": "Delete Post"
+    },
+    "detail": {
+      "title": "Post",
+      "loadError": "Couldn't load the post.",
+      "repostsWord": "Reposts",
+      "likesWord": "Likes",
+      "viewsWord": "Views",
+      "repliesHeader": "Replies",
+      "noReplies": "No replies yet."
+    },
+    "likers": {
+      "title": "Likes",
+      "empty": "No likes yet."
+    },
+    "reposters": {
+      "title": "Reposted by",
+      "empty": "No reposts yet."
+    },
+    "userRow": {
+      "following": "Following",
+      "follow": "Follow"
+    },
+    "shareSheet": {
+      "title": "Share via Message",
+      "captionPlaceholder": "Add a note (optional)",
+      "noChats": "No conversations yet.",
+      "sendFailedTitle": "Couldn't send",
+      "sendFailedBody": "Couldn't share the post."
+    }
   }
 }
