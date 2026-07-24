@@ -1,8 +1,10 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,12 +16,14 @@ import { Loader2, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PostResponse } from '@/types/api';
 
-const createPostSchema = z.object({
-  content: z.string().min(1, 'Gönderi boş olamaz').max(500, 'Maksimum 500 karakter'),
-  imageUrl: z.string().optional(),
-});
+function createPostSchema(t: TFunction) {
+  return z.object({
+    content: z.string().min(1, t('compose.contentEmpty')).max(500, t('compose.contentMax')),
+    imageUrl: z.string().optional(),
+  });
+}
 
-type CreatePostInput = z.infer<typeof createPostSchema>;
+type CreatePostInput = z.infer<ReturnType<typeof createPostSchema>>;
 
 interface CreatePostProps {
   readonly parentPostId?: number;
@@ -27,7 +31,8 @@ interface CreatePostProps {
   readonly placeholder?: string;
 }
 
-export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Neler oluyor?" }: CreatePostProps) {
+export function CreatePost({ parentPostId, onSuccessCallback, placeholder }: CreatePostProps) {
+  const { t, i18n } = useTranslation();
   const account = useAuthStore((state) => state.account);
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,8 +42,9 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
   const [cursorPos, setCursorPos] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const postSchema = useMemo(() => createPostSchema(t), [t, i18n.language]);
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreatePostInput>({
-    resolver: zodResolver(createPostSchema),
+    resolver: zodResolver(postSchema),
     defaultValues: { content: '' }
   });
 
@@ -73,7 +79,7 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
       return res.data.url;
     },
     onError: () => {
-      toast.error('Fotoğraf yüklenemedi. Sadece JPG, PNG, WEBP veya GIF formatında (Max 5MB) olmalıdır.');
+      toast.error(t('compose.uploadFailed'));
     }
   });
 
@@ -94,11 +100,11 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
         queryClient.invalidateQueries({ queryKey: ['post', parentPostId, 'replies'] });
       }
 
-      toast.success(parentPostId ? 'Yanıt gönderildi!' : 'Gönderi paylaşıldı!');
+      toast.success(parentPostId ? t('compose.replySuccess') : t('compose.postSuccess'));
       if (onSuccessCallback) onSuccessCallback();
     },
     onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || 'Gönderi paylaşılırken bir hata oluştu.';
+      const errorMessage = error.response?.data?.message || t('compose.postError');
       toast.error(errorMessage);
     }
   });
@@ -119,7 +125,7 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Dosya 5MB'dan büyük olamaz.");
+        toast.error(t('compose.fileTooLarge'));
         return;
       }
       setSelectedFile(file);
@@ -146,7 +152,7 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-full pt-0.5">
         <div className="relative">
           <Textarea
-            placeholder={placeholder}
+            placeholder={placeholder ?? t('compose.placeholder')}
             className="resize-none border-none shadow-none focus-visible:ring-0 px-3 py-2 text-[16px] min-h-[52px] bg-transparent text-foreground placeholder:text-muted-foreground/70 overflow-hidden"
             aria-invalid={!!errors.content}
             {...contentField}
@@ -208,7 +214,7 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder = "Nel
             className="rounded-full font-bold px-5 h-9 transition-transform active:scale-95"
             disabled={isUploading || !watch('content')?.trim()}
           >
-            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gönder'}
+            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('compose.submit')}
           </Button>
         </div>
       </form>

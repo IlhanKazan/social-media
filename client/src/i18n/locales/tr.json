@@ -203,5 +203,121 @@
     "replies": "Yanıtlar",
     "mentions": "Bahsetmeler",
     "recommendations": "Senin için öneriler"
+  },
+  "common": {
+    "retry": "Tekrar Dene"
+  },
+  "feed": {
+    "headerFeed": "Akış",
+    "headerExplore": "Keşfet",
+    "followingTab": "Takip Edilen",
+    "exploreTab": "Keşfet",
+    "emptyTitle": "Burası çok sessiz",
+    "followingEmptyDesc": "Henüz hiç gönderi yok. Birilerini takip etmeye başla!",
+    "exploreEmptyDesc": "Henüz hiç gönderi yok.",
+    "loadErrorTitle": "Bir hata oluştu",
+    "loadErrorDesc": "Akış yüklenirken bir sorunla karşılaştık. Lütfen sayfayı yenileyin.",
+    "allSeen": "Tüm gönderileri gördün.",
+    "composerSheetTitle": "Gönderi Oluştur"
+  },
+  "compose": {
+    "placeholder": "Neler oluyor?",
+    "submit": "Gönder",
+    "contentEmpty": "Gönderi boş olamaz",
+    "contentMax": "Maksimum 500 karakter",
+    "uploadFailed": "Fotoğraf yüklenemedi. Sadece JPG, PNG, WEBP veya GIF formatında (Max 5MB) olmalıdır.",
+    "fileTooLarge": "Dosya 5MB'dan büyük olamaz.",
+    "replySuccess": "Yanıt gönderildi!",
+    "postSuccess": "Gönderi paylaşıldı!",
+    "postError": "Gönderi paylaşılırken bir hata oluştu.",
+    "replyPlaceholder": "Yanıtını gönder..."
+  },
+  "post": {
+    "card": {
+      "youReposted": "Sen paylaştın",
+      "userReposted": "{{name}} paylaştı",
+      "replyContextSuffix": "adlı kullanıcıya yanıt olarak",
+      "flaggedBadge": "İhlal: Gizlendi",
+      "edited": "(Düzenlendi)",
+      "edit": "Düzenle",
+      "deleting": "Siliniyor...",
+      "delete": "Sil",
+      "report": "Bildir",
+      "deleteSuccess": "Gönderi silindi",
+      "deleteError": "Gönderi silinirken bir hata oluştu",
+      "fullscreenAlt": "Fotoğrafı İncele",
+      "viewPhoto": "Fotoğrafı gör",
+      "undoRepost": "Repostu Geri Al",
+      "repost": "Repost",
+      "quoteShare": "Alıntı ile Paylaş",
+      "shareToDm": "Mesajla Paylaş"
+    },
+    "detail": {
+      "title": "Gönderi",
+      "notFound": "Gönderi bulunamadı veya silinmiş.",
+      "goBack": "Geri Dön",
+      "repostsWord": "repost",
+      "likesWord": "beğeni",
+      "viewsWord": "görüntülenme",
+      "noRepliesTitle": "Yanıt Yok",
+      "noRepliesDesc": "İlk yanıtı sen gönder!"
+    },
+    "likers": {
+      "title": "Beğenenler"
+    },
+    "reposters": {
+      "title": "Yeniden Paylaşanlar"
+    },
+    "userRow": {
+      "following": "Takip Ediliyor",
+      "follow": "Takip Et"
+    },
+    "quoteDialog": {
+      "title": "Alıntı ile Paylaş",
+      "placeholder": "Alıntıya düşüncelerini ekle...",
+      "submit": "Paylaş",
+      "success": "Alıntı paylaşıldı"
+    },
+    "shareDialog": {
+      "title": "Mesajla paylaş",
+      "searchPlaceholder": "Sohbet ara...",
+      "noResults": "Sohbet bulunamadı",
+      "loadMore": "Daha fazla",
+      "loadingMore": "Yükleniyor...",
+      "captionPlaceholder": "Bir not ekle (opsiyonel)..."
+    },
+    "reportDialog": {
+      "title": "Gönderiyi Bildir",
+      "reasonLabel": "Bildirim Nedeni",
+      "reasonHate": "Nefret Söylemi",
+      "reasonHarassment": "Taciz / Zorbalık",
+      "reasonSpam": "Spam / İstenmeyen İçerik",
+      "reasonSelfHarm": "Kendine Zarar Verme",
+      "reasonOther": "Diğer",
+      "detailsLabel": "Detaylar (İsteğe bağlı)",
+      "detailsPlaceholder": "Eklemek istediğiniz bağlam veya detaylar...",
+      "cancel": "İptal",
+      "submit": "Gönder",
+      "reasonRequired": "Lütfen bir neden seçin",
+      "detailsMax": "Detaylar en fazla 500 karakter olabilir"
+    },
+    "editDialog": {
+      "title": "Gönderiyi Düzenle",
+      "placeholder": "Neler düşünüyorsun?",
+      "cancel": "İptal",
+      "save": "Kaydet"
+    }
+  },
+  "search": {
+    "promptEmpty": "Aramak istediğin kelimeyi yukarıya yaz.",
+    "loadError": "Arama sonuçları getirilirken bir hata oluştu.",
+    "usersTab": "Kişiler ({{count}})",
+    "postsTab": "Gönderiler ({{count}})",
+    "noUsers": "Kullanıcı bulunamadı.",
+    "noPosts": "Gönderi bulunamadı.",
+    "placeholder": "Kişileri veya gönderileri ara...",
+    "sidebarPlaceholder": "Ara...",
+    "viewAllResults": "\"{{query}}\" için tüm sonuçları gör",
+    "noResults": "Sonuç bulunamadı"
   }
 }

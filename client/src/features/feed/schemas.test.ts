@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { reportPostSchema } from './schemas';
+import i18n from '@/i18n';
+import { createReportPostSchema } from './schemas';
+
+const reportPostSchema = createReportPostSchema(i18n.t);
 
 describe('reportPostSchema', () => {
   it('accepts a known report reason', () => {

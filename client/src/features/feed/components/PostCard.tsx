@@ -5,6 +5,7 @@ import { tr } from 'date-fns/locale';
 import { Heart, MessageSquare, MoreHorizontal, Trash2, Edit2, CornerDownRight, BadgeCheck, Repeat2, Flag, Send } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { LinkifiedText } from '@/components/shared/LinkifiedText';
 import { EditPostDialog } from '@/features/post/components/EditPostDialog';
 import { QuoteDialog } from './QuoteDialog';
@@ -36,6 +37,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, feedType = 'POST', reposter, connector = 'none' }: PostCardProps) {
+  const { t } = useTranslation();
   const hasTopConnector = connector === 'top' || connector === 'both';
   const hasBottomConnector = connector === 'bottom' || connector === 'both';
   const showReplyContext = !hasTopConnector && !!post.parentPostId && !!post.parentPostAuthorUsername;
@@ -56,13 +58,13 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
       await api.delete(`/posts/${post.id}`);
     },
     onSuccess: () => {
-      toast.success('Gönderi silindi');
+      toast.success(t('post.card.deleteSuccess'));
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['explore'] });
       queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
     },
     onError: () => {
-      toast.error('Gönderi silinirken bir hata oluştu');
+      toast.error(t('post.card.deleteError'));
     }
   });
 
@@ -169,7 +171,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
               className="hover:underline hover:text-foreground transition-colors relative z-10"
               onClick={(e) => e.stopPropagation()}
             >
-              {reposter.id === account?.id ? 'Sen paylaştın' : `${reposter.displayName} paylaştı`}
+              {reposter.id === account?.id ? t('post.card.youReposted') : t('post.card.userReposted', { name: reposter.displayName })}
             </Link>
           </div>
         )}
@@ -188,7 +190,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                   @{post.parentPostAuthorUsername}
                 </Link>
                 <Link to={`/post/${post.parentPostId}`} className="shrink-0 hover:text-foreground hover:underline transition-colors">
-                  adlı kullanıcıya yanıt olarak
+                  {t('post.card.replyContextSuffix')}
                 </Link>
               </button>
             )}
@@ -235,7 +237,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
 
                     {post.isEdited === true && (
                       <span className="text-muted-foreground text-xs italic shrink-0 whitespace-nowrap">
-                        (Düzenlendi)
+                        {t('post.card.edited')}
                       </span>
                     )}
                   </div>
@@ -243,7 +245,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                   <div className="flex items-center gap-2 ml-auto shrink-0 z-20" onClick={(e) => e.stopPropagation()}>
                     {isMine && post.moderationStatus === 'FLAGGED' && (
                       <Badge variant="destructive" className="h-5 text-[10px] pointer-events-none">
-                        İhlal: Gizlendi
+                        {t('post.card.flaggedBadge')}
                       </Badge>
                     )}
                     <DropdownMenu>
@@ -263,7 +265,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                               }}
                             >
                               <Edit2 className="mr-2 h-4 w-4" />
-                              <span>Düzenle</span>
+                              <span>{t('post.card.edit')}</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive cursor-pointer"
@@ -274,7 +276,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                               disabled={deleteMutation.isPending}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              <span>{deleteMutation.isPending ? 'Siliniyor...' : 'Sil'}</span>
+                              <span>{deleteMutation.isPending ? t('post.card.deleting') : t('post.card.delete')}</span>
                             </DropdownMenuItem>
                           </>
                         ) : (
@@ -286,7 +288,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                             }}
                           >
                             <Flag className="mr-2 h-4 w-4" />
-                            <span>Bildir</span>
+                            <span>{t('post.card.report')}</span>
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -318,7 +320,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                           showCloseButton={true}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <DialogTitle className="sr-only">Fotoğrafı İncele</DialogTitle>
+                          <DialogTitle className="sr-only">{t('post.card.fullscreenAlt')}</DialogTitle>
                           <img
                             src={post.imageUrl}
                             alt="Post attachment fullscreen"
@@ -361,7 +363,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       </div>
                       <p className="text-[14px] line-clamp-3 whitespace-pre-wrap"><LinkifiedText text={post.quotedPost.content} /></p>
                       {post.quotedPost.imageUrl && (
-                        <div className="mt-2 text-primary text-[13px] font-medium">Fotoğrafı gör</div>
+                        <div className="mt-2 text-primary text-[13px] font-medium">{t('post.card.viewPhoto')}</div>
                       )}
                     </div>
                   )}
@@ -411,7 +413,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       disabled={repostMutation.isPending}
                     >
                       <Repeat2 className="mr-2 h-4 w-4" />
-                      <span>{post.repostedByMe ? 'Repostu Geri Al' : 'Repost'}</span>
+                      <span>{post.repostedByMe ? t('post.card.undoRepost') : t('post.card.repost')}</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem
@@ -422,7 +424,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       }}
                     >
                       <MessageSquare className="mr-2 h-4 w-4" />
-                      <span>Alıntı ile Paylaş</span>
+                      <span>{t('post.card.quoteShare')}</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem
@@ -433,7 +435,7 @@ export function PostCard({ post, feedType = 'POST', reposter, connector = 'none'
                       }}
                     >
                       <Send className="mr-2 h-4 w-4" />
-                      <span>Mesajla Paylaş</span>
+                      <span>{t('post.card.shareToDm')}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

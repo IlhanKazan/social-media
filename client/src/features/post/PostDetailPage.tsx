@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, MessageSquareOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { usePost, usePostReplies, usePostAncestors } from './hooks/use-post';
 import { useLiveReplies } from './hooks/use-live-replies';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
@@ -13,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/EmptyState';
 
 export function PostDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const postId = Number(id);
   const navigate = useNavigate();
@@ -59,8 +61,8 @@ export function PostDetailPage() {
   if (postStatus === 'error' || !post) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-muted-foreground font-medium">Gönderi bulunamadı veya silinmiş.</p>
-        <Button variant="outline" onClick={() => navigate(-1)}>Geri Dön</Button>
+        <p className="text-muted-foreground font-medium">{t('post.detail.notFound')}</p>
+        <Button variant="outline" onClick={() => navigate(-1)}>{t('post.detail.goBack')}</Button>
       </div>
     );
   }
@@ -71,7 +73,7 @@ export function PostDetailPage() {
         <Button variant="ghost" size="icon-sm" onClick={() => navigate(-1)} className="-ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h2 className="text-xl font-bold">Gönderi</h2>
+        <h2 className="text-xl font-bold">{t('post.detail.title')}</h2>
       </div>
 
       {ancestors?.map((ancestor, index) => (
@@ -94,7 +96,7 @@ export function PostDetailPage() {
               className="text-left hover:underline"
             >
               <span className="font-bold">{post.repostCount}</span>{' '}
-              <span className="text-muted-foreground">repost</span>
+              <span className="text-muted-foreground">{t('post.detail.repostsWord')}</span>
             </button>
           )}
           {post.likeCount > 0 && (
@@ -103,13 +105,13 @@ export function PostDetailPage() {
               className="text-left hover:underline"
             >
               <span className="font-bold">{post.likeCount}</span>{' '}
-              <span className="text-muted-foreground">beğeni</span>
+              <span className="text-muted-foreground">{t('post.detail.likesWord')}</span>
             </button>
           )}
           {post.viewCount > 0 && (
             <span>
               <span className="font-bold">{post.viewCount}</span>{' '}
-              <span className="text-muted-foreground">görüntülenme</span>
+              <span className="text-muted-foreground">{t('post.detail.viewsWord')}</span>
             </span>
           )}
         </div>
@@ -120,7 +122,7 @@ export function PostDetailPage() {
 
       {account && (
         <div className="border-t border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/10">
-          <CreatePost parentPostId={postId} placeholder="Yanıtını gönder..." />
+          <CreatePost parentPostId={postId} placeholder={t('compose.replyPlaceholder')} />
         </div>
       )}
 
@@ -132,8 +134,8 @@ export function PostDetailPage() {
         {!hasNextPage && replies?.pages[0]?.content.length === 0 && (
           <EmptyState
             icon={<MessageSquareOff className="h-10 w-10"/>}
-            title="Yanıt Yok"
-            description="İlk yanıtı sen gönder!"
+            title={t('post.detail.noRepliesTitle')}
+            description={t('post.detail.noRepliesDesc')}
           />
         )}
 

@@ -203,5 +203,121 @@
     "replies": "Replies",
     "mentions": "Mentions",
     "recommendations": "Recommendations for you"
+  },
+  "common": {
+    "retry": "Retry"
+  },
+  "feed": {
+    "headerFeed": "Feed",
+    "headerExplore": "Explore",
+    "followingTab": "Following",
+    "exploreTab": "Explore",
+    "emptyTitle": "It's quiet here",
+    "followingEmptyDesc": "No posts yet. Start following people!",
+    "exploreEmptyDesc": "No posts yet.",
+    "loadErrorTitle": "Something went wrong",
+    "loadErrorDesc": "We ran into a problem loading the feed. Please refresh the page.",
+    "allSeen": "You've seen it all.",
+    "composerSheetTitle": "Create Post"
+  },
+  "compose": {
+    "placeholder": "What's happening?",
+    "submit": "Post",
+    "contentEmpty": "Post can't be empty",
+    "contentMax": "Maximum 500 characters",
+    "uploadFailed": "Couldn't upload photo. Only JPG, PNG, WEBP or GIF (max 5MB) is allowed.",
+    "fileTooLarge": "File can't be larger than 5MB.",
+    "replySuccess": "Reply posted!",
+    "postSuccess": "Post published!",
+    "postError": "Something went wrong posting.",
+    "replyPlaceholder": "Post your reply..."
+  },
+  "post": {
+    "card": {
+      "youReposted": "You reposted",
+      "userReposted": "{{name}} reposted",
+      "replyContextSuffix": "· Replying",
+      "flaggedBadge": "Violation: Hidden",
+      "edited": "(Edited)",
+      "edit": "Edit",
+      "deleting": "Deleting...",
+      "delete": "Delete",
+      "report": "Report",
+      "deleteSuccess": "Post deleted",
+      "deleteError": "Something went wrong deleting the post",
+      "fullscreenAlt": "View Photo",
+      "viewPhoto": "View photo",
+      "undoRepost": "Undo Repost",
+      "repost": "Repost",
+      "quoteShare": "Quote",
+      "shareToDm": "Share via Message"
+    },
+    "detail": {
+      "title": "Post",
+      "notFound": "Post not found or deleted.",
+      "goBack": "Go Back",
+      "repostsWord": "reposts",
+      "likesWord": "likes",
+      "viewsWord": "views",
+      "noRepliesTitle": "No Replies",
+      "noRepliesDesc": "Be the first to reply!"
+    },
+    "likers": {
+      "title": "Likes"
+    },
+    "reposters": {
+      "title": "Reposted by"
+    },
+    "userRow": {
+      "following": "Following",
+      "follow": "Follow"
+    },
+    "quoteDialog": {
+      "title": "Quote",
+      "placeholder": "Add your thoughts to the quote...",
+      "submit": "Post",
+      "success": "Quote posted"
+    },
+    "shareDialog": {
+      "title": "Share via message",
+      "searchPlaceholder": "Search conversations...",
+      "noResults": "No conversations found",
+      "loadMore": "Load more",
+      "loadingMore": "Loading...",
+      "captionPlaceholder": "Add a note (optional)..."
+    },
+    "reportDialog": {
+      "title": "Report Post",
+      "reasonLabel": "Reason",
+      "reasonHate": "Hate Speech",
+      "reasonHarassment": "Harassment / Bullying",
+      "reasonSpam": "Spam / Unwanted Content",
+      "reasonSelfHarm": "Self-Harm",
+      "reasonOther": "Other",
+      "detailsLabel": "Details (Optional)",
+      "detailsPlaceholder": "Any context or details you'd like to add...",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "reasonRequired": "Please select a reason",
+      "detailsMax": "Details can be at most 500 characters"
+    },
+    "editDialog": {
+      "title": "Edit Post",
+      "placeholder": "What's on your mind?",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+  "search": {
+    "promptEmpty": "Type what you're looking for above.",
+    "loadError": "Something went wrong loading search results.",
+    "usersTab": "People ({{count}})",
+    "postsTab": "Posts ({{count}})",
+    "noUsers": "No users found.",
+    "noPosts": "No posts found.",
+    "placeholder": "Search people or posts...",
+    "sidebarPlaceholder": "Search...",
+    "viewAllResults": "See all results for \"{{query}}\"",
+    "noResults": "No results found"
   }
 }
