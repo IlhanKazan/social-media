@@ -56,6 +56,13 @@ async function registerDeviceToken(deviceToken: string) {
 
 function routeFor(data: Record<string, unknown>): Href {
   const type = typeof data.type === 'string' ? data.type : undefined;
+  if (type === 'MESSAGE') {
+    const conversationId = typeof data.conversationId === 'string' ? data.conversationId : undefined;
+    if (conversationId) {
+      return { pathname: '/conversation/[id]', params: { id: conversationId } } as unknown as Href;
+    }
+    return '/messages';
+  }
   const referenceId = typeof data.referenceId === 'string' ? data.referenceId : undefined;
   if (type && type !== 'FOLLOW' && referenceId) {
     return `/post/${referenceId}` as Href;

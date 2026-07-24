@@ -103,7 +103,7 @@ public class MessageController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get total unread message count", description = "Returns the total number of unread messages across all conversations.")
+    @Operation(summary = "Get total unread conversation count", description = "Returns the number of conversations that have at least one unread message.")
     @GetMapping("/unread-count")
     public ResponseEntity<Integer> getUnreadCount() {
         return ResponseEntity.ok(messageManager.getTotalUnreadCount());
