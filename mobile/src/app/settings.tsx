@@ -1,3 +1,5 @@
+import * as Application from 'expo-application';
+import * as Updates from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 import { Stack } from 'expo-router';
 import { ChevronRight, Languages, LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
@@ -5,6 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
+import { useMobileVersionCheck } from '@/features/app-update/queries';
 import { useMe } from '@/features/profile/queries';
 import {
   useChangePassword,
@@ -98,6 +101,50 @@ export default function SettingsScreen() {
   const changePassword = useChangePassword();
   const logoutAll = useLogoutAll();
   const deleteAccount = useDeleteAccount();
+  const { refetch: refetchVersion, isFetching: checkingVersion } = useMobileVersionCheck();
+  const [checkingOta, setCheckingOta] = useState(false);
+
+  const checkAppUpdate = async () => {
+    const { data } = await refetchVersion();
+    if (!data) return;
+    const installed = Number.parseInt(Application.nativeBuildVersion ?? '0', 10) || 0;
+    if (data.latestVersionCode > installed) {
+      Alert.alert(
+        t('settings.updates.title'),
+        t('settings.updates.updateAvailable', { version: data.latestVersionName }),
+        [
+          { text: t('settings.dangerZone.cancel'), style: 'cancel' },
+          { text: t('appUpdate.updateButton'), onPress: () => void WebBrowser.openBrowserAsync(data.apkUrl) },
+        ]
+      );
+    } else {
+      Alert.alert(t('settings.updates.title'), t('settings.updates.upToDate'));
+    }
+  };
+
+  const checkOtaUpdate = async () => {
+    if (!Updates.isEnabled) {
+      Alert.alert(t('settings.updates.title'), t('settings.updates.otaUpToDate'));
+      return;
+    }
+    setCheckingOta(true);
+    try {
+      const result = await Updates.checkForUpdateAsync();
+      if (!result.isAvailable) {
+        Alert.alert(t('settings.updates.title'), t('settings.updates.otaUpToDate'));
+        return;
+      }
+      await Updates.fetchUpdateAsync();
+      Alert.alert(t('settings.updates.otaReadyTitle'), t('settings.updates.otaReadyBody'), [
+        { text: t('settings.updates.otaLater'), style: 'cancel' },
+        { text: t('settings.updates.otaRestart'), onPress: () => void Updates.reloadAsync() },
+      ]);
+    } catch {
+      Alert.alert(t('settings.updates.title'), t('settings.updates.otaError'));
+    } finally {
+      setCheckingOta(false);
+    }
+  };
 
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -287,6 +334,27 @@ export default function SettingsScreen() {
               <ChevronRight size={18} color="#a3a3a3" />
             </Pressable>
           ))}
+        </Section>
+
+        <Section title={t('settings.updates.title')}>
+          <Pressable
+            className="mb-3 self-start rounded-xl border border-neutral-300 px-5 py-2.5 active:opacity-70 dark:border-neutral-700"
+            onPress={() => void checkAppUpdate()}
+            disabled={checkingVersion}
+          >
+            <Text className="font-sans-semibold text-neutral-900 dark:text-neutral-50">
+              {t('settings.updates.checkAppUpdate')}
+            </Text>
+          </Pressable>
+          <Pressable
+            className="self-start rounded-xl border border-neutral-300 px-5 py-2.5 active:opacity-70 dark:border-neutral-700"
+            onPress={() => void checkOtaUpdate()}
+            disabled={checkingOta}
+          >
+            <Text className="font-sans-semibold text-neutral-900 dark:text-neutral-50">
+              {t('settings.updates.checkOta')}
+            </Text>
+          </Pressable>
         </Section>
 
         <Section title={t('settings.dangerZone.title')}>

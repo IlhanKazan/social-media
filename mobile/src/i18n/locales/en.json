@@ -129,6 +129,20 @@
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     },
+    "updates": {
+      "title": "Updates",
+      "checkAppUpdate": "Check for app update",
+      "upToDate": "You're on the latest version.",
+      "updateAvailable": "A new version ({{version}}) is available.",
+      "checkOta": "Check for JS update",
+      "otaUpToDate": "No update available.",
+      "otaDownloading": "Downloading update...",
+      "otaReadyTitle": "Update ready",
+      "otaReadyBody": "Restart the app to apply the update.",
+      "otaRestart": "Restart now",
+      "otaLater": "Later",
+      "otaError": "Couldn't check for updates."
+    },
     "dangerZone": {
       "title": "Danger Zone",
       "disclaimer": "These actions cannot be undone.",
@@ -326,5 +340,12 @@
     "FILE_TOO_LARGE": "File size can't exceed 5MB.",
     "INVALID_FILE_FORMAT": "Invalid file format. Only JPG, PNG, WEBP, and GIF can be uploaded.",
     "POSTING_RESTRICTED": "Only accounts with a verified email can post right now."
+  },
+  "appUpdate": {
+    "requiredTitle": "Update required",
+    "requiredBody": "This version of the app is no longer supported. Please download the latest version to continue.",
+    "availableBanner": "A new version ({{version}}) is available.",
+    "updateButton": "Update",
+    "dismiss": "Later"
   }
 }

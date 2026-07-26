@@ -129,6 +129,20 @@
       "privacy": "Gizlilik Politikası",
       "terms": "Kullanım Şartları"
     },
+    "updates": {
+      "title": "Güncellemeler",
+      "checkAppUpdate": "Uygulama güncellemesini kontrol et",
+      "upToDate": "En güncel sürümdesin.",
+      "updateAvailable": "Yeni bir sürüm ({{version}}) mevcut.",
+      "checkOta": "JS güncellemesini kontrol et",
+      "otaUpToDate": "Güncelleme yok.",
+      "otaDownloading": "Güncelleme indiriliyor...",
+      "otaReadyTitle": "Güncelleme hazır",
+      "otaReadyBody": "Güncellemeyi uygulamak için uygulamayı yeniden başlat.",
+      "otaRestart": "Şimdi yeniden başlat",
+      "otaLater": "Daha sonra",
+      "otaError": "Güncellemeler kontrol edilemedi."
+    },
     "dangerZone": {
       "title": "Tehlikeli bölge",
       "disclaimer": "Bu işlemler geri alınamaz.",
@@ -326,5 +340,12 @@
     "FILE_TOO_LARGE": "Dosya boyutu 5MB'dan büyük olamaz.",
     "INVALID_FILE_FORMAT": "Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.",
     "POSTING_RESTRICTED": "Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir."
+  },
+  "appUpdate": {
+    "requiredTitle": "Güncelleme gerekli",
+    "requiredBody": "Uygulamanın bu sürümü artık desteklenmiyor. Devam etmek için lütfen en güncel sürümü indir.",
+    "availableBanner": "Yeni bir sürüm ({{version}}) mevcut.",
+    "updateButton": "Güncelle",
+    "dismiss": "Daha sonra"
   }
 }
