@@ -8,6 +8,7 @@ import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.dto.common.PageResponse;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.EmailVerificationToken;
+import com.ilhankazan.social.exception.AppException;
 import com.ilhankazan.social.mapper.AccountMapper;
 import com.ilhankazan.social.service.*;
 import com.ilhankazan.social.service.email.EmailMessage;
@@ -18,7 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.HttpStatus;
 import com.ilhankazan.social.security.AuthCacheResolver;
 import com.ilhankazan.social.security.SecretCipher;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -131,6 +132,13 @@ public class AccountManager {
     }
 
     @Transactional
+    public void updateLanguage(String language) {
+        Account account = accountService.getAccount(currentUsername());
+        account.setPreferredLanguage(language);
+        accountService.saveRaw(account);
+    }
+
+    @Transactional
     public String updateAvatar(MultipartFile file) {
         Account account = accountService.updateAvatar(currentUsername(), file);
         return account.getProfileImageUrl();
@@ -213,7 +221,7 @@ public class AccountManager {
         Account account = accountService.getAccount(currentUsername());
 
         if (!passwordEncoder.matches(request.oldPassword(), account.getPassword())) {
-            throw new BadCredentialsException("Mevcut şifreniz yanlış.");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INCORRECT_PASSWORD", "Mevcut şifreniz yanlış.");
         }
 
         account.setPassword(passwordEncoder.encode(request.newPassword()));
@@ -228,7 +236,7 @@ public class AccountManager {
     public void startEmailMfaSetup() {
         Account account = accountService.getAccount(currentUsername());
         if (!account.isEmailVerified()) {
-            throw new IllegalArgumentException("İki adımlı doğrulamayı açmadan önce e-posta adresini doğrulamalısın.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_REQUIRED_FOR_MFA", "İki adımlı doğrulamayı açmadan önce e-posta adresini doğrulamalısın.");
         }
         mfaEmailService.issueCode(account);
     }
@@ -237,7 +245,7 @@ public class AccountManager {
     public void enableEmailMfa(String code) {
         Account account = accountService.getAccount(currentUsername());
         if (!mfaEmailService.verify(account.getId(), code)) {
-            throw new BadCredentialsException("Kod geçersiz veya süresi dolmuş.");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "MFA_CODE_INVALID_OR_EXPIRED", "Kod geçersiz veya süresi dolmuş.");
         }
         account.setMfaEmailEnabled(true);
         accountService.saveRaw(account);
@@ -248,7 +256,7 @@ public class AccountManager {
     public void disableEmailMfa(String password) {
         Account account = accountService.getAccount(currentUsername());
         if (!passwordEncoder.matches(password, account.getPassword())) {
-            throw new BadCredentialsException("Şifre hatalı.");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INCORRECT_PASSWORD", "Şifre hatalı.");
         }
         account.setMfaEmailEnabled(false);
         accountService.saveRaw(account);
@@ -270,13 +278,13 @@ public class AccountManager {
     public List<String> enableTotp(String code) {
         Account account = accountService.getAccount(currentUsername());
         if (account.getMfaTotpSecret() == null) {
-            throw new IllegalArgumentException("Önce authenticator kurulumunu başlat.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "TOTP_SETUP_NOT_STARTED", "Önce authenticator kurulumunu başlat.");
         }
         String secret = secretCipher.decrypt(account.getMfaTotpSecret());
         long lastStep = account.getMfaTotpLastStep() == null ? -1 : account.getMfaTotpLastStep();
         long step = totpService.verifyAndGetStep(secret, code, lastStep);
         if (step < 0) {
-            throw new BadCredentialsException("Kod geçersiz. Authenticator uygulamandaki güncel kodu gir.");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "TOTP_CODE_INVALID", "Kod geçersiz. Authenticator uygulamandaki güncel kodu gir.");
         }
         account.setMfaTotpEnabled(true);
         account.setMfaTotpLastStep(step);
@@ -290,7 +298,7 @@ public class AccountManager {
     public void disableTotp(String password) {
         Account account = accountService.getAccount(currentUsername());
         if (!passwordEncoder.matches(password, account.getPassword())) {
-            throw new BadCredentialsException("Şifre hatalı.");
+            throw new AppException(HttpStatus.UNAUTHORIZED, "INCORRECT_PASSWORD", "Şifre hatalı.");
         }
         account.setMfaTotpEnabled(false);
         account.setMfaTotpSecret(null);

@@ -31,7 +31,7 @@ public class MessageListener {
         pushNotificationService.send(
             event.recipientId(),
             pushTitle(message),
-            pushBody(message),
+            pushBody(message, event.recipientPreferredLanguage()),
             Map.of(
                 "type", "MESSAGE",
                 "conversationId", String.valueOf(message.conversationId())
@@ -54,15 +54,16 @@ public class MessageListener {
         return displayName != null && !displayName.isBlank() ? displayName : message.sender().username();
     }
 
-    private String pushBody(MessageResponse message) {
+    private String pushBody(MessageResponse message, String recipientPreferredLanguage) {
         if (message.content() != null && !message.content().isBlank()) {
             String content = message.content();
             return content.length() > PUSH_BODY_MAX_LENGTH
                 ? content.substring(0, PUSH_BODY_MAX_LENGTH) + "…"
                 : content;
         }
-        if (message.imageUrl() != null) return "Fotoğraf gönderdi";
-        if (message.sharedPost() != null) return "Bir gönderi paylaştı";
-        return "Yeni mesaj";
+        boolean english = "en".equals(recipientPreferredLanguage);
+        if (message.imageUrl() != null) return english ? "Sent a photo" : "Fotoğraf gönderdi";
+        if (message.sharedPost() != null) return english ? "Shared a post" : "Bir gönderi paylaştı";
+        return english ? "New message" : "Yeni mesaj";
     }
 }

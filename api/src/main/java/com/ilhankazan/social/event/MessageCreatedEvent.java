@@ -6,5 +6,6 @@ public record MessageCreatedEvent(
     MessageResponse message,
     String participantAUsername,
     String participantBUsername,
-    Long recipientId
+    Long recipientId,
+    String recipientPreferredLanguage
 ) {}
