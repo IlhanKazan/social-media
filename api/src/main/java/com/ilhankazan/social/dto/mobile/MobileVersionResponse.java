@@ -5,5 +5,6 @@ public record MobileVersionResponse(
     String latestVersionName,
     int minSupportedVersionCode,
     String apkUrl,
+    String apkSha256,
     String changelogUrl
 ) {}

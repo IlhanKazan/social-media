@@ -60,7 +60,8 @@ class MobileVersionIntegrationTest extends BaseIntegrationTest {
         String adminToken = registerAndPromoteToAdmin("mobile-rel-admin");
 
         MobileReleaseRequest release = new MobileReleaseRequest(
-            42, "1.2.0", 40, "https://api.example.com/api/v1/mobile/download/socialhan-1.2.0.apk", "https://example.com/changelog");
+            42, "1.2.0", 40, "https://api.example.com/api/v1/mobile/download/socialhan-1.2.0.apk",
+            "a".repeat(64), "https://example.com/changelog");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(adminToken);
@@ -78,12 +79,26 @@ class MobileVersionIntegrationTest extends BaseIntegrationTest {
         assertThat(body.latestVersionName()).isEqualTo("1.2.0");
         assertThat(body.minSupportedVersionCode()).isEqualTo(40);
         assertThat(body.apkUrl()).isEqualTo("https://api.example.com/api/v1/mobile/download/socialhan-1.2.0.apk");
+        assertThat(body.apkSha256()).isEqualTo("a".repeat(64));
         assertThat(body.changelogUrl()).isEqualTo("https://example.com/changelog");
     }
 
     @Test
+    void downloadEndpointRejectsNonApkAndTraversalFilenames() {
+        assertThat(download("../application.yml").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(download("app.txt").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(download("app\".apk").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(download("nonexistent-release.apk").getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    private ResponseEntity<String> download(String filename) {
+        return restTemplate.getForEntity("/api/v1/mobile/download/{filename}", String.class, filename);
+    }
+
+    @Test
     void adminMobileReleaseEndpointRejectsUnauthenticatedAndNonAdminCallers() throws Exception {
-        MobileReleaseRequest release = new MobileReleaseRequest(1, "1.0.0", 1, "https://example.com/app.apk", null);
+        MobileReleaseRequest release = new MobileReleaseRequest(
+            1, "1.0.0", 1, "https://example.com/app.apk", "a".repeat(64), null);
 
         ResponseEntity<String> anonymous = restTemplate.exchange(
             "/api/v1/admin/mobile-release", HttpMethod.PUT, new HttpEntity<>(release), String.class);

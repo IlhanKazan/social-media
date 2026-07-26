@@ -34,9 +34,11 @@ public class MobileReleaseManager {
         int minSupportedVersionCode = parseIntSafe(
             systemSettingsService.getStringSetting(SystemSettingsService.MOBILE_MIN_SUPPORTED_VERSION_CODE, null));
         String apkUrl = systemSettingsService.getStringSetting(SystemSettingsService.MOBILE_APK_URL, "");
+        String apkSha256 = systemSettingsService.getStringSetting(SystemSettingsService.MOBILE_APK_SHA256, "");
         String changelogUrl = systemSettingsService.getStringSetting(SystemSettingsService.MOBILE_CHANGELOG_URL, "");
 
-        return new MobileVersionResponse(latestVersionCode, latestVersionName, minSupportedVersionCode, apkUrl, changelogUrl);
+        return new MobileVersionResponse(
+            latestVersionCode, latestVersionName, minSupportedVersionCode, apkUrl, apkSha256, changelogUrl);
     }
 
     @Transactional
@@ -52,6 +54,8 @@ public class MobileReleaseManager {
             SystemSettingsService.MOBILE_MIN_SUPPORTED_VERSION_CODE, String.valueOf(request.minSupportedVersionCode()), adminId);
         systemSettingsService.updateStringSetting(
             SystemSettingsService.MOBILE_APK_URL, request.apkUrl(), adminId);
+        systemSettingsService.updateStringSetting(
+            SystemSettingsService.MOBILE_APK_SHA256, request.apkSha256().toLowerCase(), adminId);
         systemSettingsService.updateStringSetting(
             SystemSettingsService.MOBILE_CHANGELOG_URL, request.changelogUrl(), adminId);
 

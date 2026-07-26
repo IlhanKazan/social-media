@@ -28,6 +28,7 @@ public class SystemSettingsService {
     public static final String MOBILE_LATEST_VERSION_NAME = "mobile_latest_version_name";
     public static final String MOBILE_MIN_SUPPORTED_VERSION_CODE = "mobile_min_supported_version_code";
     public static final String MOBILE_APK_URL = "mobile_apk_url";
+    public static final String MOBILE_APK_SHA256 = "mobile_apk_sha256";
     public static final String MOBILE_CHANGELOG_URL = "mobile_changelog_url";
 
     @Cacheable(cacheNames = "systemSettings", key = "#key")
