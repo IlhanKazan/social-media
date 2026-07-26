@@ -40,8 +40,10 @@ export function useChangePassword() {
       await api.put('/accounts/me/password', request);
     },
     // Password change revokes sessions server-side; force a clean re-login.
-    onSuccess: () => {
-      void logout();
+    // Awaited so `isPending`/the (tabs) redirect-on-!token guard only flips
+    // once local state is actually cleared, not right after the API call.
+    onSuccess: async () => {
+      await logout();
     },
   });
 }
@@ -52,8 +54,8 @@ export function useLogoutAll() {
     mutationFn: async () => {
       await api.post('/auth/logout-all');
     },
-    onSuccess: () => {
-      void logout();
+    onSuccess: async () => {
+      await logout();
     },
   });
 }
@@ -64,8 +66,8 @@ export function useDeleteAccount() {
     mutationFn: async () => {
       await api.delete('/accounts/me');
     },
-    onSuccess: () => {
-      void logout();
+    onSuccess: async () => {
+      await logout();
     },
   });
 }

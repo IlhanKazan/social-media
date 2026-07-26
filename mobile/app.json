@@ -45,7 +45,9 @@
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
       "expo-notifications",
-      "expo-localization"
+      "expo-localization",
+      "@sentry/react-native",
+      "./plugins/withIpv4GradleFix.js"
     ],
     "experiments": {
       "typedRoutes": true,

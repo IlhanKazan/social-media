@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 
+import { AuthHeader } from '@/components/auth-header';
 import { FormInput } from '@/components/form-input';
 import { createLoginSchema, type LoginFormValues } from '@/features/auth/login-schema';
 import { api } from '@/lib/api';
@@ -56,6 +57,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 justify-center bg-white px-8 dark:bg-neutral-950"
     >
+      <AuthHeader />
       <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
         {t('auth.login.title')}
       </Text>
@@ -64,6 +66,7 @@ export default function LoginScreen() {
       <FormInput
         control={control}
         name="identifier"
+        label={t('auth.login.identifierLabel')}
         error={errors.identifier?.message}
         placeholder={t('auth.login.identifierPlaceholder')}
         autoCapitalize="none"
@@ -72,6 +75,7 @@ export default function LoginScreen() {
       <FormInput
         control={control}
         name="password"
+        label={t('auth.login.passwordLabel')}
         error={errors.password?.message}
         placeholder={t('auth.login.passwordPlaceholder')}
         secureTextEntry

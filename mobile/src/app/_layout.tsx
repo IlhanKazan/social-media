@@ -1,4 +1,7 @@
 import '../global.css';
+// Side effect: initializes crash reporting as early as possible (no-op if
+// no DSN is configured).
+import '@/lib/sentry';
 
 import {
   Inter_400Regular,
