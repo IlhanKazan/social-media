@@ -3,7 +3,9 @@
 This document describes how SocialHan is built: the backend layering, the
 request and real-time lifecycles, the data model conventions, and the
 cross-cutting concerns (auth, caching, rate limiting, moderation, operations).
-For a feature overview and setup, see [README.md](README.md).
+For a feature overview and setup, see [README.md](README.md). A bilingual
+(EN/TR) version of this page with rendered diagrams is also live at
+`/architecture` in the app.
 
 ## System topology
 
@@ -97,23 +99,26 @@ out-of-band by a startup runner driven by the `PROMOTE_ADMIN_USERNAME` variable.
 
 ## Real-time messaging (STOMP)
 
-WebSocket transport is SockJS with a STOMP sub-protocol:
+WebSocket transport is STOMP over two endpoints: `/ws` (SockJS, used by the web
+client) and `/ws-native` (no SockJS, used by the mobile app, which has no SockJS
+client of its own):
 
 ```text
-client  --CONNECT-->  /ws            (SockJS handshake, then STOMP)
-client  --SEND------>  /app/...       (application destinations)
-server  --broadcast->  /topic/...     (shared streams: feed, post reactions)
-server  --to-user--->  /user/queue/.. (per-user: DMs, notifications)
+client  --CONNECT-->  /ws or /ws-native  (SockJS or plain WS handshake, then STOMP)
+client  --SEND------>  /app/...          (application destinations)
+server  --broadcast->  /topic/...        (shared streams: feed, post reactions)
+server  --to-user--->  /user/queue/..    (per-user: DMs, notifications)
 ```
 
-The HTTP handshake on `/ws` is permitted at the security-filter level; real
-authentication happens at the STOMP `CONNECT` frame via a channel interceptor, so
-only authenticated principals can subscribe to their `/user/...` destinations.
-The broker is the in-memory simple broker, which suits a single instance.
+The HTTP handshake on both endpoints is permitted at the security-filter level;
+real authentication happens at the STOMP `CONNECT` frame via a channel
+interceptor, so only authenticated principals can subscribe to their
+`/user/...` destinations. The broker is the in-memory simple broker, which
+suits a single instance.
 
 ## Data model and conventions
 
-The schema is owned by immutable Flyway migrations (`V1` through `V25`); once a
+The schema is owned by immutable Flyway migrations (`V1` through `V36`); once a
 migration is on `main` it is never edited — changes go in a new version.
 
 Conventions enforced across every table:
