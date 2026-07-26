@@ -47,6 +47,9 @@ export function LandingPage() {
                 <Compass className="h-4 w-4" /> {t('marketing.landing.browseWithoutAccount')}
               </Button>
             </div>
+            <Link to="/download" className="mt-4 inline-block text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+              {t('marketing.footer.downloadLink')}
+            </Link>
           </div>
 
           <div className="mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

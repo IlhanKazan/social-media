@@ -500,6 +500,8 @@
     },
     "footer": {
       "aboutLink": "Hakkında",
+      "architectureLink": "Mimari",
+      "downloadLink": "Uygulamayı al",
       "privacyLink": "Gizlilik",
       "termsLink": "Şartlar",
       "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir."
@@ -603,6 +605,116 @@
         "title": "Sorumluluğun sınırlandırılması",
         "body": "Bu bir demo proje olduğundan, hizmetin kullanımından doğabilecek veri kaybı veya kesintiler dahil dolaylı zararlardan sorumluluk kabul edilmez."
       }
+    },
+    "architecture": {
+      "title": "Mimari",
+      "intro": "Bu sayfa SocialHan'ın nasıl inşa edildiğini anlatır: backend katmanlaması, istek ve gerçek zamanlı yaşam döngüleri, veri modeli kuralları ve çapraz kesişen konular (kimlik doğrulama, önbellekleme, hız sınırlama, moderasyon, operasyon).",
+      "topology": {
+        "title": "Sistem topolojisi",
+        "body": "API tek bir Spring Boot monolitidir. Durum PostgreSQL'de, görseller Cloudinary'de tutulur; geri kalan her şey (önbellekler, hız-sınırlama kovaları, STOMP broker'ı) uygulama içinde çalışır — bu da dağıtımı tek bir örnek ve tek bir veritabanına indirger."
+      },
+      "layering": {
+        "title": "Backend katmanlaması",
+        "intro": "Backend katı, tek yönlü bir akışı zorunlu kılar: controller → manager → service → repository.",
+        "items": [
+          "controller — ince HTTP/WebSocket işleyicileri. Girdiyi doğrular, devreder, DTO döner. İş mantığı içermez. Tüm REST uç noktaları /api/v1/... altında yaşar.",
+          "manager — orkestrasyon sınırı. Kimliği doğrulanmış kullanıcıyı çözer, transaction'ı sahiplenir, domain event'leri yayınlar ve birden fazla servisi koordine eder.",
+          "service — saf iş mantığı; repository'lerle konuşan tek katman.",
+          "repository — Spring Data JPA arayüzleri."
+        ],
+        "outro": "DTO'lar MapStruct ile eşlenen değişmez Java record'lardır; entity'ler Lombok kullanır çünkü JPA parametresiz constructor ve değiştirilebilir alanlara ihtiyaç duyar. Liste uç noktaları, Spring'in Page'ini sızdırmak yerine özel bir PageResponse<T> döner. İstisnalar tek bir @RestControllerAdvice (GlobalExceptionHandler) üzerinden yönlendirilir, böylece ham stack trace'ler asla istemciye ulaşmaz."
+      },
+      "lifecycle": {
+        "title": "Yazma isteği yaşam döngüsü",
+        "intro": "Tipik bir kimlik-doğrulanmış yazma işlemi (örneğin bir gönderi oluşturma):",
+        "items": [
+          "Güvenlik filtre zinciri çalışır: JWT filtresi bearer token'ı doğrular ve security context'i doldurur; bakım modu açıksa read-only filtresi yazma isteklerini 503 ile reddeder; yetkilendirme kuralları rotayla eşleşir.",
+          "Hız-sınırlama aspect'i çağıranın kovasını kontrol eder.",
+          "Controller, istek record'unu doğrular ve manager'ı çağırır.",
+          "Manager bir transaction açar, servisler aracılığıyla domain kurallarını uygular, repository'ler üzerinden kaydeder ve event'leri yayınlar (bildirimler, denetim, fan-out).",
+          "Asenkron dinleyiciler, istek transaction'ının dışında yan etkileri işler (giriş geçmişi, denetim kayıtları, WebSocket yayınları).",
+          "Controller bir DTO döner; global exception handler her hatayı yapılandırılmış bir hata yanıtına eşler."
+        ]
+      },
+      "auth": {
+        "title": "Kimlik doğrulama ve oturum modeli",
+        "items": [
+          "Erişim token'ı — kısa ömürlü JWT, Bearer header olarak gönderilir, kullanıcı adı, hesap id'si ve rolleri taşır. Durumsuzdur; her istekte doğrulanır.",
+          "Yenileme token'ı — uzun ömürlü, auth yoluna kısıtlı HttpOnly, Secure bir çerez olarak iletilir, JavaScript'e asla açılmaz. İstemci ve API yönetilen barındırmada cross-site olduğundan çerez SameSite=None kullanır; CSRF, yenileme ve çıkışta bir Origin izin-listesi kontrolüyle kapatılır.",
+          "Rotasyon ve tekrar-kullanım tespiti — yenileme, bir token ailesi içinde token'ı döndürür; daha önce kullanılmış bir token'ın sunulması hırsızlığa işaret eder ve tüm aileyi iptal eder.",
+          "Kara liste — erişim token'ları süresi dolmadan önce (çıkış yaparken) bellek içi bir kara liste ile geçersiz kılınabilir.",
+          "Hız sınırlama — hassas uç noktalar (kayıt, giriş, şifre sıfırlama) kullanıcı veya istemci IP'sine göre anahtarlanan hız-sınırlama kovalarıyla korunur."
+        ],
+        "outro": "Roller ROLE_USER, ROLE_ADMIN ve ROLE_BOT'tur. İlk admin, başlangıçta çalışan bir runner tarafından bant-dışı olarak atanır."
+      },
+      "realtime": {
+        "title": "Gerçek zamanlı mesajlaşma",
+        "body": "Web istemcileri STOMP alt-protokolüyle SockJS üzerinden bağlanır; mobil uygulama SockJS içermeyen ikinci bir STOMP uç noktasına bağlanır. Gerçek kimlik doğrulama, bir kanal interceptor'ı aracılığıyla STOMP CONNECT frame'inde gerçekleşir, böylece yalnızca kimliği doğrulanmış kullanıcılar kendi kullanıcıya-özel hedeflerine abone olabilir. Broker, tek bir örneğe uygun bellek-içi basit bir broker'dır."
+      },
+      "data": {
+        "title": "Veri modeli ve kurallar",
+        "intro": "Şema, değişmez Flyway migration'larına aittir; bir migration yayınlandıktan sonra asla düzenlenmez — değişiklikler yeni bir sürüme gider. Her tabloda zorunlu kılınan kurallar:",
+        "items": [
+          "snake_case tanımlayıcılar; BIGSERIAL birincil anahtarlar.",
+          "Bir durum kolonu yerine deleted_at zaman damgası (null = aktif) ile soft delete. Sık kullanılan yollarda aktif satırlar için kısmi indeksler vardır.",
+          "Tüm zaman damgaları saat dilimi bilgilidir; created/updated denetlenir.",
+          "Benzersiz kullanıcı adı ve e-posta için büyük/küçük harf duyarsız citext.",
+          "Yabancı anahtarlar cascade davranışı konusunda açıktır: kullanıcıya ait içerik cascade olur, referans verisi kısıtlar, opsiyonel bağlantılar null'a ayarlanır."
+        ],
+        "outro": "Kalıcı silme ertelenir: zamanlanmış bir temizlik görevi, soft delete'ten 30 gün sonra hesapları kalıcı olarak kaldırır ve görsellerini temizler, böylece silme yolu beyan edilen gizlilik politikasıyla eşleşir."
+      },
+      "caching": {
+        "title": "Önbellekleme",
+        "body": "Tek bir uygulama-içi önbellek, sık okunan veriler için kısa TTL'li, sınırlı önbellekler kaydeder (kullanıcı adına göre hesaplar, herkese açık profiller, okunmamış bildirim sayıları, öneriler ve sistem ayarları). TTL'ler kasıtlı olarak kısadır, böylece bayat okumalar kendi kendine iyileşir; adminler de zorla geçersiz kılabilir."
+      },
+      "rateLimit": {
+        "title": "Hız sınırlama",
+        "body": "Hız sınırlama, kullanıcı veya IP artı metoda göre anahtarlanan bir around-advice'tır; farklı veya sahte değerlerin depoyu sınırsız büyütmesini önlemek için sınırlıdır. Sınırlama örnek-başınadır, bu da dağıtım tek bir düğüm iken doğrudur; yatay ölçeklenmek için paylaşılan bir depo gerekir."
+      },
+      "moderation": {
+        "title": "İçerik moderasyonu",
+        "body": "Kullanıcı içeriği iki aşamalı bir hattan geçer: hızlı, uygulama-içi bir regex ön-filtresi bariz ihlalleri yakalar, sınırda kalan içerik ise kategori-bazlı eşiklerle bir moderasyon API'sine karşı kontrol edilir. Gönderiler bir moderasyon durumu ve bağımsız bir admin durumu taşır, böylece otomatik ve insan kararları ayrı ayrı izlenir. İşaretlenen içerik admin moderasyon kuyruğunda görünür."
+      },
+      "supporting": {
+        "title": "Destekleyici alt sistemler",
+        "items": [
+          "Bot servisi — opsiyonel, tohumlanmış bot hesapları günlük kotalar ve opsiyonel aktif saatlerle titreşimli bir kadansta paylaşım yapar, doldurulmuş bir demo akışı üretir. Açıkça etkinleştirilmedikçe kapalıdır.",
+          "E-posta — tüm postalar bir veritabanı outbox'ından geçer. Zamanlanmış bir flusher, günlük ve aylık üst sınırlarla gönderir, satırları gönderildi/başarısız olarak işaretler ve hız sınırlarında geri çekilir.",
+          "Denetim kaydı — yalnızca-ekleme yapılabilen bir tablo, güvenlikle ilgili ve admin eylemlerini aktör, IP ve metadata ile birlikte, event'ler aracılığıyla asenkron olarak yazar."
+        ]
+      },
+      "operations": {
+        "title": "Operasyon (yeniden başlatmasız kontroller)",
+        "intro": "Mütevazı bir örnekte yeniden başlatma bir soğuk başlangıca mal olduğundan, yaygın olaylar canlı olarak ele alınır:",
+        "items": [
+          "Salt-okunur bakım modu — okumalar, auth ve admin yollarını açık bırakırken yazma metotları için 503 döndüren bir sistem-ayarı anahtarı.",
+          "Önbellek geçersiz kılma ve hız-sınırlama sıfırlama — admin uç noktaları tek bir veya tüm önbellekleri temizler ya da hız-sınırlama deposunu sıfırlar, her biri denetim kaydına yazılır.",
+          "Actuator tanılamaları — metrikler, logger'lar ve önbellekler açığa çıkar ama adminlere kilitlidir; yalnızca health check herkese açıktır."
+        ]
+      },
+      "frontend": {
+        "title": "Frontend mimarisi",
+        "intro": "Durum, birbiriyle örtüşmeyen üç katmana bölünür:",
+        "items": [
+          "Sunucu durumu — TanStack Query, API'den çekilen tüm veriyi dizi query anahtarları ve mutation'da önbellek geçersiz kılmayla sahiplenir.",
+          "İstemci/auth durumu — kalıcı bir store hesabı tutar; erişim token'ı bellekte tutulur ve yüklemede bir yenileme çağrısıyla yeniden türetilir.",
+          "Bileşen durumu — yerel bileşen durumu."
+        ],
+        "outro": "Routing, herkese açık, auth ve korumalı rota gruplarını ayırır. Kök yol, çıkış yapmış ziyaretçiler için bir tanıtım sayfasına, giriş yapmış kullanıcılar için akışa çözülür; herkese açık içerik gezilebilir, ve yumuşak bir auth kapısı, okumaları engellemeden etkileşim girişimlerini (beğenme, yanıtlama, takip, DM) yakalayıp kayıt olmaya yönlendirir."
+      },
+      "testing": {
+        "title": "Test stratejisi",
+        "body": "Backend entegrasyon testleri gerçek bir PostgreSQL örneğine karşı çalışır ve tüm güvenlik filtre zincirini test eder. Backend birim testleri mantığı izole olarak kapsar. Frontend testleri bileşen ve şema davranışını kapsar. CI, backend build ve testlerine, frontend typecheck, test ve build'ine kapı olur."
+      }
+    },
+    "download": {
+      "title": "Uygulamayı indir",
+      "androidTitle": "Android için SocialHan",
+      "versionLabel": "Sürüm {{version}} · APK, doğrudan kurulum (Play Store'da değil)",
+      "notAvailable": "Henüz bir sürüm yayınlanmadı — yakında tekrar kontrol et.",
+      "downloadButton": "APK İndir",
+      "aboutTitle": "Bu indirme hakkında",
+      "aboutBody": "Bu uygulama Play Store yerine doğrudan dağıtılır, bu yüzden Android ilk kurulumda bu kaynaktan kuruluma izin vermeni isteyecek. Uygulama yeni sürümleri kendiliğinden kontrol eder ve bir güncelleme olduğunda seni bilgilendirir."
     }
   },
   "admin": {

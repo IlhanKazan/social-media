@@ -46,6 +46,8 @@ const VerifyEmailPage = lazyWithReload(() => import('@/features/auth/VerifyEmail
 // Legal / marketing — separate chunk
 const LegalLayout = lazyWithReload(() => import('@/features/marketing/LegalLayout').then(m => ({ default: m.LegalLayout })));
 const AboutPage = lazyWithReload(() => import('@/features/marketing/AboutPage').then(m => ({ default: m.AboutPage })));
+const ArchitecturePage = lazyWithReload(() => import('@/features/marketing/ArchitecturePage').then(m => ({ default: m.ArchitecturePage })));
+const DownloadPage = lazyWithReload(() => import('@/features/marketing/DownloadPage').then(m => ({ default: m.DownloadPage })));
 const PrivacyPage = lazyWithReload(() => import('@/features/marketing/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazyWithReload(() => import('@/features/marketing/TermsPage').then(m => ({ default: m.TermsPage })));
 
@@ -81,6 +83,8 @@ export const router = createBrowserRouter([
     element: withSuspense(<LegalLayout />),
     children: [
       { path: '/about', element: withSuspense(<AboutPage />) },
+      { path: '/architecture', element: withSuspense(<ArchitecturePage />) },
+      { path: '/download', element: withSuspense(<DownloadPage />) },
       { path: '/privacy', element: withSuspense(<PrivacyPage />) },
       { path: '/terms', element: withSuspense(<TermsPage />) },
     ],

@@ -500,6 +500,8 @@
     },
     "footer": {
       "aboutLink": "About",
+      "architectureLink": "Architecture",
+      "downloadLink": "Get the app",
       "privacyLink": "Privacy",
       "termsLink": "Terms",
       "disclaimer": "SocialHan is a portfolio/demo project, not a commercial service."
@@ -603,6 +605,116 @@
         "title": "Limitation of liability",
         "body": "As this is a demo project, no liability is accepted for indirect damages arising from use of the service, including data loss or interruptions."
       }
+    },
+    "architecture": {
+      "title": "Architecture",
+      "intro": "This page describes how SocialHan is built: the backend layering, the request and real-time lifecycles, the data model conventions, and the cross-cutting concerns (auth, caching, rate limiting, moderation, operations).",
+      "topology": {
+        "title": "System topology",
+        "body": "The API is a single Spring Boot monolith. State lives in PostgreSQL; images in Cloudinary; everything else (caches, rate-limit buckets, the STOMP broker) is in-process, which keeps the deployment to one instance and one database."
+      },
+      "layering": {
+        "title": "Backend layering",
+        "intro": "The backend enforces a strict one-directional flow: controller → manager → service → repository.",
+        "items": [
+          "controller — thin HTTP/WebSocket handlers. Validate input, delegate, return DTOs. No business logic. All REST endpoints live under /api/v1/...",
+          "manager — the orchestration boundary. Resolves the authenticated principal, owns the transaction, publishes domain events, and coordinates multiple services.",
+          "service — pure business logic and the only layer that talks to repositories.",
+          "repository — Spring Data JPA interfaces."
+        ],
+        "outro": "DTOs are immutable Java records mapped with MapStruct; entities use Lombok because JPA needs a no-arg constructor and mutable fields. List endpoints return a custom PageResponse<T> rather than leaking Spring's Page. Exceptions are funneled through a single @RestControllerAdvice (GlobalExceptionHandler) so raw stack traces never reach clients."
+      },
+      "lifecycle": {
+        "title": "Write request lifecycle",
+        "intro": "A typical authenticated write (for example, creating a post):",
+        "items": [
+          "The security filter chain runs: the JWT filter authenticates the bearer token and populates the security context; the read-only filter rejects writes with 503 if maintenance mode is on; authorization rules match the route.",
+          "The rate-limit aspect checks the caller's bucket.",
+          "The controller validates the request record and calls the manager.",
+          "The manager opens a transaction, applies domain rules via services, persists through repositories, and publishes events (notifications, audit, fan-out).",
+          "Async listeners handle side effects (login history, audit rows, WebSocket broadcasts) outside the request transaction.",
+          "The controller returns a DTO; the global exception handler maps any failure to a structured error response."
+        ]
+      },
+      "auth": {
+        "title": "Authentication and session model",
+        "items": [
+          "Access token — short-lived JWT, sent as a Bearer header, carrying the username, account id, and roles. Stateless; validated on every request.",
+          "Refresh token — long-lived, delivered as an HttpOnly, Secure cookie scoped to the auth path, never exposed to JavaScript. Because the client and API are cross-site on managed hosting, the cookie uses SameSite=None, and CSRF is covered by an Origin allowlist check on refresh and logout.",
+          "Rotation and reuse detection — refreshing rotates the token within a token family; presenting a previously used token signals theft and revokes the whole family.",
+          "Blacklist — access tokens can be invalidated before expiry (logout) via an in-memory blacklist.",
+          "Rate limiting — sensitive endpoints (register, login, password reset) are guarded by rate-limit buckets keyed by user or client IP."
+        ],
+        "outro": "Roles are ROLE_USER, ROLE_ADMIN, and ROLE_BOT. The first admin is granted out-of-band by a startup runner."
+      },
+      "realtime": {
+        "title": "Real-time messaging",
+        "body": "Web clients connect over SockJS with a STOMP sub-protocol; the mobile app connects to a second, SockJS-less STOMP endpoint. Real authentication happens at the STOMP CONNECT frame via a channel interceptor, so only authenticated principals can subscribe to their per-user destinations. The broker is an in-memory simple broker, which suits a single instance."
+      },
+      "data": {
+        "title": "Data model and conventions",
+        "intro": "The schema is owned by immutable Flyway migrations; once a migration ships it is never edited — changes go in a new version. Conventions enforced across every table:",
+        "items": [
+          "snake_case identifiers; BIGSERIAL primary keys.",
+          "Soft delete via a deleted_at timestamp (null = active), never a status column. Hot paths have partial indexes for active rows.",
+          "All timestamps are timezone-aware; created/updated are audited.",
+          "Case-insensitive citext for unique username and email.",
+          "Foreign keys are explicit about cascade behavior: user-owned content cascades, reference data restricts, optional links set null."
+        ],
+        "outro": "Hard deletion is deferred: a scheduled cleanup task permanently removes accounts 30 days after soft delete and purges their images, so the erasure path matches the stated privacy policy."
+      },
+      "caching": {
+        "title": "Caching",
+        "body": "A single in-process cache registers short-TTL, bounded caches for hot reads (accounts by username, public profiles, unread notification counts, suggestions, and system settings). TTLs are deliberately short so stale reads self-heal; admins can also force invalidation."
+      },
+      "rateLimit": {
+        "title": "Rate limiting",
+        "body": "Rate limiting is an around-advice keyed by user or IP plus the method, bounded so a flood of distinct or spoofed values can't grow the store without limit. Limiting is per-instance, which is correct while the deployment is a single node; a shared store would be needed to scale horizontally."
+      },
+      "moderation": {
+        "title": "Content moderation",
+        "body": "User content passes a two-stage pipeline: a fast in-process regex pre-filter catches obvious violations, and borderline content is checked against a moderation API with per-category thresholds. Posts carry a moderation status and an independent admin status, so automated and human decisions are tracked separately. Flagged content surfaces in the admin moderation queue."
+      },
+      "supporting": {
+        "title": "Supporting subsystems",
+        "items": [
+          "Bot service — optional seeded bot accounts post on a jittered cadence with daily quotas and optional active hours, producing a populated demo feed. Disabled unless explicitly enabled.",
+          "Email — all mail goes through a database outbox. A scheduled flusher sends with daily and monthly caps, marking rows sent/failed and backing off on rate limits.",
+          "Audit log — an append-only table records security-relevant and admin actions with actor, IP, and metadata, written asynchronously via events."
+        ]
+      },
+      "operations": {
+        "title": "Operations (no-restart levers)",
+        "intro": "Because a restart on a modest instance costs a cold start, common incidents are handled live:",
+        "items": [
+          "Read-only maintenance mode — a system-settings toggle that returns 503 for write methods while leaving reads, auth, and admin paths open.",
+          "Cache invalidation and rate-limit reset — admin endpoints clear one or all caches, or reset the rate-limit store, each written to the audit log.",
+          "Actuator diagnostics — metrics, loggers, and caches are exposed but locked to admins; only the health check is public."
+        ]
+      },
+      "frontend": {
+        "title": "Frontend architecture",
+        "intro": "State is split into three non-overlapping layers:",
+        "items": [
+          "Server state — TanStack Query owns all data fetched from the API, with array query keys and cache invalidation on mutation.",
+          "Client/auth state — a persisted store holds the account; the access token is kept in memory and re-derived on load via a refresh call.",
+          "Component state — local component state."
+        ],
+        "outro": "Routing separates public, auth, and protected route groups. The root path resolves to a marketing landing page for logged-out visitors and the feed for authenticated ones; public content is browsable, and a soft auth gate intercepts interaction attempts to prompt sign-up without blocking reads."
+      },
+      "testing": {
+        "title": "Testing strategy",
+        "body": "Backend integration tests run against a real PostgreSQL instance, exercising the full security filter chain. Backend unit tests cover logic in isolation. Frontend tests cover component and schema behavior. CI gates on backend build and tests, and frontend typecheck, tests, and build."
+      }
+    },
+    "download": {
+      "title": "Download the app",
+      "androidTitle": "SocialHan for Android",
+      "versionLabel": "Version {{version}} · APK, install directly (not on the Play Store)",
+      "notAvailable": "No build has been published yet — check back soon.",
+      "downloadButton": "Download APK",
+      "aboutTitle": "About this download",
+      "aboutBody": "This app is distributed directly rather than through the Play Store, so Android will ask you to allow installs from this source the first time. The app checks for new versions on its own and will prompt you when one is available."
     }
   },
   "admin": {
