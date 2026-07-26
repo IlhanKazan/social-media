@@ -9,6 +9,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, Vie
 import { FormInput } from '@/components/form-input';
 import { createMfaSchema, type MfaFormValues } from '@/features/auth/mfa-schema';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse, LoginResponse, MfaMethod } from '@/types/api';
 
@@ -49,7 +50,7 @@ export default function MfaScreen() {
     },
     onSuccess: (data) => useAuthStore.getState().login(data as AuthResponse),
     onError: (error: { response?: { data?: ErrorResponse } }) => {
-      setServerError(error.response?.data?.message ?? t('auth.mfa.verifyError'));
+      setServerError(getApiErrorMessage(t, error, 'auth.mfa.verifyError'));
     },
   });
 

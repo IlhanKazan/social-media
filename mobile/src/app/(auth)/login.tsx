@@ -9,6 +9,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, Vie
 import { FormInput } from '@/components/form-input';
 import { createLoginSchema, type LoginFormValues } from '@/features/auth/login-schema';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse, LoginResponse } from '@/types/api';
 
@@ -41,7 +42,7 @@ export default function LoginScreen() {
       await useAuthStore.getState().login(data as AuthResponse);
     },
     onError: (error: { response?: { data?: ErrorResponse } }) => {
-      setServerError(error.response?.data?.message ?? t('auth.login.genericError'));
+      setServerError(getApiErrorMessage(t, error, 'auth.login.genericError'));
     },
   });
 

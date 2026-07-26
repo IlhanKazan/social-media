@@ -312,5 +312,19 @@
     "notifications": "Bildirimler",
     "messages": "Mesajlar",
     "profile": "Profil"
+  },
+  "errors": {
+    "INCORRECT_PASSWORD": "Şifre hatalı.",
+    "EMAIL_VERIFICATION_REQUIRED_FOR_MFA": "İki adımlı doğrulamayı açmadan önce e-posta adresini doğrulamalısın.",
+    "MFA_CODE_INVALID_OR_EXPIRED": "Kod geçersiz veya süresi dolmuş.",
+    "TOTP_SETUP_NOT_STARTED": "Önce authenticator kurulumunu başlat.",
+    "TOTP_CODE_INVALID": "Kod geçersiz. Authenticator uygulamandaki güncel kodu gir.",
+    "EMAIL_LINK_ALREADY_USED": "Bu bağlantı daha önce kullanılmış.",
+    "EMAIL_LINK_EXPIRED": "Bu bağlantının süresi dolmuş.",
+    "EMAIL_LINK_INVALID": "Geçersiz veya süresi dolmuş bağlantı.",
+    "CANNOT_REPORT_OWN_POST": "Kendi gönderinizi şikayet edemezsiniz.",
+    "FILE_TOO_LARGE": "Dosya boyutu 5MB'dan büyük olamaz.",
+    "INVALID_FILE_FORMAT": "Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.",
+    "POSTING_RESTRICTED": "Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir."
   }
 }

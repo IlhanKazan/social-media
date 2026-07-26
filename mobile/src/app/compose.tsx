@@ -17,7 +17,7 @@ import { MentionSuggestions } from '@/components/mention-suggestions';
 import { uploadPostImage, useCreatePost, useQuoteRepost, useUpdatePost } from '@/features/posts/queries';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { getActiveMentionQuery, insertMention } from '@/features/mentions/mention-utils';
-import type { ErrorResponse } from '@/types/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const MAX_CONTENT_LENGTH = 500;
 
@@ -87,8 +87,7 @@ export default function ComposeScreen() {
     const callbacks = {
       onSuccess: () => router.back(),
       onError: (error: unknown) => {
-        const data = (error as { response?: { data?: ErrorResponse } }).response?.data;
-        Alert.alert(t('compose.postFailedTitle'), data?.message ?? t('compose.postFailedGenericBody'));
+        Alert.alert(t('compose.postFailedTitle'), getApiErrorMessage(t, error, 'compose.postFailedGenericBody'));
       },
     };
 

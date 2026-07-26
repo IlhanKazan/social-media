@@ -10,6 +10,7 @@ import { FormInput } from '@/components/form-input';
 import { createRegisterSchema, type RegisterFormValues } from '@/features/auth/register-schema';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse } from '@/types/api';
 
@@ -79,7 +80,7 @@ export default function RegisterScreen() {
     onError: (error: { response?: { data?: ErrorResponse } }) => {
       const data = error.response?.data;
       const fieldError = data?.fieldErrors ? Object.values(data.fieldErrors)[0] : null;
-      setServerError(fieldError ?? data?.message ?? t('auth.register.genericError'));
+      setServerError(fieldError ?? getApiErrorMessage(t, error, 'auth.register.genericError'));
     },
   });
 

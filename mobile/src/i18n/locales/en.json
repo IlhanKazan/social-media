@@ -312,5 +312,19 @@
     "notifications": "Notifications",
     "messages": "Messages",
     "profile": "Profile"
+  },
+  "errors": {
+    "INCORRECT_PASSWORD": "Incorrect password.",
+    "EMAIL_VERIFICATION_REQUIRED_FOR_MFA": "You must verify your email before enabling two-factor authentication.",
+    "MFA_CODE_INVALID_OR_EXPIRED": "The code is invalid or has expired.",
+    "TOTP_SETUP_NOT_STARTED": "Start authenticator setup first.",
+    "TOTP_CODE_INVALID": "Invalid code. Enter the current code from your authenticator app.",
+    "EMAIL_LINK_ALREADY_USED": "This link has already been used.",
+    "EMAIL_LINK_EXPIRED": "This link has expired.",
+    "EMAIL_LINK_INVALID": "This link is invalid or has expired.",
+    "CANNOT_REPORT_OWN_POST": "You can't report your own post.",
+    "FILE_TOO_LARGE": "File size can't exceed 5MB.",
+    "INVALID_FILE_FORMAT": "Invalid file format. Only JPG, PNG, WEBP, and GIF can be uploaded.",
+    "POSTING_RESTRICTED": "Only accounts with a verified email can post right now."
   }
 }

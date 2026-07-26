@@ -4,6 +4,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import i18n from '@/i18n';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth-store';
 
 export type LanguageMode = 'en' | 'tr';
 
@@ -29,6 +31,9 @@ export const useLanguageStore = create<LanguageState>()(
       setMode: (mode) => {
         void i18n.changeLanguage(mode);
         set({ mode });
+        if (useAuthStore.getState().account) {
+          void api.patch('/accounts/me/language', { language: mode }).catch(() => {});
+        }
       },
     }),
     {
