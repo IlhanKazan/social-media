@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { Loader2, FilterX } from 'lucide-react';
 import { useAuditLog } from './hooks/use-audit-log';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useDateLocale } from '@/hooks/use-date-locale';
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function AdminAuditLogPage() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [actionFilter, setActionFilter] = useState('');
   const [targetTypeFilter, setTargetTypeFilter] = useState('');
   const [actorIdFilter, setActorIdFilter] = useState('');
@@ -50,25 +53,25 @@ export function AdminAuditLogPage() {
       return (
         <tr>
           <td colSpan={5} className="text-center p-12 text-muted-foreground">
-            Kayıt bulunamadı.
+            {t('admin.auditLog.table.noRecords')}
           </td>
         </tr>
       );
     }
 
     return logs.map((log) => {
-      const username = log.actorUsername || 'Sistem';
+      const username = log.actorUsername || t('admin.auditLog.table.systemActor');
 
       return (
         <tr key={log.id} className="hover:bg-muted/30 transition-colors">
           <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-            {format(new Date(log.createdAt), 'dd MMM yyyy HH:mm', { locale: tr })}
+            {format(new Date(log.createdAt), 'dd MMM yyyy HH:mm', { locale: dateLocale })}
           </td>
           <td className="px-4 py-3">
             {username ? (
               <span className="font-medium">@{username}</span>
             ) : (
-              <span className="text-muted-foreground italic">Sistem</span>
+              <span className="text-muted-foreground italic">{t('admin.auditLog.table.systemActor')}</span>
             )}
           </td>
           <td className="px-4 py-3 font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
@@ -85,7 +88,7 @@ export function AdminAuditLogPage() {
                 className="h-7 text-xs font-medium"
                 onClick={() => setSelectedMeta(log.metadata)}
               >
-                Detayı Gör
+                {t('admin.auditLog.table.viewDetail')}
               </Button>
             ) : (
               <span className="text-muted-foreground">-</span>
@@ -99,13 +102,13 @@ export function AdminAuditLogPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Sistem Denetim Kayıtları</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('admin.auditLog.title')}</h1>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <Input placeholder="Aksiyon (Örn: USER_BANNED)" value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} />
-        <Input placeholder="Hedef Tipi (Örn: ACCOUNT)" value={targetTypeFilter} onChange={(e) => setTargetTypeFilter(e.target.value)} />
-        <Input type="number" placeholder="Kullanıcı ID" value={actorIdFilter} onChange={(e) => setActorIdFilter(e.target.value)} />
+        <Input placeholder={t('admin.auditLog.filters.actionPlaceholder')} value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} />
+        <Input placeholder={t('admin.auditLog.filters.targetTypePlaceholder')} value={targetTypeFilter} onChange={(e) => setTargetTypeFilter(e.target.value)} />
+        <Input type="number" placeholder={t('admin.auditLog.filters.actorIdPlaceholder')} value={actorIdFilter} onChange={(e) => setActorIdFilter(e.target.value)} />
         <Button variant="outline" onClick={() => { setActionFilter(''); setTargetTypeFilter(''); setActorIdFilter(''); }}>
           <FilterX className="h-4 w-4" />
         </Button>
@@ -116,11 +119,11 @@ export function AdminAuditLogPage() {
           <table className="w-full text-sm text-left">
             <thead className="bg-muted/50 text-muted-foreground border-b border-zinc-200 dark:border-zinc-800">
             <tr>
-              <th className="px-4 py-3 font-medium">Tarih</th>
-              <th className="px-4 py-3 font-medium">Aktör (Yapan)</th>
-              <th className="px-4 py-3 font-medium">Aksiyon</th>
-              <th className="px-4 py-3 font-medium">Hedef</th>
-              <th className="px-4 py-3 font-medium">Ek Veri (Metadata)</th>
+              <th className="px-4 py-3 font-medium">{t('admin.auditLog.table.date')}</th>
+              <th className="px-4 py-3 font-medium">{t('admin.auditLog.table.actor')}</th>
+              <th className="px-4 py-3 font-medium">{t('admin.auditLog.table.action')}</th>
+              <th className="px-4 py-3 font-medium">{t('admin.auditLog.table.target')}</th>
+              <th className="px-4 py-3 font-medium">{t('admin.auditLog.table.metadata')}</th>
             </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -136,7 +139,7 @@ export function AdminAuditLogPage() {
 
       <Dialog open={!!selectedMeta} onOpenChange={(open) => !open && setSelectedMeta(null)}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader><DialogTitle>Metadata Detayı</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('admin.auditLog.metadataDialogTitle')}</DialogTitle></DialogHeader>
           <div className="bg-zinc-950 rounded-xl p-4 mt-2 overflow-x-auto border border-zinc-800">
             <pre className="text-xs text-green-400 font-mono leading-relaxed">
               {JSON.stringify(selectedMeta, null, 2)}

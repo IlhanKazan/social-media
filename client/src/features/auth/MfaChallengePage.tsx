@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +50,7 @@ export function MfaChallengePage() {
       });
       navigate(from, { replace: true });
     },
-    onError: (e) => setError(e.response?.data?.message || t('auth.mfa.verifyError')),
+    onError: (e) => setError(getApiErrorMessage(t, e, 'auth.mfa.verifyError')),
   });
 
   const resend = useMutation({

@@ -1,4 +1,5 @@
 import { Loader2, Database, Trash2, Gauge, ShieldX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useCaches, useInvalidateCache, useResetRateLimits } from './hooks/use-admin-ops';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 
 export function AdminMaintenancePage() {
+  const { t } = useTranslation();
   const { data: caches, isLoading } = useCaches();
   const invalidate = useInvalidateCache();
   const resetRateLimits = useResetRateLimits();
@@ -21,9 +23,9 @@ export function AdminMaintenancePage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Bakım</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('admin.maintenance.title')}</h1>
         <p className="text-[15px] text-muted-foreground">
-          API'yi yeniden başlatmadan önbellekleri temizle ve rate-limit sayaçlarını sıfırla.
+          {t('admin.maintenance.subtitle')}
         </p>
       </div>
 
@@ -34,28 +36,28 @@ export function AdminMaintenancePage() {
               <Database className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-[16px]">Önbellekler</CardTitle>
+              <CardTitle className="text-[16px]">{t('admin.maintenance.caches.title')}</CardTitle>
               <CardDescription>
-                Bayatlamış veriyi temizlemek için bir önbelleği veya tümünü boşalt.
+                {t('admin.maintenance.caches.description')}
               </CardDescription>
             </div>
           </div>
 
           <Dialog>
             <DialogTrigger render={<Button variant="outline" className="shrink-0 gap-2" />}>
-              <Trash2 className="h-4 w-4" /> Hepsini Temizle
+              <Trash2 className="h-4 w-4" /> {t('admin.maintenance.caches.clearAll')}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Tüm önbellekleri temizle?</DialogTitle>
+                <DialogTitle>{t('admin.maintenance.caches.confirmDialog.title')}</DialogTitle>
                 <DialogDescription>
-                  Bütün önbellekler boşaltılır. Veriler bir sonraki istekte kaynaktan yeniden yüklenir.
+                  {t('admin.maintenance.caches.confirmDialog.description')}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <DialogClose render={<Button variant="ghost" />}>Vazgeç</DialogClose>
+                <DialogClose render={<Button variant="ghost" />}>{t('admin.maintenance.caches.confirmDialog.cancel')}</DialogClose>
                 <Button disabled={invalidate.isPending} onClick={() => invalidate.mutate(undefined)}>
-                  Evet, Temizle
+                  {t('admin.maintenance.caches.confirmDialog.confirm')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -68,7 +70,7 @@ export function AdminMaintenancePage() {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : !caches || caches.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Kayıtlı önbellek yok.</p>
+            <p className="p-6 text-sm text-muted-foreground">{t('admin.maintenance.caches.empty')}</p>
           ) : (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {caches.map((name) => (
@@ -81,7 +83,7 @@ export function AdminMaintenancePage() {
                     disabled={invalidate.isPending}
                     onClick={() => invalidate.mutate(name)}
                   >
-                    <Trash2 className="h-4 w-4" /> Temizle
+                    <Trash2 className="h-4 w-4" /> {t('admin.maintenance.caches.clearOne')}
                   </Button>
                 </li>
               ))}
@@ -97,28 +99,28 @@ export function AdminMaintenancePage() {
               <Gauge className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-[16px]">Rate Limit</CardTitle>
+              <CardTitle className="text-[16px]">{t('admin.maintenance.rateLimit.title')}</CardTitle>
               <CardDescription>
-                Yanlışlıkla 429'a takılan kullanıcı/IP sayaçlarını sıfırla.
+                {t('admin.maintenance.rateLimit.description')}
               </CardDescription>
             </div>
           </div>
 
           <Dialog>
             <DialogTrigger render={<Button variant="outline" className="shrink-0 gap-2" />}>
-              <ShieldX className="h-4 w-4" /> Sıfırla
+              <ShieldX className="h-4 w-4" /> {t('admin.maintenance.rateLimit.resetButton')}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Rate-limit sayaçlarını sıfırla?</DialogTitle>
+                <DialogTitle>{t('admin.maintenance.rateLimit.confirmDialog.title')}</DialogTitle>
                 <DialogDescription>
-                  Tüm kullanıcı ve IP sayaçları sıfırlanır; herkes limitlere yeniden tam erişir.
+                  {t('admin.maintenance.rateLimit.confirmDialog.description')}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <DialogClose render={<Button variant="ghost" />}>Vazgeç</DialogClose>
+                <DialogClose render={<Button variant="ghost" />}>{t('admin.maintenance.rateLimit.confirmDialog.cancel')}</DialogClose>
                 <Button disabled={resetRateLimits.isPending} onClick={() => resetRateLimits.mutate()}>
-                  Evet, Sıfırla
+                  {t('admin.maintenance.rateLimit.confirmDialog.confirm')}
                 </Button>
               </DialogFooter>
             </DialogContent>

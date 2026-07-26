@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -103,9 +104,8 @@ export function CreatePost({ parentPostId, onSuccessCallback, placeholder }: Cre
       toast.success(parentPostId ? t('compose.replySuccess') : t('compose.postSuccess'));
       if (onSuccessCallback) onSuccessCallback();
     },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || t('compose.postError');
-      toast.error(errorMessage);
+    onError: (error) => {
+      toast.error(getApiErrorMessage(t, error, 'compose.postError'));
     }
   });
 

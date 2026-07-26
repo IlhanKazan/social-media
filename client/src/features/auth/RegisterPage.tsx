@@ -6,6 +6,7 @@ import { AxiosError } from 'axios';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import { createRegisterSchema, type RegisterInput } from './schemas';
 import { Button } from '@/components/ui/button';
@@ -40,10 +41,8 @@ export function RegisterPage() {
         Object.entries(error.response.data.fieldErrors).forEach(([field, msg]) => {
           setError(field as keyof RegisterInput, { message: msg });
         });
-      } else if (error.response?.data?.message) {
-        setError('root', { message: error.response.data.message });
       } else {
-        setError('root', { message: t('auth.register.genericError') });
+        setError('root', { message: getApiErrorMessage(t, error, 'auth.register.genericError') });
       }
     }
   });

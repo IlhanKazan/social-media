@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+// Not a component: read the i18next singleton directly rather than the
+// useTranslation hook (these run inside mutation callbacks, not render).
+import i18n from '@/i18n';
 
 export type SystemSettings = {
   registration_enabled: boolean;
@@ -30,10 +33,10 @@ export function useUpdateSystemSetting() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'system-settings'] });
-      toast.success('Sistem ayarı güncellendi.');
+      toast.success(i18n.t('admin.toasts.systemSettingUpdated'));
     },
     onError: () => {
-      toast.error('Ayar güncellenirken bir hata oluştu.');
+      toast.error(i18n.t('admin.toasts.systemSettingError'));
     }
   });
 }

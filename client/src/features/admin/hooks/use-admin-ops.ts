@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+// Not a component: read the i18next singleton directly rather than the
+// useTranslation hook (these run inside mutation callbacks, not render).
+import i18n from '@/i18n';
 
 export function useCaches() {
   return useQuery({
@@ -20,9 +23,9 @@ export function useInvalidateCache() {
     },
     onSuccess: (_data, name) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'caches'] });
-      toast.success(name ? `'${name}' önbelleği temizlendi.` : 'Tüm önbellekler temizlendi.');
+      toast.success(name ? i18n.t('admin.toasts.cacheCleared', { name }) : i18n.t('admin.toasts.allCachesCleared'));
     },
-    onError: () => toast.error('Önbellek temizlenirken bir hata oluştu.'),
+    onError: () => toast.error(i18n.t('admin.toasts.cacheClearError')),
   });
 }
 
@@ -31,7 +34,7 @@ export function useResetRateLimits() {
     mutationFn: async () => {
       await api.post('/admin/ops/rate-limits/reset');
     },
-    onSuccess: () => toast.success('Rate-limit sayaçları sıfırlandı.'),
-    onError: () => toast.error('Rate-limit sıfırlanırken bir hata oluştu.'),
+    onSuccess: () => toast.success(i18n.t('admin.toasts.rateLimitsReset')),
+    onError: () => toast.error(i18n.t('admin.toasts.rateLimitResetError')),
   });
 }

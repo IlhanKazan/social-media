@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
@@ -64,9 +65,7 @@ export function VerifyEmailPage() {
     );
   }
 
-  // Matches the backend's (Turkish, untranslated) error message for an
-  // already-used token — backend responses stay Turkish-only for now.
-  const isAlreadyUsed = mutation.error?.response?.data?.message?.includes('daha önce kullanılmış');
+  const isAlreadyUsed = mutation.error?.response?.data?.code === 'EMAIL_LINK_ALREADY_USED';
 
   if (mutation.isSuccess || isAlreadyUsed) {
     return (
@@ -87,7 +86,7 @@ export function VerifyEmailPage() {
         <XCircle className="h-16 w-16 text-destructive mx-auto" />
         <h1 className="text-2xl font-bold">{t('auth.verifyEmail.failedTitle')}</h1>
         <p className="text-muted-foreground">
-          {mutation.error?.response?.data?.message || t('auth.verifyEmail.failedBodyFallback')}
+          {getApiErrorMessage(t, mutation.error, 'auth.verifyEmail.failedBodyFallback')}
         </p>
         <Button render={<Link to="/settings" />} variant="outline" className="mt-4">
           {t('auth.verifyEmail.requestNewLink')}

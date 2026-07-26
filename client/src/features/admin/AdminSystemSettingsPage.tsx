@@ -1,9 +1,11 @@
 import { Loader2, ShieldAlert, UserPlus, FileText, Bot, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSystemSettings, useUpdateSystemSetting } from './hooks/use-system-settings';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export function AdminSystemSettingsPage() {
+  const { t } = useTranslation();
   const { data: settings, isLoading, isError } = useSystemSettings();
   const updateMutation = useUpdateSystemSetting();
 
@@ -18,7 +20,7 @@ export function AdminSystemSettingsPage() {
   if (isError || !settings) {
     return (
       <div className="p-8 text-center text-destructive">
-        Sistem ayarları yüklenirken bir hata oluştu.
+        {t('admin.systemSettings.loadError')}
       </div>
     );
   }
@@ -30,32 +32,32 @@ export function AdminSystemSettingsPage() {
   const settingItems = [
     {
       key: 'registration_enabled',
-      title: 'Kullanıcı Kayıtları',
-      description: 'Platforma yeni kullanıcı kayıtlarını açın veya kapatın.',
+      title: t('admin.systemSettings.items.registrationEnabled.title'),
+      description: t('admin.systemSettings.items.registrationEnabled.description'),
       icon: UserPlus,
     },
     {
       key: 'moderation_enabled',
-      title: 'Moderatör Sistemi',
-      description: 'Şikayet edilen içeriklerin moderatör kuyruğuna düşmesini etkinleştirin.',
+      title: t('admin.systemSettings.items.moderationEnabled.title'),
+      description: t('admin.systemSettings.items.moderationEnabled.description'),
       icon: ShieldAlert,
     },
     {
       key: 'verified_only_posting',
-      title: 'Sadece Onaylı Kullanıcılar Paylaşım Yapabilir',
-      description: 'Aktif edildiğinde sadece mavi tikli (onaylı) hesaplar gönderi paylaşabilir.',
+      title: t('admin.systemSettings.items.verifiedOnlyPosting.title'),
+      description: t('admin.systemSettings.items.verifiedOnlyPosting.description'),
       icon: FileText,
     },
     {
       key: 'bot_enabled',
-      title: 'Bot Sistemi',
-      description: 'Yapay zeka bot hesaplarının otomatik gönderi paylaşmasını etkinleştirin.',
+      title: t('admin.systemSettings.items.botEnabled.title'),
+      description: t('admin.systemSettings.items.botEnabled.description'),
       icon: Bot,
     },
     {
       key: 'read_only_mode',
-      title: 'Bakım Modu (Salt Okunur)',
-      description: 'Aktif edildiğinde kullanıcılar yazma işlemi yapamaz (gönderi, mesaj vb.); okuma açık kalır.',
+      title: t('admin.systemSettings.items.readOnlyMode.title'),
+      description: t('admin.systemSettings.items.readOnlyMode.description'),
       icon: Lock,
     },
   ];
@@ -63,9 +65,9 @@ export function AdminSystemSettingsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Sistem Ayarları</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('admin.systemSettings.title')}</h1>
         <p className="text-muted-foreground text-[15px]">
-          Platformun temel çalışma kurallarını gerçek zamanlı olarak yönetin.
+          {t('admin.systemSettings.subtitle')}
         </p>
       </div>
 

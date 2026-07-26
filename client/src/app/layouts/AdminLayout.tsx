@@ -1,21 +1,23 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth-store';
 import { LayoutDashboard, Settings, Users, ShieldAlert, LogOut, ArrowLeft, Activity, Filter, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 export function AdminLayout() {
+  const { t } = useTranslation();
   const account = useAuthStore((state) => state.account);
   const logout = useAuthStore((state) => state.logout);
 
   const navItems = [
-    { name: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true },
-    { name: 'Kuyruk', to: '/admin/moderation', icon: Filter, end: false },
-    { name: 'Raporlar', to: '/admin/reports', icon: ShieldAlert, end: false },
-    { name: 'Kullanıcılar', to: '/admin/users', icon: Users, end: false },
-    { name: 'Sistem Ayarları', to: '/admin/settings', icon: Settings, end: false },
-    { name: 'Bakım', to: '/admin/maintenance', icon: Wrench, end: false },
-    { name: 'Audit Log', to: '/admin/audit-log', icon: Activity, end: false },
+    { name: t('admin.layout.nav.dashboard'), to: '/admin', icon: LayoutDashboard, end: true },
+    { name: t('admin.layout.nav.queue'), to: '/admin/moderation', icon: Filter, end: false },
+    { name: t('admin.layout.nav.reports'), to: '/admin/reports', icon: ShieldAlert, end: false },
+    { name: t('admin.layout.nav.users'), to: '/admin/users', icon: Users, end: false },
+    { name: t('admin.layout.nav.settings'), to: '/admin/settings', icon: Settings, end: false },
+    { name: t('admin.layout.nav.maintenance'), to: '/admin/maintenance', icon: Wrench, end: false },
+    { name: t('admin.layout.nav.auditLog'), to: '/admin/audit-log', icon: Activity, end: false },
   ];
 
   return (
@@ -23,7 +25,7 @@ export function AdminLayout() {
 
       <aside className="w-64 shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-background flex flex-col h-full z-10">
         <div className="flex h-16 items-center px-6 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-          <span className="font-bold text-lg tracking-tight">Admin Paneli</span>
+          <span className="font-bold text-lg tracking-tight">{t('admin.layout.header')}</span>
         </div>
 
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
@@ -49,7 +51,7 @@ export function AdminLayout() {
 
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3 shrink-0">
           <div className="px-1 text-sm text-muted-foreground truncate">
-            <span className="block text-xs">Oturum:</span>
+            <span className="block text-xs">{t('admin.layout.sessionLabel')}</span>
             <span className="font-medium text-foreground">@{account?.username}</span>
           </div>
 
@@ -57,7 +59,7 @@ export function AdminLayout() {
             <Link to="/" className="w-full block">
               <Button variant="outline" className="w-full justify-start gap-2">
                 <ArrowLeft className="h-4 w-4 shrink-0" />
-                <span className="truncate">Siteye Dön</span>
+                <span className="truncate">{t('admin.layout.backToSite')}</span>
               </Button>
             </Link>
 
@@ -67,7 +69,7 @@ export function AdminLayout() {
               onClick={() => void logout()}
             >
               <LogOut className="h-4 w-4 shrink-0" />
-              <span className="truncate">Çıkış Yap</span>
+              <span className="truncate">{t('admin.layout.signOut')}</span>
             </Button>
           </div>
         </div>

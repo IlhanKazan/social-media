@@ -6,6 +6,7 @@ import { AxiosError } from 'axios';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import { createLoginSchema, type LoginInput } from './schemas';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export function LoginPage() {
           setError(field as keyof LoginInput, { message: msg });
         });
       } else {
-        setError('root', { message: error.response?.data?.message || t('auth.login.genericError') });
+        setError('root', { message: getApiErrorMessage(t, error, 'auth.login.genericError') });
       }
     }
   });

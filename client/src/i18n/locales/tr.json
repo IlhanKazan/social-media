@@ -134,7 +134,8 @@
     },
     "notificationPreferences": {
       "title": "Bildirim Tercihleri",
-      "subtitle": "Hangi bildirimler için anlık bildirim (push) almak istediğini seç."
+      "subtitle": "Hangi bildirimler için anlık bildirim (push) almak istediğini seç.",
+      "updateError": "Tercihler güncellenemedi."
     },
     "emailVerification": {
       "title": "Hesap Doğrulama",
@@ -160,7 +161,9 @@
       "submit": "Şifreyi Güncelle",
       "minLengthError": "Yeni şifreniz en az 6 karakter olmalıdır.",
       "mismatchError": "Yeni şifreler birbiriyle eşleşmiyor.",
-      "sameAsOldError": "Yeni şifreniz eski şifrenizle aynı olamaz."
+      "sameAsOldError": "Yeni şifreniz eski şifrenizle aynı olamaz.",
+      "updateError": "Şifre değiştirilirken bir hata oluştu.",
+      "successToast": "Şifreniz başarıyla değiştirildi! Güvenliğiniz için lütfen yeniden giriş yapın."
     },
     "security": {
       "title": "Güvenlik",
@@ -177,7 +180,13 @@
       "enable": "Etkinleştir",
       "codePlaceholder": "E-postandaki 6 haneli kod",
       "confirm": "Onayla",
-      "cancel": "Vazgeç"
+      "cancel": "Vazgeç",
+      "sendCodeError": "Kod gönderilemedi.",
+      "verifyError": "Kod doğrulanamadı.",
+      "actionFailedError": "İşlem başarısız.",
+      "codeSentToast": "Doğrulama kodu e-postana gönderildi.",
+      "enabledToast": "İki adımlı doğrulama açıldı.",
+      "disabledToast": "İki adımlı doğrulama kapatıldı."
     },
     "totp": {
       "title": "Authenticator Uygulaması (TOTP)",
@@ -193,7 +202,12 @@
       "codePlaceholder": "Uygulamadaki 6 haneli kod",
       "confirmAndEnable": "Onayla ve aç",
       "cancel": "Vazgeç",
-      "setup": "Kur"
+      "setup": "Kur",
+      "setupError": "Kurulum başlatılamadı.",
+      "verifyError": "Kod doğrulanamadı.",
+      "actionFailedError": "İşlem başarısız.",
+      "enabledToast": "Authenticator ile 2FA açıldı.",
+      "disabledToast": "Authenticator 2FA kapatıldı."
     },
     "session": {
       "title": "Oturum",
@@ -220,7 +234,11 @@
       "deleteConfirmBody": "Bu işlemi geri alamazsın. Hesabın, gönderilerin, beğenilerin ve mesajların tamamen silinecek. Hesabını silmek istediğine emin misin?",
       "giveUp": "Vazgeç",
       "confirmDelete": "Evet, Hesabımı Sil",
-      "deleting": "Siliniyor..."
+      "deleting": "Siliniyor...",
+      "signOutAllSuccess": "Tüm cihazlardan çıkış yapıldı.",
+      "signOutAllError": "İşlem sırasında bir hata oluştu.",
+      "deleteAccountSuccess": "Hesabın başarıyla silindi. Seni özleyeceğiz!",
+      "deleteAccountError": "Hesap silinirken bir hata oluştu."
     },
     "legal": {
       "title": "Yasal",
@@ -259,7 +277,10 @@
     "loadErrorTitle": "Bir hata oluştu",
     "loadErrorDesc": "Akış yüklenirken bir sorunla karşılaştık. Lütfen sayfayı yenileyin.",
     "allSeen": "Tüm gönderileri gördün.",
-    "composerSheetTitle": "Gönderi Oluştur"
+    "composerSheetTitle": "Gönderi Oluştur",
+    "repostSuccess": "Gönderi paylaşıldı",
+    "moderationAlertTitle": "İçerik İncelemesi",
+    "moderationAlertDesc": "Gönderiniz incelemeye alındı."
   },
   "compose": {
     "placeholder": "Neler oluyor?",
@@ -340,13 +361,21 @@
       "cancel": "İptal",
       "submit": "Gönder",
       "reasonRequired": "Lütfen bir neden seçin",
-      "detailsMax": "Detaylar en fazla 500 karakter olabilir"
+      "detailsMax": "Detaylar en fazla 500 karakter olabilir",
+      "successTitle": "Raporunuz alındı",
+      "successDesc": "Bildiriminiz incelenmek üzere ekibimize iletildi.",
+      "rateLimitedTitle": "Çok fazla istek",
+      "rateLimitedDesc": "Lütfen daha sonra tekrar deneyin.",
+      "errorTitle": "Hata",
+      "errorDesc": "Rapor gönderilirken bir sorun oluştu."
     },
     "editDialog": {
       "title": "Gönderiyi Düzenle",
       "placeholder": "Neler düşünüyorsun?",
       "cancel": "İptal",
-      "save": "Kaydet"
+      "save": "Kaydet",
+      "updateSuccess": "Gönderi güncellendi",
+      "updateError": "Gönderi güncellenirken bir hata oluştu"
     }
   },
   "search": {
@@ -374,7 +403,10 @@
       "postUnavailable": "Bu gönderi artık mevcut değil",
       "sending": "Gönderiliyor...",
       "seen": "Görüldü",
-      "inputPlaceholder": "Yeni mesaj..."
+      "inputPlaceholder": "Yeni mesaj...",
+      "photoSendError": "Fotoğraf gönderilemedi",
+      "sharePostSuccess": "Gönderildi",
+      "sharePostError": "Paylaşılamadı"
     }
   },
   "notifications": {
@@ -433,6 +465,8 @@
     "profileUpdated": "Profil güncellendi",
     "profileUpdateFailed": "Profil güncellenemedi",
     "removeFollowerTitle": "Takipçiyi Çıkar",
+    "removeFollowerSuccess": "Takipçi başarıyla çıkarıldı",
+    "removeFollowerError": "Takipçi çıkarılamadı. Lütfen tekrar dene.",
     "following": "Takip Ediliyor",
     "follow": "Takip Et",
     "followShort": "Ediliyor",
@@ -452,5 +486,318 @@
     "signOut": "Çıkış Yap",
     "signUp": "Kaydol",
     "signIn": "Giriş yap"
+  },
+  "marketing": {
+    "landing": {
+      "getStarted": "Hemen başla",
+      "browseWithoutAccount": "Üye olmadan gez",
+      "features": {
+        "realtime": { "title": "Gerçek zamanlı akış", "desc": "Beğeniler, yanıtlar ve bildirimler WebSocket ile anında." },
+        "threads": { "title": "Konu zincirleri", "desc": "Twitter tarzı iç içe yanıtlarla sohbeti takip et." },
+        "dm": { "title": "Direkt mesajlar", "desc": "Birebir özel sohbetler, fotoğraf ve gönderi paylaşımı." },
+        "media": { "title": "Görsel paylaşımı", "desc": "Gönderilerine ve mesajlarına görsel ekle." }
+      }
+    },
+    "footer": {
+      "aboutLink": "Hakkında",
+      "privacyLink": "Gizlilik",
+      "termsLink": "Şartlar",
+      "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir."
+    }
+  },
+  "legal": {
+    "backHome": "Ana sayfa",
+    "updatedLabel": "Son güncelleme: {{date}}",
+    "demoDisclaimer": {
+      "title": "SocialHan bir portfolyo / demo projesidir.",
+      "body": "Ticari bir hizmet değildir; tanıtım ve teknik gösterim amacıyla yayınlanmıştır. Aşağıdaki metinler iyi niyetle hazırlanmıştır ancak hukuki tavsiye niteliği taşımaz."
+    },
+    "about": {
+      "title": "Hakkında",
+      "whatIsTitle": "SocialHan nedir?",
+      "whatIsP1": "SocialHan, gerçek zamanlı bir akış, konu zincirleri, direkt mesajlar ve görsel paylaşımı sunan Twitter benzeri bir sosyal medya platformudur. 2024'te yapılan bir portfolyo projesinin 2026 yılında modern bir yığınla sıfırdan yeniden yazılmış halidir.",
+      "whatIsP2": "Proje; Java 21 / Spring Boot tabanlı bir backend, React 19 + TypeScript bir frontend ve PostgreSQL veritabanı kullanır. Amacı, üretim kalitesinde, gerçek zamanlı özelliklere sahip bir uygulamayı uçtan uca göstermektir.",
+      "contactTitle": "İletişim",
+      "contactText": "Sorular ve talepler için:"
+    },
+    "privacy": {
+      "title": "Gizlilik Politikası & KVKK Aydınlatma Metni",
+      "updated": "23 Temmuz 2026",
+      "dataController": {
+        "title": "Veri sorumlusu",
+        "body": "Bu metin, SocialHan'ı yürüten geliştirici tarafından 6698 sayılı KVKK ve GDPR ilkeleri doğrultusunda hazırlanmıştır. İletişim:"
+      },
+      "dataProcessed": {
+        "title": "İşlenen veriler",
+        "items": [
+          "Hesap bilgileri: kullanıcı adı, e-posta adresi, şifre (yalnızca BCrypt ile hash'lenmiş olarak saklanır).",
+          "Profil bilgileri: görünen ad, biyografi, profil ve kapak görselleri.",
+          "İçerik: gönderiler, yanıtlar, beğeniler, repost ve takip ilişkileri.",
+          "Direkt mesajlar ve mesajlara eklenen görseller.",
+          "Teknik kayıtlar: oturum açma geçmişi ve güvenlik denetim kayıtları kapsamında IP adresi ve tarayıcı bilgisi."
+        ]
+      },
+      "purposes": {
+        "title": "İşleme amaçları ve hukuki sebep (KVKK m.5/6)",
+        "body": "Verileriniz; hesabınızın oluşturulması ve yönetimi, içeriğin sunulması, mesajlaşma, güvenlik ve kötüye kullanımın önlenmesi amaçlarıyla işlenir. Hukuki sebep, çoğunlukla sözleşmenin ifası ve meşru menfaattir. Aşağıdaki işlemler ise açık rızanıza tabidir ve kayıt sırasında onayınız alınır:",
+        "items": [
+          "Gönderi içeriğinin moderasyon amacıyla OpenAI'a gönderilmesi.",
+          "Verilerin yurt dışındaki hizmet sağlayıcılara aktarılması (aşağıya bakınız).",
+          "Varsa pazarlama / bilgilendirme e-postaları."
+        ]
+      },
+      "providers": {
+        "title": "Hizmet sağlayıcılar ve yurt dışı aktarım",
+        "body": "Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Ana uygulama ve veritabanı Almanya'da (AB içinde) barındırılır; Cloudflare, Cloudinary, Resend ve OpenAI ABD merkezlidir ve bu dördüne yapılan aktarımlar yurt dışı aktarım sayılır:",
+        "items": [
+          "Hetzner (Almanya, AB içi) — API, veritabanı ve ön yüzün barındırıldığı sunucu.",
+          "Cloudflare (ABD) — DNS, DDoS koruması ve içerik dağıtım ağı (CDN).",
+          "Cloudinary (ABD) — görsel depolama ve sunumu.",
+          "Resend (ABD) — işlemsel e-posta gönderimi (ör. şifre sıfırlama).",
+          "OpenAI (ABD) — gönderi içeriğinin otomatik moderasyonu."
+        ]
+      },
+      "retention": {
+        "title": "Saklama süresi",
+        "body": "Hesabınızı sildiğinizde içeriğiniz önce pasif (soft-delete) hale getirilir ve 30 gün sonra çalışan bir görev tarafından kalıcı olarak silinir; bu sırada profil, gönderi ve mesaj görselleriniz Cloudinary üzerinden de kaldırılır. Güvenlik denetim kayıtları, aktöre bağlanmadan (anonimleştirilerek) bir süre daha tutulabilir."
+      },
+      "rights": {
+        "title": "Haklarınız (KVKK m.11 / GDPR)",
+        "body": "Verilerinize erişme, düzeltme, silinmesini isteme ve işlemeye itiraz etme haklarına sahipsiniz. Hesabınızı uygulama içindeki Ayarlar > Hesabımı Sil bölümünden doğrudan silebilir veya yukarıdaki e-posta üzerinden talepte bulunabilirsiniz. Şikayetler için aynı kanalı kullanabilirsiniz."
+      },
+      "cookies": {
+        "title": "Çerezler ve güvenlik",
+        "body": "Yalnızca işlevsel çerezler kullanılır: oturumunuzu sürdürmek için HttpOnly bir yenileme tokenı çerezi tutulur. Reklam veya üçüncü taraf takip çerezi kullanılmaz. Şifreler hash'lenir, iletişim HTTPS üzerinden yapılır ve kimlik doğrulama uç noktaları hız sınırlamasıyla korunur."
+      },
+      "ageLimit": {
+        "title": "Yaş sınırı",
+        "body": "Hizmet 13 yaşından küçükler için tasarlanmamıştır. Kayıt sırasında yaş şartını karşıladığınızı onaylamanız istenir."
+      }
+    },
+    "terms": {
+      "title": "Kullanım Şartları",
+      "updated": "21 Haziran 2026",
+      "natureOfService": {
+        "title": "Hizmetin niteliği",
+        "body": "SocialHan bir portfolyo / demo projesidir. Hizmet \"olduğu gibi\" sunulur; kesintisiz çalışma, veri kalıcılığı veya belirli bir performans garantisi verilmez. Veriler önceden bildirim yapılmaksızın sıfırlanabilir."
+      },
+      "accountEligibility": {
+        "title": "Hesap ve uygunluk",
+        "body": "Kayıt olmak için en az 13 yaşında olmalısınız. Hesap güvenliğinizden ve hesabınız altında gerçekleşen etkinliklerden siz sorumlusunuz. Kayıt sırasında bu şartları ve Gizlilik Politikası'nı kabul etmeniz gerekir."
+      },
+      "acceptableUse": {
+        "title": "Kabul edilebilir kullanım",
+        "intro": "Aşağıdaki içerik ve davranışlar yasaktır:",
+        "items": [
+          "Yasa dışı, nefret söylemi içeren, taciz edici, şiddet içeren veya cinsel istismara yönelik içerik.",
+          "Spam, otomatik kötüye kullanım veya hizmete yönelik teknik saldırılar.",
+          "Başkalarının haklarını ihlal eden veya başkasının kimliğine bürünen içerik."
+        ],
+        "moderationNote": "İçerikler otomatik moderasyondan geçebilir; kuralları ihlal eden içerik veya hesaplar kaldırılabilir ya da askıya alınabilir."
+      },
+      "yourContent": {
+        "title": "İçeriğiniz",
+        "body": "Paylaştığınız içeriğin haklarına siz sahipsiniz. İçeriği yayınlayarak, hizmetin işletilmesi için onu saklamamıza ve göstermemize izin vermiş olursunuz. Hesabınızı sildiğinizde içeriğiniz Gizlilik Politikası'nda açıklandığı şekilde kaldırılır."
+      },
+      "liability": {
+        "title": "Sorumluluğun sınırlandırılması",
+        "body": "Bu bir demo proje olduğundan, hizmetin kullanımından doğabilecek veri kaybı veya kesintiler dahil dolaylı zararlardan sorumluluk kabul edilmez."
+      }
+    }
+  },
+  "admin": {
+    "layout": {
+      "header": "Admin Paneli",
+      "sessionLabel": "Oturum:",
+      "backToSite": "Siteye Dön",
+      "signOut": "Çıkış Yap",
+      "nav": {
+        "dashboard": "Dashboard",
+        "queue": "Kuyruk",
+        "reports": "Raporlar",
+        "users": "Kullanıcılar",
+        "settings": "Sistem Ayarları",
+        "maintenance": "Bakım",
+        "auditLog": "Audit Log"
+      }
+    },
+    "dashboard": {
+      "title": "Sistem Özeti",
+      "subtitle": "Platformun güncel durumu ve istatistikleri.",
+      "liveData": "Canlı Veri (30s)",
+      "loadError": "Metrikler yüklenirken bir hata oluştu. Sunucu bağlantısını kontrol edin.",
+      "statCards": {
+        "totalUsers": { "title": "Toplam Kullanıcı", "subValue": "{{count}} banlı hesap" },
+        "activeSessions": { "title": "Aktif Oturumlar", "subValue": "Şu an sistemde aktif token sayısı" },
+        "openReports": { "title": "Açık Raporlar", "subValue": "İncelenmeyi bekleyen şikayetler" },
+        "queuedPosts": { "title": "Kuyruktaki Gönderiler", "subValue": "Moderatör onayı bekleyen" },
+        "totalPosts": { "title": "Toplam Gönderi", "subValue": "{{count}} gönderi silindi" },
+        "emailStatus": { "title": "E-posta Durumu", "subValue": "Bugün gönderildi ({{failed}} hatalı, {{pending}} bekleyen)" }
+      }
+    },
+    "moderation": {
+      "title": "Moderasyon Kuyruğu",
+      "shortcutsLabel": "Kısayollar:",
+      "approveWord": "Onayla",
+      "removeWord": "Kaldır",
+      "approveButton": "Onayla (A)",
+      "removeButton": "Kaldır (R)",
+      "emptyState": "Kuyruk tertemiz! Bekleyen içerik yok.",
+      "loadMore": "Daha Fazla Yükle"
+    },
+    "reports": {
+      "title": "Kullanıcı Raporları",
+      "subtitle": "Topluluk tarafından şikayet edilen gönderileri inceleyin ve aksiyon alın.",
+      "loadError": "Raporlar yüklenirken bir bağlantı hatası oluştu. Lütfen sayfayı yenileyin.",
+      "emptyTitle": "Sistem Tertemiz!",
+      "emptyDesc": "Bekleyen hiçbir şikayet bulunmuyor.",
+      "postTitle": "Gönderi #{{id}}",
+      "reportCount": "Toplam {{count}} Kullanıcı Şikayeti",
+      "lastReport": "Son bildirim: {{date}}",
+      "view": "Görüntüle",
+      "decide": "Karar Ver",
+      "dialog": {
+        "title": "Şikayeti Çözümle",
+        "resolutionLabel": "Admin Çözüm Notu",
+        "resolutionPlaceholder": "Örn: Topluluk kurallarına aykırı değil.",
+        "defaultResolution": "İncelendi, ihlal bulunmadı.",
+        "enforceTitle": "Yaptırım Uygula",
+        "removePostLabel": "Gönderiyi kalıcı olarak sil",
+        "removePostDesc": "Gönderi tamamen kaldırılır ve sahibine bildirim gider.",
+        "banUserLabel": "Kullanıcıyı sistemden uzaklaştır",
+        "banUserDesc": "Gönderi sahibinin hesabı kalıcı olarak banlanır.",
+        "cancel": "İptal",
+        "apply": "Kararı Uygula"
+      }
+    },
+    "users": {
+      "title": "Kullanıcı Yönetimi",
+      "subtitle": "Sistemdeki hesapları filtreleyin ve ADMIN yetkilerini yönetin.",
+      "notFound": "Kullanıcı bulunamadı.",
+      "searchPlaceholder": "Ara...",
+      "filters": {
+        "all": "Tüm Durumlar",
+        "active": "Sadece Aktifler",
+        "banned": "Sadece Banlılar"
+      },
+      "adminTitle": "Admin",
+      "verifiedEmailTitle": "Doğrulanmış E-posta",
+      "menu": {
+        "label": "Yönetimsel İşlemler",
+        "demote": "Yetkiyi Geri Al",
+        "promote": "Admin Yap",
+        "resetPassword": "Şifre Sıfırla",
+        "forceLogout": "Oturumları Kapat",
+        "unban": "Yasağı Kaldır",
+        "ban": "Kullanıcıyı Banla"
+      },
+      "stats": {
+        "status": "Durum",
+        "active": "Aktif",
+        "banned": "Banlı",
+        "posts": "Gönderi",
+        "joined": "Kayıt",
+        "lastLogin": "Son Giriş",
+        "neverLoggedIn": "Hiç giriş yapmadı"
+      },
+      "banDialog": {
+        "title": "Kullanıcıyı Yasakla",
+        "body": "kullanıcısı yasaklanacak.",
+        "reasonPlaceholder": "Sebep girin...",
+        "cancel": "İptal",
+        "confirm": "Yasakla"
+      }
+    },
+    "auditLog": {
+      "title": "Sistem Denetim Kayıtları",
+      "filters": {
+        "actionPlaceholder": "Aksiyon (Örn: USER_BANNED)",
+        "targetTypePlaceholder": "Hedef Tipi (Örn: ACCOUNT)",
+        "actorIdPlaceholder": "Kullanıcı ID"
+      },
+      "table": {
+        "date": "Tarih",
+        "actor": "Aktör (Yapan)",
+        "action": "Aksiyon",
+        "target": "Hedef",
+        "metadata": "Ek Veri (Metadata)",
+        "noRecords": "Kayıt bulunamadı.",
+        "systemActor": "Sistem",
+        "viewDetail": "Detayı Gör"
+      },
+      "metadataDialogTitle": "Metadata Detayı"
+    },
+    "maintenance": {
+      "title": "Bakım",
+      "subtitle": "API'yi yeniden başlatmadan önbellekleri temizle ve rate-limit sayaçlarını sıfırla.",
+      "caches": {
+        "title": "Önbellekler",
+        "description": "Bayatlamış veriyi temizlemek için bir önbelleği veya tümünü boşalt.",
+        "clearAll": "Hepsini Temizle",
+        "clearOne": "Temizle",
+        "empty": "Kayıtlı önbellek yok.",
+        "confirmDialog": {
+          "title": "Tüm önbellekleri temizle?",
+          "description": "Bütün önbellekler boşaltılır. Veriler bir sonraki istekte kaynaktan yeniden yüklenir.",
+          "cancel": "Vazgeç",
+          "confirm": "Evet, Temizle"
+        }
+      },
+      "rateLimit": {
+        "title": "Rate Limit",
+        "description": "Yanlışlıkla 429'a takılan kullanıcı/IP sayaçlarını sıfırla.",
+        "resetButton": "Sıfırla",
+        "confirmDialog": {
+          "title": "Rate-limit sayaçlarını sıfırla?",
+          "description": "Tüm kullanıcı ve IP sayaçları sıfırlanır; herkes limitlere yeniden tam erişir.",
+          "cancel": "Vazgeç",
+          "confirm": "Evet, Sıfırla"
+        }
+      }
+    },
+    "systemSettings": {
+      "title": "Sistem Ayarları",
+      "subtitle": "Platformun temel çalışma kurallarını gerçek zamanlı olarak yönetin.",
+      "loadError": "Sistem ayarları yüklenirken bir hata oluştu.",
+      "items": {
+        "registrationEnabled": { "title": "Kullanıcı Kayıtları", "description": "Platforma yeni kullanıcı kayıtlarını açın veya kapatın." },
+        "moderationEnabled": { "title": "Moderatör Sistemi", "description": "Şikayet edilen içeriklerin moderatör kuyruğuna düşmesini etkinleştirin." },
+        "verifiedOnlyPosting": { "title": "Sadece Onaylı Kullanıcılar Paylaşım Yapabilir", "description": "Aktif edildiğinde sadece mavi tikli (onaylı) hesaplar gönderi paylaşabilir." },
+        "botEnabled": { "title": "Bot Sistemi", "description": "Yapay zeka bot hesaplarının otomatik gönderi paylaşmasını etkinleştirin." },
+        "readOnlyMode": { "title": "Bakım Modu (Salt Okunur)", "description": "Aktif edildiğinde kullanıcılar yazma işlemi yapamaz (gönderi, mesaj vb.); okuma açık kalır." }
+      }
+    },
+    "toasts": {
+      "cacheCleared": "'{{name}}' önbelleği temizlendi.",
+      "allCachesCleared": "Tüm önbellekler temizlendi.",
+      "cacheClearError": "Önbellek temizlenirken bir hata oluştu.",
+      "rateLimitsReset": "Rate-limit sayaçları sıfırlandı.",
+      "rateLimitResetError": "Rate-limit sıfırlanırken bir hata oluştu.",
+      "userBanned": "Kullanıcı yasaklandı.",
+      "banRemoved": "Yasak kaldırıldı.",
+      "sessionsEnded": "Oturumlar sonlandırıldı.",
+      "userPromoted": "Kullanıcı ADMIN yapıldı.",
+      "adminRevoked": "Admin yetkisi geri alındı.",
+      "passwordResetSent": "Şifre sıfırlama e-postası gönderildi.",
+      "reportResolved": "Rapor çözümlendi.",
+      "postApproved": "Gönderi onaylandı ve yayına alındı.",
+      "postRemoved": "Gönderi sistemden kaldırıldı.",
+      "systemSettingUpdated": "Sistem ayarı güncellendi.",
+      "systemSettingError": "Ayar güncellenirken bir hata oluştu."
+    }
+  },
+  "errors": {
+    "INCORRECT_PASSWORD": "Şifre hatalı.",
+    "EMAIL_VERIFICATION_REQUIRED_FOR_MFA": "İki adımlı doğrulamayı açmadan önce e-posta adresini doğrulamalısın.",
+    "MFA_CODE_INVALID_OR_EXPIRED": "Kod geçersiz veya süresi dolmuş.",
+    "TOTP_SETUP_NOT_STARTED": "Önce authenticator kurulumunu başlat.",
+    "TOTP_CODE_INVALID": "Kod geçersiz. Authenticator uygulamandaki güncel kodu gir.",
+    "EMAIL_LINK_ALREADY_USED": "Bu bağlantı daha önce kullanılmış.",
+    "EMAIL_LINK_EXPIRED": "Bu bağlantının süresi dolmuş.",
+    "EMAIL_LINK_INVALID": "Geçersiz veya süresi dolmuş bağlantı.",
+    "CANNOT_REPORT_OWN_POST": "Kendi gönderinizi şikayet edemezsiniz.",
+    "FILE_TOO_LARGE": "Dosya boyutu 5MB'dan büyük olamaz.",
+    "INVALID_FILE_FORMAT": "Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.",
+    "POSTING_RESTRICTED": "Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir."
   }
 }

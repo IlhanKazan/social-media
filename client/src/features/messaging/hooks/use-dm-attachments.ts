@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -48,6 +49,7 @@ function removeMessage(
 
 export function useSendDmImage(conversationId: number) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: async ({ file, caption }: { file: File; caption?: string }) => {
       const form = new FormData();
@@ -76,12 +78,13 @@ export function useSendDmImage(conversationId: number) {
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.tempId != null) removeMessage(queryClient, conversationId, ctx.tempId);
-      toast.error('Fotoğraf gönderilemedi');
+      toast.error(t('messaging.conversation.photoSendError'));
     },
   });
 }
 
 export function useSharePostToDm() {
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: async ({ conversationId, postId, caption }: { conversationId: number; postId: number; caption?: string }) => {
       const { data } = await api.post<MessageResponse>(`/conversations/${conversationId}/messages/share`, {
@@ -90,7 +93,7 @@ export function useSharePostToDm() {
       });
       return data;
     },
-    onSuccess: () => toast.success('Gönderildi'),
-    onError: () => toast.error('Paylaşılamadı'),
+    onSuccess: () => toast.success(t('messaging.conversation.sharePostSuccess')),
+    onError: () => toast.error(t('messaging.conversation.sharePostError')),
   });
 }

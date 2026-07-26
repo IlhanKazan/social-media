@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useModerationQueue, useModerationActions } from './hooks/use-moderation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Check, X, User, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/use-date-locale';
 
 export function AdminModerationPage() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const { data, isLoading, fetchNextPage, hasNextPage } = useModerationQueue();
   const { approve, remove } = useModerationActions();
 
@@ -35,16 +38,16 @@ export function AdminModerationPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Moderasyon Kuyruğu</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('admin.moderation.title')}</h1>
         <div className="text-xs text-muted-foreground bg-zinc-100 dark:bg-zinc-800/50 px-3 py-1.5 rounded-md font-medium">
-          Kısayollar: <kbd className="font-bold text-primary mx-1">A</kbd> Onayla | <kbd className="font-bold text-destructive mx-1">R</kbd> Kaldır
+          {t('admin.moderation.shortcutsLabel')} <kbd className="font-bold text-primary mx-1">A</kbd> {t('admin.moderation.approveWord')} | <kbd className="font-bold text-destructive mx-1">R</kbd> {t('admin.moderation.removeWord')}
         </div>
       </div>
 
       <div className="grid gap-4">
         {posts.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-            Kuyruk tertemiz! Bekleyen içerik yok.
+            {t('admin.moderation.emptyState')}
           </div>
         ) : (
           posts.map((post) => (
@@ -56,7 +59,7 @@ export function AdminModerationPage() {
                     <span className="font-bold text-foreground">@{post.author.username}</span>
                     <span>•</span>
                     <Clock className="h-3.5 w-3.5" />
-                    <span>{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: tr })}</span>
+                    <span>{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: dateLocale })}</span>
                   </div>
                   <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{post.content}</p>
                   {post.imageUrl && (
@@ -71,7 +74,7 @@ export function AdminModerationPage() {
                     onClick={() => approve.mutate(post.id)}
                     disabled={approve.isPending}
                   >
-                    <Check className="h-4 w-4 mr-2" /> Onayla (A)
+                    <Check className="h-4 w-4 mr-2" /> {t('admin.moderation.approveButton')}
                   </Button>
                   <Button
                     size="sm"
@@ -80,7 +83,7 @@ export function AdminModerationPage() {
                     onClick={() => remove.mutate(post.id)}
                     disabled={remove.isPending}
                   >
-                    <X className="h-4 w-4 mr-2" /> Kaldır (R)
+                    <X className="h-4 w-4 mr-2" /> {t('admin.moderation.removeButton')}
                   </Button>
                 </div>
               </div>
@@ -90,7 +93,7 @@ export function AdminModerationPage() {
       </div>
 
       {hasNextPage && (
-        <Button variant="outline" className="w-full" onClick={() => fetchNextPage()}>Daha Fazla Yükle</Button>
+        <Button variant="outline" className="w-full" onClick={() => fetchNextPage()}>{t('admin.moderation.loadMore')}</Button>
       )}
     </div>
   );

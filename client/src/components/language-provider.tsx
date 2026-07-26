@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import i18n, { type SupportedLanguage } from "@/i18n";
+import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 type Language = SupportedLanguage;
 
@@ -42,6 +44,9 @@ export function LanguageProvider({
     setLanguage: (language: Language) => {
       localStorage.setItem(storageKey, language);
       setLanguageState(language);
+      if (useAuthStore.getState().account) {
+        void api.patch('/accounts/me/language', { language }).catch(() => {});
+      }
     },
   };
 

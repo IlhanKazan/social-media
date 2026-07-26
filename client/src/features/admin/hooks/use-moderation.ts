@@ -2,6 +2,9 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import type { PageResponse, PostResponse } from '@/types/api';
+// Not a component: read the i18next singleton directly rather than the
+// useTranslation hook (these run inside mutation callbacks, not render).
+import i18n from '@/i18n';
 
 export function useModerationQueue() {
   return useInfiniteQuery<PageResponse<PostResponse>>({
@@ -24,7 +27,7 @@ export function useModerationActions() {
     mutationFn: (postId: number) => api.post(`/admin/posts/${postId}/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'moderation-queue'] });
-      toast.success('Gönderi onaylandı ve yayına alındı.');
+      toast.success(i18n.t('admin.toasts.postApproved'));
     }
   });
 
@@ -32,7 +35,7 @@ export function useModerationActions() {
     mutationFn: (postId: number) => api.post(`/admin/posts/${postId}/remove`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'moderation-queue'] });
-      toast.error('Gönderi sistemden kaldırıldı.');
+      toast.error(i18n.t('admin.toasts.postRemoved'));
     }
   });
 

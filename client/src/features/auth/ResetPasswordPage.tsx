@@ -7,6 +7,7 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { createResetPasswordSchema, type ResetPasswordInput } from './schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +43,7 @@ export function ResetPasswordPage() {
     },
     onError: (error) => {
       setError('root', {
-        message: error.response?.data?.message || t('auth.resetPassword.genericError')
+        message: getApiErrorMessage(t, error, 'auth.resetPassword.genericError')
       });
     }
   });
