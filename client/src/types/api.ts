@@ -230,5 +230,6 @@ export interface MobileVersionResponse {
   latestVersionName: string;
   minSupportedVersionCode: number;
   apkUrl: string;
+  apkSha256: string;
   changelogUrl: string;
 }

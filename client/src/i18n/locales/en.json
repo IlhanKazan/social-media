@@ -24,11 +24,11 @@
       "title": "Join us",
       "subtitle": "Create your account and take your place in the feed.",
       "usernameLabel": "Username",
-      "usernamePlaceholder": "ilhankazan",
+      "usernamePlaceholder": "johndoe",
       "emailLabel": "Email",
       "emailPlaceholder": "mail@example.com",
       "displayNameLabel": "Display Name (Optional)",
-      "displayNamePlaceholder": "Ilhan Kazan",
+      "displayNamePlaceholder": "Jane Doe",
       "passwordLabel": "Password",
       "confirmPasswordLabel": "Confirm Password",
       "termsPrefix": "I have read and accept the ",
@@ -714,7 +714,11 @@
       "notAvailable": "No build has been published yet — check back soon.",
       "downloadButton": "Download APK",
       "aboutTitle": "About this download",
-      "aboutBody": "This app is distributed directly rather than through the Play Store, so Android will ask you to allow installs from this source the first time. The app checks for new versions on its own and will prompt you when one is available."
+      "aboutBody": "This app is distributed directly rather than through the Play Store, so Android will ask you to allow installs from this source the first time. The app checks for new versions on its own and will prompt you when one is available.",
+      "checksumTitle": "Verify the download",
+      "checksumBody": "This is the SHA-256 checksum of the official APK. After downloading, you can compute the checksum of the file yourself and compare it to this value to confirm it hasn't been tampered with.",
+      "copyChecksum": "Copy checksum",
+      "checksumCopied": "Checksum copied"
     }
   },
   "admin": {

@@ -24,11 +24,11 @@
       "title": "Aramıza katıl",
       "subtitle": "Hesabını oluştur ve akışta yerini al.",
       "usernameLabel": "Kullanıcı Adı",
-      "usernamePlaceholder": "ilhankazan",
+      "usernamePlaceholder": "ayseyilmaz",
       "emailLabel": "E-posta",
       "emailPlaceholder": "mail@ornek.com",
       "displayNameLabel": "Görünen Ad (İsteğe bağlı)",
-      "displayNamePlaceholder": "İlhan Kazan",
+      "displayNamePlaceholder": "Ayşe Yılmaz",
       "passwordLabel": "Şifre",
       "confirmPasswordLabel": "Şifre Tekrarı",
       "termsPrefix": "",
@@ -714,7 +714,11 @@
       "notAvailable": "Henüz bir sürüm yayınlanmadı — yakında tekrar kontrol et.",
       "downloadButton": "APK İndir",
       "aboutTitle": "Bu indirme hakkında",
-      "aboutBody": "Bu uygulama Play Store yerine doğrudan dağıtılır, bu yüzden Android ilk kurulumda bu kaynaktan kuruluma izin vermeni isteyecek. Uygulama yeni sürümleri kendiliğinden kontrol eder ve bir güncelleme olduğunda seni bilgilendirir."
+      "aboutBody": "Bu uygulama Play Store yerine doğrudan dağıtılır, bu yüzden Android ilk kurulumda bu kaynaktan kuruluma izin vermeni isteyecek. Uygulama yeni sürümleri kendiliğinden kontrol eder ve bir güncelleme olduğunda seni bilgilendirir.",
+      "checksumTitle": "İndirmeyi doğrula",
+      "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır. İndirdikten sonra dosyanın checksum'ını kendin hesaplayıp bu değerle karşılaştırarak dosyanın değiştirilmediğini doğrulayabilirsin.",
+      "copyChecksum": "Checksum'ı kopyala",
+      "checksumCopied": "Checksum kopyalandı"
     }
   },
   "admin": {
