@@ -4,7 +4,11 @@
       "badge": "Real-time social network",
       "heading": "Share your thoughts with the world instantly.",
       "subtext": "Posts, threads, and direct messages — all instant. A clean, fast, modern social experience.",
-      "features": ["Real-time feed", "Direct messages", "Threads"]
+      "features": [
+        "Real-time feed",
+        "Direct messages",
+        "Threads"
+      ]
     },
     "login": {
       "title": "Welcome back",
@@ -492,10 +496,22 @@
       "getStarted": "Get started",
       "browseWithoutAccount": "Browse without an account",
       "features": {
-        "realtime": { "title": "Real-time feed", "desc": "Likes, replies, and notifications land instantly via WebSocket." },
-        "threads": { "title": "Threaded conversations", "desc": "Follow the discussion with Twitter-style nested replies." },
-        "dm": { "title": "Direct messages", "desc": "One-on-one private chats, with photo and post sharing." },
-        "media": { "title": "Image sharing", "desc": "Attach images to your posts and messages." }
+        "realtime": {
+          "title": "Real-time feed",
+          "desc": "Likes, replies, and notifications land instantly via WebSocket."
+        },
+        "threads": {
+          "title": "Threaded conversations",
+          "desc": "Follow the discussion with Twitter-style nested replies."
+        },
+        "dm": {
+          "title": "Direct messages",
+          "desc": "One-on-one private chats, with photo and post sharing."
+        },
+        "media": {
+          "title": "Image sharing",
+          "desc": "Attach images to your posts and messages."
+        }
       }
     },
     "footer": {
@@ -734,7 +750,8 @@
         "users": "Users",
         "settings": "System Settings",
         "maintenance": "Maintenance",
-        "auditLog": "Audit Log"
+        "auditLog": "Audit Log",
+        "mobileRelease": "Mobile Release"
       }
     },
     "dashboard": {
@@ -743,12 +760,30 @@
       "liveData": "Live Data (30s)",
       "loadError": "An error occurred while loading metrics. Check your server connection.",
       "statCards": {
-        "totalUsers": { "title": "Total Users", "subValue": "{{count}} banned accounts" },
-        "activeSessions": { "title": "Active Sessions", "subValue": "Number of currently active tokens in the system" },
-        "openReports": { "title": "Open Reports", "subValue": "Reports awaiting review" },
-        "queuedPosts": { "title": "Queued Posts", "subValue": "Awaiting moderator approval" },
-        "totalPosts": { "title": "Total Posts", "subValue": "{{count}} posts removed" },
-        "emailStatus": { "title": "Email Status", "subValue": "Sent today ({{failed}} failed, {{pending}} pending)" }
+        "totalUsers": {
+          "title": "Total Users",
+          "subValue": "{{count}} banned accounts"
+        },
+        "activeSessions": {
+          "title": "Active Sessions",
+          "subValue": "Number of currently active tokens in the system"
+        },
+        "openReports": {
+          "title": "Open Reports",
+          "subValue": "Reports awaiting review"
+        },
+        "queuedPosts": {
+          "title": "Queued Posts",
+          "subValue": "Awaiting moderator approval"
+        },
+        "totalPosts": {
+          "title": "Total Posts",
+          "subValue": "{{count}} posts removed"
+        },
+        "emailStatus": {
+          "title": "Email Status",
+          "subValue": "Sent today ({{failed}} failed, {{pending}} pending)"
+        }
       }
     },
     "moderation": {
@@ -876,11 +911,26 @@
       "subtitle": "Manage the platform's core operating rules in real time.",
       "loadError": "An error occurred while loading system settings.",
       "items": {
-        "registrationEnabled": { "title": "User Registration", "description": "Turn new user registrations on the platform on or off." },
-        "moderationEnabled": { "title": "Moderation System", "description": "Enable reported content being routed into the moderator queue." },
-        "verifiedOnlyPosting": { "title": "Only Verified Users Can Post", "description": "When enabled, only blue-check (verified) accounts can publish posts." },
-        "botEnabled": { "title": "Bot System", "description": "Enable AI bot accounts to automatically publish posts." },
-        "readOnlyMode": { "title": "Maintenance Mode (Read-Only)", "description": "When enabled, users can't perform write actions (posts, messages, etc.); reading remains open." }
+        "registrationEnabled": {
+          "title": "User Registration",
+          "description": "Turn new user registrations on the platform on or off."
+        },
+        "moderationEnabled": {
+          "title": "Moderation System",
+          "description": "Enable reported content being routed into the moderator queue."
+        },
+        "verifiedOnlyPosting": {
+          "title": "Only Verified Users Can Post",
+          "description": "When enabled, only blue-check (verified) accounts can publish posts."
+        },
+        "botEnabled": {
+          "title": "Bot System",
+          "description": "Enable AI bot accounts to automatically publish posts."
+        },
+        "readOnlyMode": {
+          "title": "Maintenance Mode (Read-Only)",
+          "description": "When enabled, users can't perform write actions (posts, messages, etc.); reading remains open."
+        }
       }
     },
     "toasts": {
@@ -899,7 +949,51 @@
       "postApproved": "Post approved and published.",
       "postRemoved": "Post removed from the system.",
       "systemSettingUpdated": "System setting updated.",
-      "systemSettingError": "An error occurred while updating the setting."
+      "systemSettingError": "An error occurred while updating the setting.",
+      "mobileReleaseUpdated": "Mobile release published.",
+      "mobileReleaseError": "Couldn't publish the mobile release."
+    },
+    "mobileRelease": {
+      "title": "Mobile Release",
+      "subtitle": "Publish the Android APK version metadata that the app and the download page read.",
+      "formTitle": "Current release",
+      "formDescription": "Upload the APK to the server first, then publish its details here. No redeploy needed — this takes effect immediately.",
+      "loadError": "Could not load the mobile release settings.",
+      "optional": "(optional)",
+      "checksumInvalid": "The checksum must be exactly 64 hexadecimal characters.",
+      "submit": "Publish release",
+      "fields": {
+        "latestVersionCode": {
+          "label": "Latest version code",
+          "placeholder": "e.g. 3",
+          "hint": "The version code EAS assigned to the build. Must match exactly, or the app will never see the update."
+        },
+        "latestVersionName": {
+          "label": "Latest version name",
+          "placeholder": "e.g. 1.0.0",
+          "hint": "The human-readable version shown to users."
+        },
+        "minSupportedVersionCode": {
+          "label": "Minimum supported version code",
+          "placeholder": "e.g. 1",
+          "hint": "Installs below this are hard-blocked until the user updates. For a first release, use the same value as the latest version code."
+        },
+        "apkUrl": {
+          "label": "APK URL",
+          "placeholder": "https://api.example.com/api/v1/mobile/download/socialhan-1.0.0.apk",
+          "hint": "Full download URL. Must point at a file already uploaded to the releases directory on the server."
+        },
+        "apkSha256": {
+          "label": "APK SHA-256 checksum",
+          "placeholder": "64 hex characters",
+          "hint": "Run: sha256sum socialhan-1.0.0.apk — shown on the download page so users can verify the file."
+        },
+        "changelogUrl": {
+          "label": "Changelog URL",
+          "placeholder": "https://example.com/changelog",
+          "hint": "Optional link to release notes."
+        }
+      }
     }
   },
   "errors": {
