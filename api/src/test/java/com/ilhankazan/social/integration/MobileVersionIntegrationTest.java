@@ -91,6 +91,60 @@ class MobileVersionIntegrationTest extends BaseIntegrationTest {
         assertThat(download("nonexistent-release.apk").getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
+    @Test
+    void releasePublishingRejectsOffHostUrlsAndABrickingMinimum() throws Exception {
+        String adminToken = registerAndPromoteToAdmin("mobile-rel-validation");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+
+        String sha = "b".repeat(64);
+        String validUrl = "https://api.example.com/api/v1/mobile/download/app-1.0.0.apk";
+
+        // Off-host, non-https, and script-scheme payloads must all be refused.
+        for (String badUrl : new String[] {
+            "javascript:alert(1)",
+            "http://evil.example/malware.apk",
+            "https://evil.example/malware.apk",
+            "data:text/html;base64,PHNjcmlwdD4=",
+            "file:///etc/passwd",
+            "intent://evil#Intent;scheme=http;end",
+        }) {
+            MobileReleaseRequest bad = new MobileReleaseRequest(42, "1.2.0", 40, badUrl, sha, null);
+            assertThat(restTemplate.exchange("/api/v1/admin/mobile-release", HttpMethod.PUT,
+                new HttpEntity<>(bad, headers), String.class).getStatusCode())
+                .as("apkUrl %s must be rejected", badUrl)
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+
+        // A minimum above the latest build would hard-block every installed app.
+        MobileReleaseRequest bricking = new MobileReleaseRequest(10, "1.0.0", 999_999, validUrl, sha, null);
+        assertThat(restTemplate.exchange("/api/v1/admin/mobile-release", HttpMethod.PUT,
+            new HttpEntity<>(bricking, headers), String.class).getStatusCode())
+            .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        // The well-formed equivalent still succeeds.
+        MobileReleaseRequest good = new MobileReleaseRequest(42, "1.2.0", 40, validUrl, sha, null);
+        assertThat(restTemplate.exchange("/api/v1/admin/mobile-release", HttpMethod.PUT,
+            new HttpEntity<>(good, headers), Void.class).getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void downloadServesOnlyTheCurrentlyPublishedFilename() throws Exception {
+        String adminToken = registerAndPromoteToAdmin("mobile-rel-download");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+
+        MobileReleaseRequest release = new MobileReleaseRequest(
+            7, "1.0.0", 1, "https://api.example.com/api/v1/mobile/download/published.apk", "c".repeat(64), null);
+        restTemplate.exchange("/api/v1/admin/mobile-release", HttpMethod.PUT,
+            new HttpEntity<>(release, headers), Void.class);
+
+        // A stray file in the releases directory is not downloadable just because it
+        // matches the filename pattern — only the published release name is served.
+        assertThat(download("backup.apk").getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(download("old-release.apk").getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
     private ResponseEntity<String> download(String filename) {
         return restTemplate.getForEntity("/api/v1/mobile/download/{filename}", String.class, filename);
     }

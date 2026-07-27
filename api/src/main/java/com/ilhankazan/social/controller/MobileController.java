@@ -54,6 +54,16 @@ public class MobileController {
             throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_FILENAME", "Invalid file name");
         }
 
+        // Serve only the release currently published through the admin panel, never
+        // "whatever matches the pattern in that directory". Without this the volume
+        // is effectively a public bucket keyed by filename: a stray backup, a
+        // superseded build, or a hardlink to a file outside the directory (which
+        // NOFOLLOW_LINKS cannot detect, since a hardlink has no target to resolve)
+        // would all be downloadable by anyone who guesses the name.
+        if (!filename.equals(publishedApkFilename())) {
+            throw new AppException(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "Release file not found");
+        }
+
         Path releasesRoot = Path.of(releasesDir).toAbsolutePath().normalize();
         Path resolved = releasesRoot.resolve(filename).normalize();
 
@@ -79,6 +89,20 @@ public class MobileController {
         return ResponseEntity.ok()
             .contentType(ANDROID_PACKAGE)
             .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+            // Spring writes the full body alongside a 416 when a Range request carries
+            // too many ranges, turning a small request into a full-file response. The
+            // APK is downloaded whole anyway, so range support buys nothing here.
+            .header(HttpHeaders.ACCEPT_RANGES, "none")
             .body(resource);
+    }
+
+    /** Basename of the APK URL currently published via the admin panel, or null. */
+    private String publishedApkFilename() {
+        String apkUrl = mobileReleaseManager.getCurrentRelease().apkUrl();
+        if (apkUrl == null || apkUrl.isBlank()) {
+            return null;
+        }
+        int lastSlash = apkUrl.lastIndexOf('/');
+        return lastSlash >= 0 ? apkUrl.substring(lastSlash + 1) : apkUrl;
     }
 }

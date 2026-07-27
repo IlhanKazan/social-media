@@ -3,7 +3,9 @@ package com.ilhankazan.social.manager;
 import com.ilhankazan.social.dto.admin.MobileReleaseRequest;
 import com.ilhankazan.social.dto.mobile.MobileVersionResponse;
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.exception.AppException;
 import com.ilhankazan.social.service.AccountService;
+import org.springframework.http.HttpStatus;
 import com.ilhankazan.social.service.AuditLogService;
 import com.ilhankazan.social.service.SystemSettingsService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,14 @@ public class MobileReleaseManager {
 
     @Transactional
     public void updateRelease(MobileReleaseRequest request) {
+        // A minimum above the latest build hard-blocks every installed app behind a
+        // non-dismissable "update required" screen with nowhere to go — a global kill
+        // switch that a typo reaches as easily as an attacker does.
+        if (request.minSupportedVersionCode() > request.latestVersionCode()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_MIN_VERSION",
+                "minSupportedVersionCode cannot be greater than latestVersionCode");
+        }
+
         Account admin = getCurrentAdmin();
         Long adminId = admin.getId();
 
