@@ -16,12 +16,14 @@ import java.util.Arrays;
 public class EnvironmentSanityCheck implements ApplicationListener<ApplicationStartedEvent> {
 
     private static final String DEV_JWT_SECRET = "dev-secret-must-be-at-least-32-bytes-long-please-change";
+    private static final String DEV_METRICS_PASSWORD = "dev-metrics-password-change-me";
 
     private final Environment env;
     private final AppProperties.JwtProperties jwtProps;
     private final AppProperties.CloudinaryProperties cloudinaryProps;
     private final AppProperties.EmailProperties emailProps;
     private final AppProperties.FirebaseProperties firebaseProps;
+    private final AppProperties.MetricsProperties metricsProps;
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -56,6 +58,12 @@ public class EnvironmentSanityCheck implements ApplicationListener<ApplicationSt
         boolean moderationEnabled = Boolean.parseBoolean(env.getProperty("app.moderation.enabled", "true"));
         if (moderationEnabled && !StringUtils.hasText(openAiKey)) {
             log.error("FATAL: MODERATION_ENABLED=true but OPENAI_API_KEY is missing in prod profile.");
+            failed = true;
+        }
+
+        if (!StringUtils.hasText(metricsProps.password()) ||
+            DEV_METRICS_PASSWORD.equals(metricsProps.password())) {
+            log.error("FATAL: Weak or default METRICS_PASSWORD in prod profile. /actuator/prometheus would be scrapeable with a public credential.");
             failed = true;
         }
 

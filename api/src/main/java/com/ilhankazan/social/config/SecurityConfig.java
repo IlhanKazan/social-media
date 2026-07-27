@@ -5,7 +5,12 @@ import com.ilhankazan.social.security.ReadOnlyModeFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,8 +39,36 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ReadOnlyModeFilter readOnlyModeFilter;
     private final AppProperties.CorsProperties corsProps;
+    private final AppProperties.MetricsProperties metricsProps;
+
+    /**
+     * Scoped to /actuator/prometheus only, and ordered ahead of the main chain.
+     * A monitoring agent can't hold a 15-minute JWT, so this single endpoint takes
+     * long-lived HTTP Basic credentials instead. Every other /actuator path still
+     * falls through to the main chain's ROLE_ADMIN rule.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain prometheusFilterChain(HttpSecurity http) throws Exception {
+        UserDetails scraper = User.withUsername(metricsProps.username())
+            .password(passwordEncoder().encode(metricsProps.password()))
+            .roles("METRICS")
+            .build();
+
+        return http
+            .securityMatcher("/actuator/prometheus")
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("METRICS"))
+            .httpBasic(Customizer.withDefaults())
+            // Scoped to this chain only — the app's own UserDetailsService is untouched.
+            .userDetailsService(new InMemoryUserDetailsManager(scraper))
+            .build();
+    }
 
     @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)

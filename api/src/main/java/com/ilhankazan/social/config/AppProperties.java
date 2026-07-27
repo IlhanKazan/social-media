@@ -64,4 +64,16 @@ public class AppProperties {
     public record ProxyTrustProperties(
         List<String> trustedProxyCidrs
     ) {}
+
+    /**
+     * Credentials for scraping /actuator/prometheus. A monitoring agent (Netdata)
+     * can't hold a JWT — access tokens expire every 15 minutes — so that one
+     * endpoint takes long-lived HTTP Basic credentials instead. Everything else
+     * under /actuator stays ROLE_ADMIN + JWT.
+     */
+    @ConfigurationProperties(prefix = "app.metrics")
+    public record MetricsProperties(
+        String username,
+        String password
+    ) {}
 }
