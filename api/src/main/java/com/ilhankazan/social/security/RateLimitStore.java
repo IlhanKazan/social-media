@@ -11,10 +11,14 @@ import java.util.function.Function;
 @Component
 public class RateLimitStore {
 
-    // Bounded so a flood of distinct (or spoofed X-Forwarded-For) IPs can't grow the store without limit.
+    // The bucket IS the cache value, so evicting an entry hands the caller a fresh
+    // full-capacity bucket. The TTL must therefore outlive the longest @RateLimit
+    // window (currently 60 minutes) — at 15 minutes, every hourly limit was really
+    // "capacity per 15 idle minutes", i.e. ~4x looser than declared. Memory is
+    // bounded by maximumSize, not by this TTL.
     private final Cache<String, Bucket> cache = Caffeine.newBuilder()
         .maximumSize(50_000)
-        .expireAfterAccess(Duration.ofMinutes(15))
+        .expireAfterAccess(Duration.ofMinutes(65))
         .build();
 
     public Bucket bucket(String key, Function<String, Bucket> supplier) {

@@ -7,10 +7,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,9 +56,15 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain prometheusFilterChain(HttpSecurity http) throws Exception {
         UserDetails scraper = User.withUsername(metricsProps.username())
-            .password(passwordEncoder().encode(metricsProps.password()))
+            .password(metricsProps.password())
             .roles("METRICS")
             .build();
+
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        // Scoped to this chain only — the app's own UserDetailsService and its
+        // BCrypt encoder are untouched.
+        provider.setUserDetailsService(new InMemoryUserDetailsManager(scraper));
+        provider.setPasswordEncoder(SCRAPER_SECRET_ENCODER);
 
         return http
             .securityMatcher("/actuator/prometheus")
@@ -62,10 +73,43 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("METRICS"))
             .httpBasic(Customizer.withDefaults())
-            // Scoped to this chain only — the app's own UserDetailsService is untouched.
-            .userDetailsService(new InMemoryUserDetailsManager(scraper))
+            .authenticationProvider(provider)
             .build();
     }
+
+    /**
+     * Constant-time SHA-256 comparison for the scraper credential.
+     *
+     * Deliberately NOT BCrypt. A work factor exists to slow brute-force of
+     * low-entropy human passwords; this secret is machine-generated and
+     * length-enforced at startup, so the factor buys nothing — while costing
+     * ~875ms of CPU on every *failed* attempt. Since the endpoint is
+     * unauthenticated by definition (anyone may present a Basic header) and the
+     * @RateLimit aspect cannot apply to framework-provided actuator endpoints,
+     * that turned a handful of concurrent requests into a CPU-exhaustion DoS.
+     * Hashing both sides to a fixed length keeps the comparison constant-time
+     * and leaks no length information.
+     */
+    private static final PasswordEncoder SCRAPER_SECRET_ENCODER = new PasswordEncoder() {
+        @Override
+        public String encode(CharSequence rawPassword) {
+            return rawPassword.toString();
+        }
+
+        @Override
+        public boolean matches(CharSequence rawPassword, String encodedPassword) {
+            if (rawPassword == null || encodedPassword == null) return false;
+            return MessageDigest.isEqual(sha256(rawPassword.toString()), sha256(encodedPassword));
+        }
+
+        private byte[] sha256(String value) {
+            try {
+                return MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException("SHA-256 unavailable", e);
+            }
+        }
+    };
 
     @Bean
     @Order(2)
