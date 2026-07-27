@@ -1,5 +1,6 @@
 import { LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Easing, Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function ActionSheet({ visible, onClose, title, options }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const slide = useRef(new Animated.Value(0)).current;
 
@@ -80,7 +82,7 @@ export function ActionSheet({ visible, onClose, title, options }: Props) {
                 onPress={onClose}
               >
                 <Text className="text-[16px] font-sans-semibold text-neutral-900 dark:text-neutral-50">
-                  Vazgeç
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
             </View>

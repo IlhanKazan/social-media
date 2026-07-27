@@ -2,9 +2,11 @@ package com.ilhankazan.social.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.ilhankazan.social.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -44,14 +46,14 @@ public class CloudinaryStorageService {
 
     private Map upload(MultipartFile file, String folder, boolean authenticated) {
         if (file.getSize() > 5 * 1024 * 1024) {
-            throw new IllegalArgumentException("Dosya boyutu 5MB'dan büyük olamaz.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "FILE_TOO_LARGE", "Dosya boyutu 5MB'dan büyük olamaz.");
         }
 
         try {
             String detectedType = tika.detect(file.getBytes());
 
             if (!ALLOWED_MIME_TYPES.contains(detectedType)) {
-                throw new IllegalArgumentException("Güvenlik ihlali: Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.");
+                throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_FILE_FORMAT", "Güvenlik ihlali: Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.");
             }
 
             Map options = ObjectUtils.asMap(

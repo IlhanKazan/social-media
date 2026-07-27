@@ -5,6 +5,9 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import type { NotificationResponse } from '@/types/api';
+// Not a component: read the i18next singleton directly rather than the
+// useTranslation hook (this callback runs inside a STOMP subscription, not render).
+import i18n from '@/i18n';
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -15,17 +18,18 @@ interface WebSocketContextType {
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
 const getToastMessage = (notif: NotificationResponse) => {
-  const name = notif.actor ? (notif.actor.displayName || notif.actor.username) : "Sistem Bildirimi";
+  const name = notif.actor ? (notif.actor.displayName || notif.actor.username) : i18n.t('notifications.systemNotification');
 
-  switch (notif.type) {
-    case 'LIKE': return `${name} gönderini beğendi.`;
-    case 'REPLY': return `${name} sana bir yanıt verdi.`;
-    case 'REPOST': return `${name} gönderini yeniden paylaştı.`;
-    case 'QUOTE_REPOST': return `${name} gönderini alıntıladı.`;
-    case 'FOLLOW': return `${name} seni takip etmeye başladı.`;
-    case 'MODERATION_ALERT': return `Gönderin topluluk kuralları sebebiyle gizlendi.`;
-    default: return `${name} yeni bir etkileşimde bulundu.`;
-  }
+  if (notif.type === 'MODERATION_ALERT') return i18n.t('notifications.types.moderationAlert');
+
+  const typeKey = notif.type === 'LIKE' ? 'like'
+    : notif.type === 'REPLY' ? 'reply'
+    : notif.type === 'REPOST' ? 'repost'
+    : notif.type === 'QUOTE_REPOST' ? 'quoteRepost'
+    : notif.type === 'FOLLOW' ? 'follow'
+    : 'default';
+
+  return `${name} ${i18n.t(`notifications.types.${typeKey}`)}`;
 };
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
@@ -61,7 +65,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             if (notification.type === 'LIKE' || notification.type === 'REPOST') return;
             if (notification.type === 'FOLLOW' && notification.count > 1) return;
 
-            toast(notification.type === 'MODERATION_ALERT' ? 'Uyarı' : 'Yeni Bildirim', {
+            toast(notification.type === 'MODERATION_ALERT' ? i18n.t('notifications.toastWarningTitle') : i18n.t('notifications.toastNewTitle'), {
               description: getToastMessage(notification),
             });
           }

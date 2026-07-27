@@ -12,12 +12,14 @@ import {
   Trash2,
   UserPlus,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 import { useDeleteNotification, useMarkAsRead } from '@/features/notifications/queries';
 import { useNow } from '@/hooks/use-now';
 import { formatShortRelativeTime } from '@/lib/relative-time';
 import type { NotificationResponse } from '@/types/api';
+import type { TFunction } from 'i18next';
 
 interface Props {
   notification: NotificationResponse;
@@ -64,21 +66,22 @@ function icon(type: NotificationResponse['type']) {
   }
 }
 
-function message(type: NotificationResponse['type']) {
+function message(t: TFunction, type: NotificationResponse['type']) {
   switch (type) {
-    case 'LIKE': return 'gönderini beğendi.';
-    case 'REPLY': return 'sana bir yanıt verdi.';
-    case 'MENTION': return 'senden bahsetti.';
-    case 'FOLLOW': return 'seni takip etmeye başladı.';
-    case 'REPOST': return 'gönderini yeniden paylaştı.';
-    case 'QUOTE_REPOST': return 'gönderini alıntıladı.';
-    case 'MODERATION_ALERT': return 'Gönderin topluluk kuralları ihlali sebebiyle gizlendi.';
-    case 'RECOMMENDATION': return 'beğenebileceğin bir gönderi paylaştı.';
-    default: return 'yeni bir bildirim gönderdi.';
+    case 'LIKE': return t('notifications.types.like');
+    case 'REPLY': return t('notifications.types.reply');
+    case 'MENTION': return t('notifications.types.mention');
+    case 'FOLLOW': return t('notifications.types.follow');
+    case 'REPOST': return t('notifications.types.repost');
+    case 'QUOTE_REPOST': return t('notifications.types.quoteRepost');
+    case 'MODERATION_ALERT': return t('notifications.types.moderationAlert');
+    case 'RECOMMENDATION': return t('notifications.types.recommendation');
+    default: return t('notifications.types.default');
   }
 }
 
 export function NotificationCard({ notification }: Props) {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const markAsRead = useMarkAsRead();
   const deleteNotification = useDeleteNotification();
@@ -115,20 +118,20 @@ export function NotificationCard({ notification }: Props) {
 
         <Text className="text-[16px] leading-[22px] text-neutral-900 dark:text-neutral-50">
           {isSystem ? (
-            <Text className="font-sans-bold text-red-500">Sistem Bildirimi </Text>
+            <Text className="font-sans-bold text-red-500">{t('notifications.systemNotification')} </Text>
           ) : (
             <Text className="font-sans-bold">
               {(notification.actor?.displayName || notification.actor?.username) + ' '}
               {notification.count > 1 && (
-                <Text className="font-normal text-neutral-500">{`ve ${notification.count - 1} kişi daha `}</Text>
+                <Text className="font-normal text-neutral-500">{t('notifications.moreCount', { count: notification.count - 1 })} </Text>
               )}
             </Text>
           )}
-          <Text className="text-neutral-700 dark:text-neutral-300">{message(notification.type)}</Text>
+          <Text className="text-neutral-700 dark:text-neutral-300">{message(t, notification.type)}</Text>
         </Text>
 
         <Text className="mt-1 text-[13px] text-neutral-500">
-          {formatShortRelativeTime(notification.updatedAt ?? notification.createdAt, now)}
+          {formatShortRelativeTime(notification.updatedAt ?? notification.createdAt, now, t, i18n.language)}
         </Text>
       </View>
     </Pressable>

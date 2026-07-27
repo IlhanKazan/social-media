@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Redirect, Tabs } from 'expo-router';
 import { Bell, Home, Mail, Search } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -49,6 +50,7 @@ function AvatarTabIcon({ focused, size }: { focused: boolean; size: number }) {
 }
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const token = useAuthStore((s) => s.token);
   const colorScheme = useColorScheme();
   const dark = colorScheme === 'dark';
@@ -90,21 +92,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Anasayfa',
+          title: t('nav.home'),
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Ara',
+          title: t('nav.search'),
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
-          title: 'Bildirimler',
+          title: t('nav.notifications'),
           tabBarIcon: ({ color, size }) => <Bell color={color} size={size} />,
           tabBarBadge: unreadCount.data ? unreadCount.data : undefined,
         }}
@@ -112,7 +114,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="messages"
         options={{
-          title: 'Mesajlar',
+          title: t('nav.messages'),
           tabBarIcon: ({ color, size }) => <Mail color={color} size={size} />,
           tabBarBadge: unreadMessages.data ? unreadMessages.data : undefined,
         }}
@@ -120,7 +122,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: t('nav.profile'),
           tabBarIcon: ({ focused, size }) => <AvatarTabIcon focused={focused} size={size + 2} />,
         }}
       />

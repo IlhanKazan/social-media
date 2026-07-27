@@ -17,9 +17,15 @@ const MOBILE_HEADERS = { 'X-Client-Platform': 'mobile' };
 // Every caller (interceptor, auth gate) shares this one in-flight promise.
 let refreshInFlight: Promise<boolean> | null = null;
 
+// Fallback when a response doesn't carry an explicit TTL. Deliberately shorter
+// than the server's 15min so a stale assumption expires early rather than late.
+const DEFAULT_ACCESS_TTL_MS = 10 * 60 * 1000;
+
 interface AuthState {
   token: string | null;
   account: AccountSummary | null;
+  /** Absolute epoch-ms the current access token expires at; null when signed out. */
+  tokenExpiresAt: number | null;
   hydrated: boolean;
   setHydrated: () => void;
   login: (response: AuthResponse) => Promise<void>;
@@ -32,13 +38,18 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       token: null,
       account: null,
+      tokenExpiresAt: null,
       hydrated: false,
       setHydrated: () => set({ hydrated: true }),
       login: async (resp) => {
         if (resp.refreshToken) {
           await setRefreshToken(resp.refreshToken);
         }
-        set({ token: resp.accessToken, account: resp.account });
+        set({
+          token: resp.accessToken,
+          account: resp.account,
+          tokenExpiresAt: Date.now() + (resp.accessTokenExpiresIn || DEFAULT_ACCESS_TTL_MS),
+        });
       },
       logout: async () => {
         // Unregister before /auth/logout blacklists the access token below.
@@ -56,7 +67,7 @@ export const useAuthStore = create<AuthState>()(
           // best-effort server-side revocation; clear local state regardless
         }
         await clearRefreshToken();
-        set({ token: null, account: null });
+        set({ token: null, account: null, tokenExpiresAt: null });
       },
       tryRefresh: () => {
         if (refreshInFlight) return refreshInFlight;
@@ -64,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
         refreshInFlight = (async () => {
           const refreshToken = await getRefreshToken();
           if (!refreshToken) {
-            set({ token: null, account: null });
+            set({ token: null, account: null, tokenExpiresAt: null });
             return false;
           }
           try {
@@ -76,11 +87,15 @@ export const useAuthStore = create<AuthState>()(
             if (data.refreshToken) {
               await setRefreshToken(data.refreshToken);
             }
-            set({ token: data.accessToken, account: data.account });
+            set({
+              token: data.accessToken,
+              account: data.account,
+              tokenExpiresAt: Date.now() + (data.accessTokenExpiresIn || DEFAULT_ACCESS_TTL_MS),
+            });
             return true;
           } catch {
             await clearRefreshToken();
-            set({ token: null, account: null });
+            set({ token: null, account: null, tokenExpiresAt: null });
             return false;
           }
         })().finally(() => {

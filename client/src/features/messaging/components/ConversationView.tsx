@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Loader2, Send, ArrowLeft, CheckCheck, Clock, ImagePlus } from 'lucide-react';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { useMessages, useMarkMessagesRead } from '../hooks/use-messages';
 import { useSendDmImage } from '../hooks/use-dm-attachments';
 import { useAuthStore } from '@/stores/auth-store';
@@ -20,6 +21,7 @@ import { useConversations } from '../hooks/use-conversations';
 import type { MessageResponse, PageResponse } from '@/types/api';
 
 export function ConversationView() {
+  const { t } = useTranslation();
   const { conversationId } = useParams();
   const id = Number(conversationId);
   const account = useAuthStore((state) => state.account);
@@ -118,7 +120,7 @@ export function ConversationView() {
         <div className="h-20 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800/50 flex items-center justify-center">
           <Send className="h-8 w-8 text-zinc-400" />
         </div>
-        <p className="font-medium text-lg">Bir mesaj seç</p>
+        <p className="font-medium text-lg">{t('messaging.conversation.selectPrompt')}</p>
       </div>
     );
   }
@@ -182,7 +184,7 @@ export function ConversationView() {
                         className="max-w-none sm:max-w-none w-screen h-[100dvh] p-0 m-0 border-none bg-black/95 shadow-none flex items-center justify-center rounded-none text-white [&>button]:text-white [&>button]:hover:bg-white/20 [&>button]:right-4 [&>button]:top-4"
                         showCloseButton={true}
                       >
-                        <DialogTitle className="sr-only">Fotoğraf</DialogTitle>
+                        <DialogTitle className="sr-only">{t('messaging.conversation.imageDialogTitle')}</DialogTitle>
                         <img src={msg.imageUrl} alt="" className="max-w-full max-h-full w-auto h-auto object-contain select-none" />
                       </DialogContent>
                     </Dialog>
@@ -228,14 +230,14 @@ export function ConversationView() {
 
                   {!msg.content && !msg.imageUrl && !msg.sharedPost && (
                     <div className="rounded-2xl px-4 py-2 text-[13px] italic text-muted-foreground bg-zinc-100 dark:bg-zinc-800/80">
-                      Bu gönderi artık mevcut değil
+                      {t('messaging.conversation.postUnavailable')}
                     </div>
                   )}
                 </div>
 
                 {isMine && msg.isOptimistic && (
                   <div className="flex items-center gap-1 mt-1 mb-1 text-[11px] text-muted-foreground pr-1">
-                    <Clock className="h-3 w-3" /> Gönderiliyor...
+                    <Clock className="h-3 w-3" /> {t('messaging.conversation.sending')}
                   </div>
                 )}
 
@@ -249,7 +251,7 @@ export function ConversationView() {
                       <>
                         <span>·</span>
                         <CheckCheck className="h-3.5 w-3.5 text-blue-500" />
-                        <span>Görüldü</span>
+                        <span>{t('messaging.conversation.seen')}</span>
                       </>
                     )}
                   </div>
@@ -288,7 +290,7 @@ export function ConversationView() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onSelect={(e) => setCursorPos(e.currentTarget.selectionStart ?? 0)}
-              placeholder="Yeni mesaj..."
+              placeholder={t('messaging.conversation.inputPlaceholder')}
               className="min-h-[44px] max-h-32 border-0 shadow-none resize-none bg-transparent py-3 px-4 focus-visible:ring-0"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

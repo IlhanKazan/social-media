@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { ShieldAlert, Loader2, AlertTriangle, ExternalLink, CheckCircle, Gavel } from 'lucide-react';
 import { useAdminReports, useResolveReport, type ReportGroup } from './hooks/use-admin-reports';
+import { useDateLocale } from '@/hooks/use-date-locale';
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,11 +13,14 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 export function AdminReportsPage() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
+  const defaultResolution = t('admin.reports.dialog.defaultResolution');
   const { data: reports, isLoading, isError } = useAdminReports();
   const resolveMutation = useResolveReport();
 
   const [selectedReport, setSelectedReport] = useState<ReportGroup | null>(null);
-  const [resolution, setResolution] = useState('İncelendi, ihlal bulunmadı.');
+  const [resolution, setResolution] = useState(defaultResolution);
   const [removePost, setRemovePost] = useState(false);
   const [banUser, setBanUser] = useState(false);
 
@@ -30,7 +34,7 @@ export function AdminReportsPage() {
     }, {
       onSuccess: () => {
         setSelectedReport(null);
-        setResolution('İncelendi, ihlal bulunmadı.');
+        setResolution(defaultResolution);
         setRemovePost(false);
         setBanUser(false);
       }
@@ -39,7 +43,7 @@ export function AdminReportsPage() {
 
   const closeDialog = () => {
     setSelectedReport(null);
-    setResolution('İncelendi, ihlal bulunmadı.');
+    setResolution(defaultResolution);
     setRemovePost(false);
     setBanUser(false);
   };
@@ -55,7 +59,7 @@ export function AdminReportsPage() {
   if (isError) {
     return (
       <div className="p-8 text-center text-destructive border border-destructive/20 rounded-xl bg-destructive/5">
-        Raporlar yüklenirken bir bağlantı hatası oluştu. Lütfen sayfayı yenileyin.
+        {t('admin.reports.loadError')}
       </div>
     );
   }
@@ -63,9 +67,9 @@ export function AdminReportsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Kullanıcı Raporları</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('admin.reports.title')}</h1>
         <p className="text-muted-foreground text-[15px]">
-          Topluluk tarafından şikayet edilen gönderileri inceleyin ve aksiyon alın.
+          {t('admin.reports.subtitle')}
         </p>
       </div>
 
@@ -76,8 +80,8 @@ export function AdminReportsPage() {
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
             <div>
-              <h3 className="font-bold text-foreground text-lg">Sistem Tertemiz!</h3>
-              <p>Bekleyen hiçbir şikayet bulunmuyor.</p>
+              <h3 className="font-bold text-foreground text-lg">{t('admin.reports.emptyTitle')}</h3>
+              <p>{t('admin.reports.emptyDesc')}</p>
             </div>
           </div>
         ) : (
@@ -89,15 +93,15 @@ export function AdminReportsPage() {
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="font-bold text-[15px] text-foreground flex items-center gap-2">
-                    Gönderi #{report.postId}
+                    {t('admin.reports.postTitle', { id: report.postId })}
                   </h3>
                   <div className="flex flex-col gap-1 text-[13px]">
                     <span className="font-semibold text-destructive flex items-center gap-1.5">
                       <AlertTriangle className="h-3.5 w-3.5" />
-                      Toplam {report.reportCount} Kullanıcı Şikayeti
+                      {t('admin.reports.reportCount', { count: report.reportCount })}
                     </span>
                     <span className="text-muted-foreground">
-                      Son bildirim: {formatDistanceToNow(new Date(report.latestReportedAt), { addSuffix: true, locale: tr })}
+                      {t('admin.reports.lastReport', { date: formatDistanceToNow(new Date(report.latestReportedAt), { addSuffix: true, locale: dateLocale }) })}
                     </span>
                   </div>
                 </div>
@@ -110,11 +114,11 @@ export function AdminReportsPage() {
                   className="flex-1 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 transition-colors"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
-                  Görüntüle
+                  {t('admin.reports.view')}
                 </Link>
 
                 <Button size="sm" className="flex-1 gap-2 whitespace-nowrap" onClick={() => setSelectedReport(report)}>
-                  <Gavel className="h-4 w-4 shrink-0" /> Karar Ver
+                  <Gavel className="h-4 w-4 shrink-0" /> {t('admin.reports.decide')}
                 </Button>
               </div>
             </Card>
@@ -125,23 +129,23 @@ export function AdminReportsPage() {
       <Dialog open={!!selectedReport} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>Şikayeti Çözümle</DialogTitle>
+            <DialogTitle>{t('admin.reports.dialog.title')}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6 pt-4">
             <div className="space-y-3">
-              <Label className="text-muted-foreground uppercase text-xs font-bold tracking-wider">Admin Çözüm Notu</Label>
+              <Label className="text-muted-foreground uppercase text-xs font-bold tracking-wider">{t('admin.reports.dialog.resolutionLabel')}</Label>
               <Input
                 value={resolution}
                 onChange={(e) => setResolution(e.target.value)}
-                placeholder="Örn: Topluluk kurallarına aykırı değil."
+                placeholder={t('admin.reports.dialog.resolutionPlaceholder')}
                 className="h-11"
               />
             </div>
 
             <div className="space-y-4 p-5 bg-destructive/5 border border-destructive/20 rounded-xl">
               <h4 className="text-sm font-bold text-destructive flex items-center gap-2 border-b border-destructive/10 pb-2">
-                <AlertTriangle className="h-4 w-4" /> Yaptırım Uygula
+                <AlertTriangle className="h-4 w-4" /> {t('admin.reports.dialog.enforceTitle')}
               </h4>
 
               <div className="space-y-4">
@@ -155,8 +159,8 @@ export function AdminReportsPage() {
                     />
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-foreground block group-hover:text-destructive transition-colors">Gönderiyi kalıcı olarak sil</span>
-                    <span className="text-xs text-muted-foreground block mt-0.5">Gönderi tamamen kaldırılır ve sahibine bildirim gider.</span>
+                    <span className="text-sm font-bold text-foreground block group-hover:text-destructive transition-colors">{t('admin.reports.dialog.removePostLabel')}</span>
+                    <span className="text-xs text-muted-foreground block mt-0.5">{t('admin.reports.dialog.removePostDesc')}</span>
                   </div>
                 </label>
 
@@ -170,8 +174,8 @@ export function AdminReportsPage() {
                     />
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-foreground block group-hover:text-destructive transition-colors">Kullanıcıyı sistemden uzaklaştır</span>
-                    <span className="text-xs text-muted-foreground block mt-0.5">Gönderi sahibinin hesabı kalıcı olarak banlanır.</span>
+                    <span className="text-sm font-bold text-foreground block group-hover:text-destructive transition-colors">{t('admin.reports.dialog.banUserLabel')}</span>
+                    <span className="text-xs text-muted-foreground block mt-0.5">{t('admin.reports.dialog.banUserDesc')}</span>
                   </div>
                 </label>
               </div>
@@ -179,13 +183,13 @@ export function AdminReportsPage() {
           </div>
 
           <DialogFooter className="mt-6 gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={closeDialog}>İptal</Button>
+            <Button variant="ghost" onClick={closeDialog}>{t('admin.reports.dialog.cancel')}</Button>
             <Button
               variant={removePost || banUser ? "destructive" : "default"}
               onClick={handleResolve}
               disabled={resolveMutation.isPending || !resolution.trim()}
             >
-              {resolveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kararı Uygula'}
+              {resolveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('admin.reports.dialog.apply')}
             </Button>
           </DialogFooter>
         </DialogContent>

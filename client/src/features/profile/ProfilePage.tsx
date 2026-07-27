@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { Loader2, CalendarDays, Mail, Settings, BadgeCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useDateLocale } from '@/hooks/use-date-locale';
 import { EditProfileDialog } from './components/EditProfileDialog';
 import { FollowListDialog } from './components/FollowListDialog';
 import { useProfile } from './hooks/use-profile';
@@ -21,6 +22,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PostCard } from '@/features/feed/components/PostCard';
 
 export function ProfilePage() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const { username } = useParams<{ username: string }>();
   const currentUser = useAuthStore((state) => state.account);
   const { requireAuth } = useAuthGate();
@@ -56,7 +59,7 @@ export function ProfilePage() {
   }
 
   if (profileStatus === 'error' || !profile) {
-    return <div className="p-8 text-center text-muted-foreground">Kullanıcı bulunamadı.</div>;
+    return <div className="p-8 text-center text-muted-foreground">{t('profile.userNotFound')}</div>;
   }
 
   const isOwnProfile = currentUser?.username === profile.username;
@@ -129,7 +132,7 @@ export function ProfilePage() {
                   onClick={() => requireAuth(() => followMutation.mutate(profile.isFollowing))}
                   disabled={followMutation.isPending}
                 >
-                  {profile.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+                  {profile.isFollowing ? t('profile.following') : t('profile.follow')}
                 </Button>
               </>
             )}
@@ -152,29 +155,29 @@ export function ProfilePage() {
 
         <div className="flex items-center gap-2 mt-3 text-muted-foreground text-sm">
           <CalendarDays className="h-4 w-4" />
-          <span>{format(new Date(profile.joinedAt), 'MMMM yyyy', { locale: tr })} tarihinde katıldı</span>
+          <span>{t('profile.joinedOn', { date: format(new Date(profile.joinedAt), 'MMMM yyyy', { locale: dateLocale }) })}</span>
         </div>
 
         <div className="flex gap-4 mt-3 text-[15px]">
-          <FollowListDialog accountId={profile.id} type="following" count={profile.followingCount} label="Takip Edilen" />
-          <FollowListDialog accountId={profile.id} type="followers" count={profile.followerCount} label="Takipçi" />
+          <FollowListDialog accountId={profile.id} type="following" count={profile.followingCount} label={t('profile.followingLabel')} />
+          <FollowListDialog accountId={profile.id} type="followers" count={profile.followerCount} label={t('profile.followersLabel')} />
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList variant="line" className="w-full justify-start rounded-none border-b bg-transparent p-0 h-12">
-          <TabsTrigger value="posts" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Gönderiler</TabsTrigger>
-          <TabsTrigger value="replies" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Yanıtlar</TabsTrigger>
-          <TabsTrigger value="likes" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Beğeniler</TabsTrigger>
+          <TabsTrigger value="posts" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">{t('profile.tabPosts')}</TabsTrigger>
+          <TabsTrigger value="replies" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">{t('profile.tabReplies')}</TabsTrigger>
+          <TabsTrigger value="likes" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">{t('profile.tabLikes')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts" className="m-0 border-none outline-none">
-          {feedQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : feedQuery.status === 'error' ? <div className="p-4 text-center text-sm text-destructive">Yüklenemedi.</div> : (
+          {feedQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : feedQuery.status === 'error' ? <div className="p-4 text-center text-sm text-destructive">{t('profile.loadError')}</div> : (
             <div className="flex flex-col">
               {feedQuery.data.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
                 {feedQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-                {!feedQuery.hasNextPage && feedQuery.data.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Gönderi yok.</span>}
+                {!feedQuery.hasNextPage && feedQuery.data.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">{t('profile.noPosts')}</span>}
               </div>
             </div>
           )}
@@ -186,7 +189,7 @@ export function ProfilePage() {
               {repliesQuery.data?.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
                 {repliesQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-                {!repliesQuery.hasNextPage && repliesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Yanıt yok.</span>}
+                {!repliesQuery.hasNextPage && repliesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">{t('profile.noReplies')}</span>}
               </div>
             </div>
           )}
@@ -198,7 +201,7 @@ export function ProfilePage() {
               {likesQuery.data?.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
                 {likesQuery.isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-                {!likesQuery.hasNextPage && likesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">Beğenilen gönderi yok.</span>}
+                {!likesQuery.hasNextPage && likesQuery.data?.pages[0]?.content.length === 0 && <span className="text-sm text-muted-foreground">{t('profile.noLikedPosts')}</span>}
               </div>
             </div>
           )}

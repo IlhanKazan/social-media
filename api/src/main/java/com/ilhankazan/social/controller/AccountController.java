@@ -6,6 +6,7 @@ import com.ilhankazan.social.dto.account.MfaEnableRequest;
 import com.ilhankazan.social.dto.account.MyAccountResponse;
 import com.ilhankazan.social.dto.account.PublicAccountResponse;
 import com.ilhankazan.social.dto.account.TotpSetupResponse;
+import com.ilhankazan.social.dto.account.UpdateLanguageRequest;
 import com.ilhankazan.social.dto.account.UpdateProfileRequest;
 import com.ilhankazan.social.dto.auth.VerifyEmailRequest;
 import com.ilhankazan.social.manager.AccountManager;
@@ -67,6 +68,14 @@ public class AccountController {
     @PatchMapping("/me")
     public ResponseEntity<MyAccountResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(accountManager.updateProfile(request));
+    }
+
+    @Operation(summary = "Update preferred language", description = "Updates the account's preferred language, used when composing recipient-facing content server-side (e.g. push notifications).")
+    @ApiResponse(responseCode = "204", description = "Language successfully updated")
+    @PatchMapping("/me/language")
+    public ResponseEntity<Void> updateLanguage(@Valid @RequestBody UpdateLanguageRequest request) {
+        accountManager.updateLanguage(request.language());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Update avatar", description = "Uploads and updates the user's profile image.")

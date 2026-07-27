@@ -1,4 +1,7 @@
 import '../global.css';
+// Side effect: initializes crash reporting as early as possible (no-op if
+// no DSN is configured).
+import '@/lib/sentry';
 
 import {
   Inter_400Regular,
@@ -16,6 +19,7 @@ import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AppUpdateGate } from '@/components/app-update-gate';
 import { SessionGate } from '@/components/session-gate';
 import { MessagingProvider } from '@/features/messaging/messaging-provider';
 // Side effect: makes Inter the default font for every Text/TextInput.
@@ -26,6 +30,9 @@ import { WebSocketProvider } from '@/lib/ws';
 // Import for its side effect: rehydrating the theme store re-applies the saved
 // mode to NativeWind before first paint.
 import '@/stores/theme-store';
+// Side effect: initializes i18next and applies the persisted/device language
+// before first paint.
+import '@/stores/language-store';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -63,32 +70,34 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={theme}>
-          <SessionGate>
-            <WebSocketProvider>
-              <MessagingProvider>
-                <PushNotificationProvider>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      contentStyle: { backgroundColor: background },
-                      headerStyle: { backgroundColor: background },
-                      headerShadowVisible: false,
-                      headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 18, color: foreground },
-                      headerTintColor: foreground,
-                    }}
-                  >
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="conversation/[id]" />
-                    <Stack.Screen name="user/[username]/index" />
-                    <Stack.Screen name="user/[username]/follows" />
-                    <Stack.Screen name="settings" />
-                    <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-                  </Stack>
-                </PushNotificationProvider>
-              </MessagingProvider>
-            </WebSocketProvider>
-          </SessionGate>
+          <AppUpdateGate>
+            <SessionGate>
+              <WebSocketProvider>
+                <MessagingProvider>
+                  <PushNotificationProvider>
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        contentStyle: { backgroundColor: background },
+                        headerStyle: { backgroundColor: background },
+                        headerShadowVisible: false,
+                        headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 18, color: foreground },
+                        headerTintColor: foreground,
+                      }}
+                    >
+                      <Stack.Screen name="(tabs)" />
+                      <Stack.Screen name="(auth)" />
+                      <Stack.Screen name="conversation/[id]" />
+                      <Stack.Screen name="user/[username]/index" />
+                      <Stack.Screen name="user/[username]/follows" />
+                      <Stack.Screen name="settings" />
+                      <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+                    </Stack>
+                  </PushNotificationProvider>
+                </MessagingProvider>
+              </WebSocketProvider>
+            </SessionGate>
+          </AppUpdateGate>
           <StatusBar style="auto" />
         </ThemeProvider>
       </QueryClientProvider>

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,6 +24,7 @@ interface FeedListProps {
 }
 
 function FeedList({ query, emptyMessage }: FeedListProps) {
+  const { t } = useTranslation();
   const items: (FeedItemResponse | PostResponse)[] =
     query.data?.pages.flatMap((page): (FeedItemResponse | PostResponse)[] => page.content) ?? [];
 
@@ -37,9 +39,9 @@ function FeedList({ query, emptyMessage }: FeedListProps) {
   if (query.status === 'error') {
     return (
       <View className="flex-1 items-center justify-center px-8">
-        <Text className="text-center text-neutral-500">Akış yüklenemedi.</Text>
+        <Text className="text-center text-neutral-500">{t('feed.loadError')}</Text>
         <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => query.refetch()}>
-          <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
+          <Text className="font-sans-semibold text-white">{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -88,6 +90,7 @@ function FeedList({ query, emptyMessage }: FeedListProps) {
 }
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('following');
 
@@ -114,7 +117,7 @@ export default function HomeScreen() {
                       : 'text-[15px] font-sans-medium text-neutral-500'
                   }
                 >
-                  {tab === 'following' ? 'Takip Edilen' : 'Keşfet'}
+                  {tab === 'following' ? t('feed.followingTab') : t('feed.exploreTab')}
                 </Text>
                 {active && (
                   <View className="absolute bottom-0 h-[3px] w-full rounded-full bg-neutral-900 dark:bg-neutral-50" />
@@ -126,9 +129,9 @@ export default function HomeScreen() {
       </View>
 
       {activeTab === 'following' ? (
-        <FeedList query={following} emptyMessage="Henüz gönderi yok. Akışını doldurmak için birilerini takip et!" />
+        <FeedList query={following} emptyMessage={t('feed.followingEmpty')} />
       ) : (
-        <FeedList query={explore} emptyMessage="Henüz gönderi yok." />
+        <FeedList query={explore} emptyMessage={t('feed.exploreEmpty')} />
       )}
 
       <Pressable

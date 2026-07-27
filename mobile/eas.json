@@ -14,10 +14,21 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api-socialhan.ilhankazan.com",
+        "EXPO_PUBLIC_WEB_URL": "https://socialhan.ilhankazan.com"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api-socialhan.ilhankazan.com",
+        "EXPO_PUBLIC_WEB_URL": "https://socialhan.ilhankazan.com"
+      }
     }
   },
   "submit": {

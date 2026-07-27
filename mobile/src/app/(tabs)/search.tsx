@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { FileQuestion, Search, UserX, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
@@ -53,6 +54,7 @@ function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
 }
 
 export default function SearchScreen() {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('users');
@@ -71,7 +73,7 @@ export default function SearchScreen() {
           <Search size={17} color="#71767b" />
           <TextInput
             className="flex-1 py-2.5 text-[16px] text-neutral-900 dark:text-neutral-50"
-            placeholder="Kişi veya gönderi ara"
+            placeholder={t('search.placeholder')}
             placeholderTextColor="#71767b"
             autoCapitalize="none"
             autoCorrect={false}
@@ -90,7 +92,7 @@ export default function SearchScreen() {
       {!query ? (
         <EmptyState
           icon={<Search size={44} color="#d4d4d4" />}
-          text="Aramak istediğin kelimeyi yukarıya yaz."
+          text={t('search.promptEmpty')}
         />
       ) : status === 'pending' || isFetching ? (
         <View className="items-center py-16">
@@ -99,7 +101,7 @@ export default function SearchScreen() {
       ) : status === 'error' ? (
         <EmptyState
           icon={<FileQuestion size={44} color="#d4d4d4" />}
-          text="Arama sonuçları getirilirken bir hata oluştu."
+          text={t('search.loadError')}
         />
       ) : (
         <>
@@ -108,8 +110,8 @@ export default function SearchScreen() {
               const active = activeTab === tab;
               const label =
                 tab === 'users'
-                  ? `Kişiler (${data?.users.length ?? 0})`
-                  : `Gönderiler (${data?.posts.length ?? 0})`;
+                  ? t('search.usersTab', { count: data?.users.length ?? 0 })
+                  : t('search.postsTab', { count: data?.posts.length ?? 0 });
               return (
                 <Pressable
                   key={tab}
@@ -142,7 +144,7 @@ export default function SearchScreen() {
               renderItem={({ item }) => <UserRow user={item} />}
               keyboardShouldPersistTaps="handled"
               ListEmptyComponent={
-                <EmptyState icon={<UserX size={44} color="#d4d4d4" />} text="Kullanıcı bulunamadı." />
+                <EmptyState icon={<UserX size={44} color="#d4d4d4" />} text={t('search.noUsers')} />
               }
             />
           ) : (
@@ -152,7 +154,7 @@ export default function SearchScreen() {
               renderItem={({ item }) => <PostCard post={item} />}
               keyboardShouldPersistTaps="handled"
               ListEmptyComponent={
-                <EmptyState icon={<FileQuestion size={44} color="#d4d4d4" />} text="Gönderi bulunamadı." />
+                <EmptyState icon={<FileQuestion size={44} color="#d4d4d4" />} text={t('search.noPosts')} />
               }
             />
           )}

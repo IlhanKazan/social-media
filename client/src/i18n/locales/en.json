@@ -1,0 +1,1013 @@
+{
+  "auth": {
+    "layout": {
+      "badge": "Real-time social network",
+      "heading": "Share your thoughts with the world instantly.",
+      "subtext": "Posts, threads, and direct messages — all instant. A clean, fast, modern social experience.",
+      "features": [
+        "Real-time feed",
+        "Direct messages",
+        "Threads"
+      ]
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account and join the feed.",
+      "identifierLabel": "Username or Email",
+      "identifierPlaceholder": "user@example.com",
+      "passwordLabel": "Password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up now",
+      "genericError": "Couldn't sign in. Check your details.",
+      "identifierRequired": "Username or Email is required",
+      "passwordRequired": "Password is required"
+    },
+    "register": {
+      "title": "Join us",
+      "subtitle": "Create your account and take your place in the feed.",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "johndoe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "mail@example.com",
+      "displayNameLabel": "Display Name (Optional)",
+      "displayNamePlaceholder": "Jane Doe",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "termsPrefix": "I have read and accept the ",
+      "termsLink": "Terms of Service",
+      "termsAnd": " and ",
+      "privacyLink": "Privacy Policy",
+      "termsSuffix": ".",
+      "ageConfirm": "I confirm I'm 13 years or older.",
+      "submit": "Sign Up",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "genericError": "Couldn't sign up. Please try again.",
+      "usernameFormat": "Letters, numbers, and underscores only",
+      "emailInvalid": "Enter a valid email",
+      "passwordMin": "Password must be at least 6 characters",
+      "mustAcceptTerms": "You must accept the Terms and Privacy Policy to continue",
+      "mustConfirmAge": "You must confirm you're 13 or older",
+      "passwordsMismatch": "Passwords do not match"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send you a reset link.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "mail@example.com",
+      "submit": "Send Reset Link",
+      "checkEmailTitle": "Check your email",
+      "checkEmailBody": "If an account exists with this email, we've sent a password reset link.",
+      "backToLogin": "Back to sign in",
+      "emailInvalid": "Enter a valid email address."
+    },
+    "resetPassword": {
+      "title": "Set a New Password",
+      "subtitle": "Please enter a new, strong password for your account.",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "submit": "Update Password",
+      "invalidLinkTitle": "Invalid Link",
+      "invalidLinkBody": "No password reset token was found. Please check the link in your email.",
+      "requestNewLink": "Request a new link",
+      "successTitle": "Your password has been updated.",
+      "successDescription": "You can now sign in with your new password.",
+      "genericError": "Something went wrong resetting your password. The link may have expired.",
+      "passwordMin": "Password must be at least 8 characters.",
+      "passwordsMismatch": "Passwords do not match."
+    },
+    "mfa": {
+      "totpTitle": "Two-factor authentication",
+      "totpDesc": "Enter the 6-digit code from your authenticator app.",
+      "emailTitle": "Two-factor authentication",
+      "emailDesc": "Enter the 6-digit code we sent to your email.",
+      "recoveryTitle": "Recovery code",
+      "recoveryDesc": "Enter one of your recovery codes.",
+      "codeLabel": "Verification code",
+      "recoveryCodeLabel": "Recovery code",
+      "recoveryPlaceholder": "recovery code",
+      "verify": "Verify and sign in",
+      "verifying": "Verifying…",
+      "useAuthenticatorCode": "Use authenticator code",
+      "useEmailCode": "Use email code",
+      "resendCode": "Resend code",
+      "backToNormalCode": "Back to normal code",
+      "useRecoveryCode": "Use recovery code",
+      "backToLogin": "Back to sign in",
+      "resendSuccess": "A new code has been sent to your email.",
+      "resendError": "Couldn't send the code.",
+      "verifyError": "Couldn't verify. Please try again."
+    },
+    "verifyEmail": {
+      "invalidTitle": "Invalid Link",
+      "invalidBody": "The email verification link is missing or invalid.",
+      "backHome": "Back to Home",
+      "verifyingTitle": "Verifying…",
+      "verifyingBody": "Please wait while we confirm your email address.",
+      "successTitle": "Email Verified!",
+      "successBody": "Your account has been successfully confirmed. The blue check badge has been added to your profile.",
+      "goToFeed": "Go to Feed",
+      "failedTitle": "Verification Failed",
+      "failedBodyFallback": "The link may have expired.",
+      "requestNewLink": "Request New Link"
+    },
+    "softGate": {
+      "title": "Join SocialHan",
+      "description": "You need an account to like, reply, follow, and send messages. It only takes a few seconds.",
+      "createAccount": "Create account",
+      "signIn": "Sign in"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize the app's theme.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose the app's display language.",
+      "turkish": "Türkçe",
+      "english": "English",
+      "system": "System"
+    },
+    "notificationPreferences": {
+      "title": "Notification Preferences",
+      "subtitle": "Choose which notifications you want to receive as push notifications.",
+      "updateError": "Couldn't update preferences."
+    },
+    "emailVerification": {
+      "title": "Email Verification",
+      "subtitle": "Confirm your email address and get the blue check badge.",
+      "statusLabel": "Email Status",
+      "checking": "Checking...",
+      "verified": "Your account is verified. You have the blue check badge.",
+      "notVerified": "Your email address hasn't been verified yet.",
+      "sendVerification": "Send Verification",
+      "successToastTitle": "Verification email sent",
+      "successToastDescription": "Please check your inbox.",
+      "rateLimitedToastTitle": "Too many requests",
+      "rateLimitedToastDescription": "Please try again later.",
+      "errorToastTitle": "Something went wrong",
+      "errorToastDescription": "Couldn't send the verification email."
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "Keep your password strong for account security.",
+      "currentPasswordLabel": "Current Password",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "New Password (Confirm)",
+      "submit": "Update Password",
+      "minLengthError": "Your new password must be at least 6 characters.",
+      "mismatchError": "Your new passwords don't match.",
+      "sameAsOldError": "Your new password can't be the same as your old password.",
+      "updateError": "Something went wrong while changing your password.",
+      "successToast": "Your password has been changed! Please sign in again for your security."
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "Add a second layer of verification to your account."
+    },
+    "mfaEmail": {
+      "title": "Email Two-Factor Authentication (2FA)",
+      "enabledDesc": "On. Every sign-in asks for a 6-digit code sent to your email.",
+      "disabledDesc": "Protect your sign-ins with a one-time code sent to your email.",
+      "passwordPlaceholder": "Enter your password",
+      "disable": "Disable",
+      "verifyFirstWarning": "You need to verify your email first to turn this on (\"Email Verification\" above).",
+      "verifyFirstToast": "You need to verify your email first.",
+      "enable": "Enable",
+      "codePlaceholder": "6-digit code from your email",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "sendCodeError": "Couldn't send the code.",
+      "verifyError": "Couldn't verify the code.",
+      "actionFailedError": "Action failed.",
+      "codeSentToast": "A code has been sent to your email.",
+      "enabledToast": "Two-factor authentication is now on.",
+      "disabledToast": "Two-factor authentication is now off."
+    },
+    "totp": {
+      "title": "Authenticator App (TOTP)",
+      "enabledDesc": "On. Sign-in asks for the code from your authenticator app.",
+      "disabledDesc": "Generate codes with an app like Google Authenticator or 1Password. No email needed.",
+      "recoveryCopySuccess": "Recovery codes copied.",
+      "recoverySaveWarning": "Save your recovery codes now — they won't be shown again. Use them to sign in if you lose your phone.",
+      "copy": "Copy",
+      "savedFinish": "I saved them, finish",
+      "passwordPlaceholder": "Enter your password",
+      "disable": "Disable",
+      "scanInstructions": "Scan the QR with your app, or enter this key manually:",
+      "codePlaceholder": "6-digit code from your app",
+      "confirmAndEnable": "Confirm and enable",
+      "cancel": "Cancel",
+      "setup": "Set up",
+      "setupError": "Couldn't start setup.",
+      "verifyError": "Couldn't verify the code.",
+      "actionFailedError": "Action failed.",
+      "enabledToast": "Two-factor authentication via authenticator is now on.",
+      "disabledToast": "Authenticator two-factor authentication is now off."
+    },
+    "session": {
+      "title": "Session",
+      "subtitle": "Manage your session.",
+      "signOutTitle": "Sign Out",
+      "signOutSubtitle": "You'll only be signed out on this device.",
+      "signOut": "Sign Out"
+    },
+    "dangerZone": {
+      "title": "Security & Dangerous Actions",
+      "subtitle": "Actions in this section can't be undone.",
+      "signOutAllTitle": "Sign Out of All Devices",
+      "signOutAllSubtitle": "Ends all your active sessions, including this device.",
+      "signOutAll": "Sign Out of All",
+      "confirmTitle": "Are you sure?",
+      "signOutAllConfirmBody": "Your sessions on your computer, phone, and all other active devices will be closed and you'll need to sign in again.",
+      "cancel": "Cancel",
+      "confirmSignOutAll": "Yes, Sign Out",
+      "signingOut": "Signing Out...",
+      "deleteAccountTitle": "Delete My Account",
+      "deleteAccountSubtitle": "Your posts, interactions, and all your data will be permanently deleted.",
+      "deleteAccount": "Delete My Account",
+      "deleteConfirmTitle": "Permanent Deletion",
+      "deleteConfirmBody": "This action cannot be undone. Your account, posts, likes, and messages will be completely deleted. Are you sure you want to delete your account?",
+      "giveUp": "Cancel",
+      "confirmDelete": "Yes, Delete My Account",
+      "deleting": "Deleting...",
+      "signOutAllSuccess": "Signed out of all devices.",
+      "signOutAllError": "Something went wrong.",
+      "deleteAccountSuccess": "Your account has been deleted. We'll miss you!",
+      "deleteAccountError": "Something went wrong deleting your account."
+    },
+    "legal": {
+      "title": "Legal",
+      "subtitle": "Policies and information about the project.",
+      "about": "About",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "disclaimer": "SocialHan is a portfolio/demo project, not a commercial service."
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Likes",
+    "reposts": "Reposts",
+    "follows": "New followers",
+    "replies": "Replies",
+    "mentions": "Mentions",
+    "recommendations": "Recommendations for you"
+  },
+  "common": {
+    "retry": "Retry",
+    "searching": "Searching...",
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "description": "We ran into a problem while running the app. Don't worry, we've logged it. Please try reloading the page.",
+      "reload": "Reload Page"
+    }
+  },
+  "feed": {
+    "headerFeed": "Feed",
+    "headerExplore": "Explore",
+    "followingTab": "Following",
+    "exploreTab": "Explore",
+    "emptyTitle": "It's quiet here",
+    "followingEmptyDesc": "No posts yet. Start following people!",
+    "exploreEmptyDesc": "No posts yet.",
+    "loadErrorTitle": "Something went wrong",
+    "loadErrorDesc": "We ran into a problem loading the feed. Please refresh the page.",
+    "allSeen": "You've seen it all.",
+    "composerSheetTitle": "Create Post",
+    "repostSuccess": "Post reposted",
+    "moderationAlertTitle": "Content Review",
+    "moderationAlertDesc": "Your post has been placed under review."
+  },
+  "compose": {
+    "placeholder": "What's happening?",
+    "submit": "Post",
+    "contentEmpty": "Post can't be empty",
+    "contentMax": "Maximum 500 characters",
+    "uploadFailed": "Couldn't upload photo. Only JPG, PNG, WEBP or GIF (max 5MB) is allowed.",
+    "fileTooLarge": "File can't be larger than 5MB.",
+    "replySuccess": "Reply posted!",
+    "postSuccess": "Post published!",
+    "postError": "Something went wrong posting.",
+    "replyPlaceholder": "Post your reply..."
+  },
+  "post": {
+    "card": {
+      "youReposted": "You reposted",
+      "userReposted": "{{name}} reposted",
+      "replyContextSuffix": "· Replying",
+      "flaggedBadge": "Violation: Hidden",
+      "edited": "(Edited)",
+      "edit": "Edit",
+      "deleting": "Deleting...",
+      "delete": "Delete",
+      "report": "Report",
+      "deleteSuccess": "Post deleted",
+      "deleteError": "Something went wrong deleting the post",
+      "fullscreenAlt": "View Photo",
+      "viewPhoto": "View photo",
+      "undoRepost": "Undo Repost",
+      "repost": "Repost",
+      "quoteShare": "Quote",
+      "shareToDm": "Share via Message"
+    },
+    "detail": {
+      "title": "Post",
+      "notFound": "Post not found or deleted.",
+      "goBack": "Go Back",
+      "repostsWord": "reposts",
+      "likesWord": "likes",
+      "viewsWord": "views",
+      "noRepliesTitle": "No Replies",
+      "noRepliesDesc": "Be the first to reply!"
+    },
+    "likers": {
+      "title": "Likes"
+    },
+    "reposters": {
+      "title": "Reposted by"
+    },
+    "userRow": {
+      "following": "Following",
+      "follow": "Follow"
+    },
+    "quoteDialog": {
+      "title": "Quote",
+      "placeholder": "Add your thoughts to the quote...",
+      "submit": "Post",
+      "success": "Quote posted"
+    },
+    "shareDialog": {
+      "title": "Share via message",
+      "searchPlaceholder": "Search conversations...",
+      "noResults": "No conversations found",
+      "loadMore": "Load more",
+      "loadingMore": "Loading...",
+      "captionPlaceholder": "Add a note (optional)..."
+    },
+    "reportDialog": {
+      "title": "Report Post",
+      "reasonLabel": "Reason",
+      "reasonHate": "Hate Speech",
+      "reasonHarassment": "Harassment / Bullying",
+      "reasonSpam": "Spam / Unwanted Content",
+      "reasonSelfHarm": "Self-Harm",
+      "reasonOther": "Other",
+      "detailsLabel": "Details (Optional)",
+      "detailsPlaceholder": "Any context or details you'd like to add...",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "reasonRequired": "Please select a reason",
+      "detailsMax": "Details can be at most 500 characters",
+      "successTitle": "Your report was received",
+      "successDesc": "Your report has been sent to our team for review.",
+      "rateLimitedTitle": "Too many requests",
+      "rateLimitedDesc": "Please try again later.",
+      "errorTitle": "Error",
+      "errorDesc": "Something went wrong submitting the report."
+    },
+    "editDialog": {
+      "title": "Edit Post",
+      "placeholder": "What's on your mind?",
+      "cancel": "Cancel",
+      "save": "Save",
+      "updateSuccess": "Post updated",
+      "updateError": "Something went wrong updating the post"
+    }
+  },
+  "search": {
+    "promptEmpty": "Type what you're looking for above.",
+    "loadError": "Something went wrong loading search results.",
+    "usersTab": "People ({{count}})",
+    "postsTab": "Posts ({{count}})",
+    "noUsers": "No users found.",
+    "noPosts": "No posts found.",
+    "placeholder": "Search people or posts...",
+    "sidebarPlaceholder": "Search...",
+    "viewAllResults": "See all results for \"{{query}}\"",
+    "noResults": "No results found"
+  },
+  "messaging": {
+    "title": "Messages",
+    "list": {
+      "loadError": "Couldn't load conversations.",
+      "empty": "No messages yet.",
+      "delete": "Delete Conversation"
+    },
+    "conversation": {
+      "selectPrompt": "Select a message",
+      "imageDialogTitle": "Photo",
+      "postUnavailable": "This post is no longer available",
+      "sending": "Sending...",
+      "seen": "Seen",
+      "inputPlaceholder": "New message...",
+      "photoSendError": "Couldn't send the photo",
+      "sharePostSuccess": "Sent",
+      "sharePostError": "Couldn't share"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All as Read",
+    "deleteAll": "Delete All",
+    "deleteAllConfirmTitle": "Delete all notifications?",
+    "deleteAllConfirmDesc": "This action cannot be undone.",
+    "cancel": "Cancel",
+    "loadErrorTitle": "Couldn't load",
+    "loadErrorDesc": "Something went wrong loading notifications.",
+    "emptyTitle": "No Notifications",
+    "emptyUnreadDesc": "You have no unread notifications.",
+    "emptyAllDesc": "No notifications yet.",
+    "tabAll": "All",
+    "tabUnread": "Unread",
+    "systemNotification": "System Notification",
+    "moreCount": "and {{count}} more",
+    "toastWarningTitle": "Warning",
+    "toastNewTitle": "New Notification",
+    "types": {
+      "like": "liked your post.",
+      "reply": "replied to you.",
+      "mention": "mentioned you.",
+      "follow": "started following you.",
+      "repost": "reposted your post.",
+      "quoteRepost": "quoted your post.",
+      "moderationAlert": "Your post was hidden for violating community guidelines.",
+      "recommendation": "shared a post you might like.",
+      "default": "sent you a new notification."
+    }
+  },
+  "profile": {
+    "userNotFound": "User not found.",
+    "joinedOn": "Joined {{date}}",
+    "followingLabel": "Following",
+    "followersLabel": "Followers",
+    "tabPosts": "Posts",
+    "tabReplies": "Replies",
+    "tabLikes": "Likes",
+    "loadError": "Couldn't load.",
+    "noPosts": "No posts.",
+    "noReplies": "No replies.",
+    "noLikedPosts": "No liked posts.",
+    "editProfile": "Edit Profile",
+    "coverAlt": "Cover",
+    "dragToAlign": "Drag to align",
+    "displayNameLabel": "Display Name",
+    "bioLabel": "Bio",
+    "cancel": "Cancel",
+    "save": "Save",
+    "photoUpdated": "Photo updated",
+    "photoUploadFailed": "Couldn't upload photo",
+    "photoRemoved": "Photo removed",
+    "photoRemoveFailed": "Couldn't remove photo",
+    "profileUpdated": "Profile updated",
+    "profileUpdateFailed": "Couldn't update profile",
+    "removeFollowerTitle": "Remove Follower",
+    "removeFollowerSuccess": "Follower removed",
+    "removeFollowerError": "Couldn't remove follower. Please try again.",
+    "following": "Following",
+    "follow": "Follow",
+    "followShort": "Following",
+    "suggestedTitle": "Who to Follow",
+    "displayNameMax": "Maximum 50 characters",
+    "bioMax": "Maximum 160 characters"
+  },
+  "nav": {
+    "feed": "Feed",
+    "explore": "Explore",
+    "search": "Search",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "profile": "Profile",
+    "settings": "Settings",
+    "adminPanel": "Admin Panel",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "signIn": "Sign in"
+  },
+  "marketing": {
+    "landing": {
+      "getStarted": "Get started",
+      "browseWithoutAccount": "Browse without an account",
+      "features": {
+        "realtime": {
+          "title": "Real-time feed",
+          "desc": "Likes, replies, and notifications land instantly via WebSocket."
+        },
+        "threads": {
+          "title": "Threaded conversations",
+          "desc": "Follow the discussion with Twitter-style nested replies."
+        },
+        "dm": {
+          "title": "Direct messages",
+          "desc": "One-on-one private chats, with photo and post sharing."
+        },
+        "media": {
+          "title": "Image sharing",
+          "desc": "Attach images to your posts and messages."
+        }
+      }
+    },
+    "footer": {
+      "aboutLink": "About",
+      "architectureLink": "Architecture",
+      "downloadLink": "Get the app",
+      "privacyLink": "Privacy",
+      "termsLink": "Terms",
+      "disclaimer": "SocialHan is a portfolio/demo project, not a commercial service."
+    }
+  },
+  "legal": {
+    "backHome": "Home",
+    "updatedLabel": "Last updated: {{date}}",
+    "demoDisclaimer": {
+      "title": "SocialHan is a portfolio/demo project.",
+      "body": "It is not a commercial service; it is published for demonstration and technical-showcase purposes. The following texts are prepared in good faith but do not constitute legal advice."
+    },
+    "about": {
+      "title": "About",
+      "whatIsTitle": "What is SocialHan?",
+      "whatIsP1": "SocialHan is a Twitter-style social media platform with a real-time feed, threaded conversations, direct messages, and image sharing. It is a 2026 ground-up rewrite, on a modern stack, of a portfolio project originally built in 2024.",
+      "whatIsP2": "The project uses a Java 21 / Spring Boot backend, a React 19 + TypeScript frontend, and a PostgreSQL database. Its goal is to demonstrate a production-grade, real-time-featured application end to end.",
+      "contactTitle": "Contact",
+      "contactText": "For questions and requests:"
+    },
+    "privacy": {
+      "title": "Privacy Policy & Data Protection Notice (KVKK/GDPR)",
+      "updated": "July 23, 2026",
+      "dataController": {
+        "title": "Data controller",
+        "body": "This notice is prepared by the developer operating SocialHan, in line with Turkish Law No. 6698 on the Protection of Personal Data (KVKK) and GDPR principles. Contact:"
+      },
+      "dataProcessed": {
+        "title": "Data we process",
+        "items": [
+          "Account information: username, email address, password (stored only as a BCrypt hash).",
+          "Profile information: display name, bio, profile and cover images.",
+          "Content: posts, replies, likes, reposts, and follow relationships.",
+          "Direct messages and images attached to messages.",
+          "Technical records: IP address and browser information, as part of sign-in history and security audit logs."
+        ]
+      },
+      "purposes": {
+        "title": "Purposes of processing and legal basis (KVKK Art. 5/6)",
+        "body": "Your data is processed to create and manage your account, to deliver content, for messaging, and for security and abuse prevention. The legal basis is mostly performance of a contract and legitimate interest. The following operations, however, are subject to your explicit consent, collected at sign-up:",
+        "items": [
+          "Sending post content to OpenAI for moderation purposes.",
+          "Transferring data to service providers located abroad (see below).",
+          "Any marketing/informational emails, where applicable."
+        ]
+      },
+      "providers": {
+        "title": "Service providers and cross-border transfer",
+        "body": "We use the following third-party processors to run the service. The main application and database are hosted in Germany (within the EU); Cloudflare, Cloudinary, Resend, and OpenAI are US-based, so data reaching those four counts as a cross-border transfer:",
+        "items": [
+          "Hetzner (Germany, EU) — the server hosting the API, database, and frontend.",
+          "Cloudflare (US) — DNS, DDoS protection, and content delivery network (CDN).",
+          "Cloudinary (US) — image storage and delivery.",
+          "Resend (US) — transactional email delivery (e.g. password reset).",
+          "OpenAI (US) — automated moderation of post content."
+        ]
+      },
+      "retention": {
+        "title": "Retention period",
+        "body": "When you delete your account, your content is first soft-deleted, then permanently removed by a background job after 30 days; your profile, post, and message images are also removed from Cloudinary at that point. Security audit logs may be retained a while longer, disassociated from the actor (anonymized)."
+      },
+      "rights": {
+        "title": "Your rights (KVKK Art. 11 / GDPR)",
+        "body": "You have the right to access your data, request its correction or deletion, and object to its processing. You can delete your account directly from Settings > Delete My Account within the app, or submit a request via the email above. You may use the same channel for complaints."
+      },
+      "cookies": {
+        "title": "Cookies and security",
+        "body": "Only functional cookies are used: an HttpOnly refresh-token cookie is kept to maintain your session. No advertising or third-party tracking cookies are used. Passwords are hashed, communication happens over HTTPS, and authentication endpoints are protected by rate limiting."
+      },
+      "ageLimit": {
+        "title": "Age limit",
+        "body": "The service is not designed for users under 13. At sign-up you are asked to confirm that you meet the age requirement."
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "updated": "June 21, 2026",
+      "natureOfService": {
+        "title": "Nature of the service",
+        "body": "SocialHan is a portfolio/demo project. The service is provided \"as is\"; no guarantee of uninterrupted operation, data persistence, or specific performance is given. Data may be reset without prior notice."
+      },
+      "accountEligibility": {
+        "title": "Account and eligibility",
+        "body": "You must be at least 13 years old to register. You are responsible for your account's security and for activity that occurs under it. At sign-up you must accept these Terms and the Privacy Policy."
+      },
+      "acceptableUse": {
+        "title": "Acceptable use",
+        "intro": "The following content and behavior are prohibited:",
+        "items": [
+          "Illegal, hateful, harassing, violent, or sexually abusive content.",
+          "Spam, automated abuse, or technical attacks against the service.",
+          "Content that infringes others' rights or impersonates someone else."
+        ],
+        "moderationNote": "Content may go through automated moderation; content or accounts that violate the rules may be removed or suspended."
+      },
+      "yourContent": {
+        "title": "Your content",
+        "body": "You retain rights to the content you share. By publishing content, you grant us permission to store and display it in order to operate the service. When you delete your account, your content is removed as described in the Privacy Policy."
+      },
+      "liability": {
+        "title": "Limitation of liability",
+        "body": "As this is a demo project, no liability is accepted for indirect damages arising from use of the service, including data loss or interruptions."
+      }
+    },
+    "architecture": {
+      "title": "Architecture",
+      "intro": "This page describes how SocialHan is built: the backend layering, the request and real-time lifecycles, the data model conventions, and the cross-cutting concerns (auth, caching, rate limiting, moderation, operations).",
+      "topology": {
+        "title": "System topology",
+        "body": "The API is a single Spring Boot monolith. State lives in PostgreSQL; images in Cloudinary; everything else (caches, rate-limit buckets, the STOMP broker) is in-process, which keeps the deployment to one instance and one database."
+      },
+      "layering": {
+        "title": "Backend layering",
+        "intro": "The backend enforces a strict one-directional flow: controller → manager → service → repository.",
+        "items": [
+          "controller — thin HTTP/WebSocket handlers. Validate input, delegate, return DTOs. No business logic. All REST endpoints live under /api/v1/...",
+          "manager — the orchestration boundary. Resolves the authenticated principal, owns the transaction, publishes domain events, and coordinates multiple services.",
+          "service — pure business logic and the only layer that talks to repositories.",
+          "repository — Spring Data JPA interfaces."
+        ],
+        "outro": "DTOs are immutable Java records mapped with MapStruct; entities use Lombok because JPA needs a no-arg constructor and mutable fields. List endpoints return a custom PageResponse<T> rather than leaking Spring's Page. Exceptions are funneled through a single @RestControllerAdvice (GlobalExceptionHandler) so raw stack traces never reach clients."
+      },
+      "lifecycle": {
+        "title": "Write request lifecycle",
+        "intro": "A typical authenticated write (for example, creating a post):",
+        "items": [
+          "The security filter chain runs: the JWT filter authenticates the bearer token and populates the security context; the read-only filter rejects writes with 503 if maintenance mode is on; authorization rules match the route.",
+          "The rate-limit aspect checks the caller's bucket.",
+          "The controller validates the request record and calls the manager.",
+          "The manager opens a transaction, applies domain rules via services, persists through repositories, and publishes events (notifications, audit, fan-out).",
+          "Async listeners handle side effects (login history, audit rows, WebSocket broadcasts) outside the request transaction.",
+          "The controller returns a DTO; the global exception handler maps any failure to a structured error response."
+        ]
+      },
+      "auth": {
+        "title": "Authentication and session model",
+        "items": [
+          "Access token — short-lived JWT, sent as a Bearer header, carrying the username, account id, and roles. Stateless; validated on every request.",
+          "Refresh token — long-lived, delivered as an HttpOnly, Secure cookie scoped to the auth path, never exposed to JavaScript. Because the client and API are cross-site on managed hosting, the cookie uses SameSite=None, and CSRF is covered by an Origin allowlist check on refresh and logout.",
+          "Rotation and reuse detection — refreshing rotates the token within a token family; presenting a previously used token signals theft and revokes the whole family.",
+          "Blacklist — access tokens can be invalidated before expiry (logout) via an in-memory blacklist.",
+          "Rate limiting — sensitive endpoints (register, login, password reset) are guarded by rate-limit buckets keyed by user or client IP."
+        ],
+        "outro": "Roles are ROLE_USER, ROLE_ADMIN, and ROLE_BOT. The first admin is granted out-of-band by a startup runner."
+      },
+      "realtime": {
+        "title": "Real-time messaging",
+        "body": "Web clients connect over SockJS with a STOMP sub-protocol; the mobile app connects to a second, SockJS-less STOMP endpoint. Real authentication happens at the STOMP CONNECT frame via a channel interceptor, so only authenticated principals can subscribe to their per-user destinations. The broker is an in-memory simple broker, which suits a single instance."
+      },
+      "data": {
+        "title": "Data model and conventions",
+        "intro": "The schema is owned by immutable Flyway migrations; once a migration ships it is never edited — changes go in a new version. Conventions enforced across every table:",
+        "items": [
+          "snake_case identifiers; BIGSERIAL primary keys.",
+          "Soft delete via a deleted_at timestamp (null = active), never a status column. Hot paths have partial indexes for active rows.",
+          "All timestamps are timezone-aware; created/updated are audited.",
+          "Case-insensitive citext for unique username and email.",
+          "Foreign keys are explicit about cascade behavior: user-owned content cascades, reference data restricts, optional links set null."
+        ],
+        "outro": "Hard deletion is deferred: a scheduled cleanup task permanently removes accounts 30 days after soft delete and purges their images, so the erasure path matches the stated privacy policy."
+      },
+      "caching": {
+        "title": "Caching",
+        "body": "A single in-process cache registers short-TTL, bounded caches for hot reads (accounts by username, public profiles, unread notification counts, suggestions, and system settings). TTLs are deliberately short so stale reads self-heal; admins can also force invalidation."
+      },
+      "rateLimit": {
+        "title": "Rate limiting",
+        "body": "Rate limiting is an around-advice keyed by user or IP plus the method, bounded so a flood of distinct or spoofed values can't grow the store without limit. Limiting is per-instance, which is correct while the deployment is a single node; a shared store would be needed to scale horizontally."
+      },
+      "moderation": {
+        "title": "Content moderation",
+        "body": "User content passes a two-stage pipeline: a fast in-process regex pre-filter catches obvious violations, and borderline content is checked against a moderation API with per-category thresholds. Posts carry a moderation status and an independent admin status, so automated and human decisions are tracked separately. Flagged content surfaces in the admin moderation queue."
+      },
+      "supporting": {
+        "title": "Supporting subsystems",
+        "items": [
+          "Bot service — optional seeded bot accounts post on a jittered cadence with daily quotas and optional active hours, producing a populated demo feed. Disabled unless explicitly enabled.",
+          "Email — all mail goes through a database outbox. A scheduled flusher sends with daily and monthly caps, marking rows sent/failed and backing off on rate limits.",
+          "Audit log — an append-only table records security-relevant and admin actions with actor, IP, and metadata, written asynchronously via events."
+        ]
+      },
+      "operations": {
+        "title": "Operations (no-restart levers)",
+        "intro": "Because a restart on a modest instance costs a cold start, common incidents are handled live:",
+        "items": [
+          "Read-only maintenance mode — a system-settings toggle that returns 503 for write methods while leaving reads, auth, and admin paths open.",
+          "Cache invalidation and rate-limit reset — admin endpoints clear one or all caches, or reset the rate-limit store, each written to the audit log.",
+          "Actuator diagnostics — metrics, loggers, and caches are exposed but locked to admins; only the health check is public."
+        ]
+      },
+      "frontend": {
+        "title": "Frontend architecture",
+        "intro": "State is split into three non-overlapping layers:",
+        "items": [
+          "Server state — TanStack Query owns all data fetched from the API, with array query keys and cache invalidation on mutation.",
+          "Client/auth state — a persisted store holds the account; the access token is kept in memory and re-derived on load via a refresh call.",
+          "Component state — local component state."
+        ],
+        "outro": "Routing separates public, auth, and protected route groups. The root path resolves to a marketing landing page for logged-out visitors and the feed for authenticated ones; public content is browsable, and a soft auth gate intercepts interaction attempts to prompt sign-up without blocking reads."
+      },
+      "testing": {
+        "title": "Testing strategy",
+        "body": "Backend integration tests run against a real PostgreSQL instance, exercising the full security filter chain. Backend unit tests cover logic in isolation. Frontend tests cover component and schema behavior. CI gates on backend build and tests, and frontend typecheck, tests, and build."
+      }
+    },
+    "download": {
+      "title": "Download the app",
+      "androidTitle": "SocialHan for Android",
+      "versionLabel": "Version {{version}} · APK, install directly (not on the Play Store)",
+      "notAvailable": "No build has been published yet — check back soon.",
+      "downloadButton": "Download APK",
+      "aboutTitle": "About this download",
+      "aboutBody": "This app is distributed directly rather than through the Play Store, so Android will ask you to allow installs from this source the first time. The app checks for new versions on its own and will prompt you when one is available.",
+      "checksumTitle": "Verify the download",
+      "checksumBody": "This is the SHA-256 checksum of the official APK, useful for confirming your download completed intact. Note that it is served from the same site as the file, so it verifies integrity, not authenticity. To confirm the app is genuinely ours, verify the signing certificate with: apksigner verify --print-certs <file>.apk",
+      "copyChecksum": "Copy checksum",
+      "checksumCopied": "Checksum copied"
+    }
+  },
+  "admin": {
+    "layout": {
+      "header": "Admin Panel",
+      "sessionLabel": "Session:",
+      "backToSite": "Back to Site",
+      "signOut": "Sign Out",
+      "nav": {
+        "dashboard": "Dashboard",
+        "queue": "Queue",
+        "reports": "Reports",
+        "users": "Users",
+        "settings": "System Settings",
+        "maintenance": "Maintenance",
+        "auditLog": "Audit Log",
+        "mobileRelease": "Mobile Release"
+      }
+    },
+    "dashboard": {
+      "title": "System Overview",
+      "subtitle": "Current status and statistics of the platform.",
+      "liveData": "Live Data (30s)",
+      "loadError": "An error occurred while loading metrics. Check your server connection.",
+      "statCards": {
+        "totalUsers": {
+          "title": "Total Users",
+          "subValue": "{{count}} banned accounts"
+        },
+        "activeSessions": {
+          "title": "Active Sessions",
+          "subValue": "Number of currently active tokens in the system"
+        },
+        "openReports": {
+          "title": "Open Reports",
+          "subValue": "Reports awaiting review"
+        },
+        "queuedPosts": {
+          "title": "Queued Posts",
+          "subValue": "Awaiting moderator approval"
+        },
+        "totalPosts": {
+          "title": "Total Posts",
+          "subValue": "{{count}} posts removed"
+        },
+        "emailStatus": {
+          "title": "Email Status",
+          "subValue": "Sent today ({{failed}} failed, {{pending}} pending)"
+        }
+      }
+    },
+    "moderation": {
+      "title": "Moderation Queue",
+      "shortcutsLabel": "Shortcuts:",
+      "approveWord": "Approve",
+      "removeWord": "Remove",
+      "approveButton": "Approve (A)",
+      "removeButton": "Remove (R)",
+      "emptyState": "Queue is squeaky clean! No pending content.",
+      "loadMore": "Load More"
+    },
+    "reports": {
+      "title": "User Reports",
+      "subtitle": "Review posts reported by the community and take action.",
+      "loadError": "A connection error occurred while loading reports. Please refresh the page.",
+      "emptyTitle": "All Clear!",
+      "emptyDesc": "There are no pending reports.",
+      "postTitle": "Post #{{id}}",
+      "reportCount": "{{count}} User Reports Total",
+      "lastReport": "Last report: {{date}}",
+      "view": "View",
+      "decide": "Decide",
+      "dialog": {
+        "title": "Resolve Report",
+        "resolutionLabel": "Admin Resolution Note",
+        "resolutionPlaceholder": "E.g.: Doesn't violate community guidelines.",
+        "defaultResolution": "Reviewed, no violation found.",
+        "enforceTitle": "Apply Sanction",
+        "removePostLabel": "Permanently delete the post",
+        "removePostDesc": "The post is completely removed and its owner is notified.",
+        "banUserLabel": "Remove the user from the system",
+        "banUserDesc": "The post owner's account is permanently banned.",
+        "cancel": "Cancel",
+        "apply": "Apply Decision"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Filter accounts in the system and manage ADMIN privileges.",
+      "notFound": "No users found.",
+      "searchPlaceholder": "Search...",
+      "filters": {
+        "all": "All Statuses",
+        "active": "Active Only",
+        "banned": "Banned Only"
+      },
+      "adminTitle": "Admin",
+      "verifiedEmailTitle": "Verified Email",
+      "menu": {
+        "label": "Administrative Actions",
+        "demote": "Revoke Privilege",
+        "promote": "Make Admin",
+        "resetPassword": "Reset Password",
+        "forceLogout": "End Sessions",
+        "unban": "Remove Ban",
+        "ban": "Ban User"
+      },
+      "stats": {
+        "status": "Status",
+        "active": "Active",
+        "banned": "Banned",
+        "posts": "Posts",
+        "joined": "Joined",
+        "lastLogin": "Last Login",
+        "neverLoggedIn": "Never logged in"
+      },
+      "banDialog": {
+        "title": "Ban User",
+        "body": "will be banned.",
+        "reasonPlaceholder": "Enter reason...",
+        "cancel": "Cancel",
+        "confirm": "Ban"
+      }
+    },
+    "auditLog": {
+      "title": "System Audit Logs",
+      "filters": {
+        "actionPlaceholder": "Action (e.g. USER_BANNED)",
+        "targetTypePlaceholder": "Target Type (e.g. ACCOUNT)",
+        "actorIdPlaceholder": "User ID"
+      },
+      "table": {
+        "date": "Date",
+        "actor": "Actor (Performed By)",
+        "action": "Action",
+        "target": "Target",
+        "metadata": "Additional Data (Metadata)",
+        "noRecords": "No records found.",
+        "systemActor": "System",
+        "viewDetail": "View Details"
+      },
+      "metadataDialogTitle": "Metadata Details"
+    },
+    "maintenance": {
+      "title": "Maintenance",
+      "subtitle": "Clear caches and reset rate-limit counters without restarting the API.",
+      "caches": {
+        "title": "Caches",
+        "description": "Flush a single cache or all caches to clear stale data.",
+        "clearAll": "Clear All",
+        "clearOne": "Clear",
+        "empty": "No registered caches.",
+        "confirmDialog": {
+          "title": "Clear all caches?",
+          "description": "All caches will be flushed. Data will be reloaded from the source on the next request.",
+          "cancel": "Cancel",
+          "confirm": "Yes, Clear"
+        }
+      },
+      "rateLimit": {
+        "title": "Rate Limit",
+        "description": "Reset user/IP counters accidentally stuck at 429.",
+        "resetButton": "Reset",
+        "confirmDialog": {
+          "title": "Reset rate-limit counters?",
+          "description": "All user and IP counters are reset; everyone regains full access to the limits.",
+          "cancel": "Cancel",
+          "confirm": "Yes, Reset"
+        }
+      }
+    },
+    "systemSettings": {
+      "title": "System Settings",
+      "subtitle": "Manage the platform's core operating rules in real time.",
+      "loadError": "An error occurred while loading system settings.",
+      "items": {
+        "registrationEnabled": {
+          "title": "User Registration",
+          "description": "Turn new user registrations on the platform on or off."
+        },
+        "moderationEnabled": {
+          "title": "Moderation System",
+          "description": "Enable reported content being routed into the moderator queue."
+        },
+        "verifiedOnlyPosting": {
+          "title": "Only Verified Users Can Post",
+          "description": "When enabled, only blue-check (verified) accounts can publish posts."
+        },
+        "botEnabled": {
+          "title": "Bot System",
+          "description": "Enable AI bot accounts to automatically publish posts."
+        },
+        "readOnlyMode": {
+          "title": "Maintenance Mode (Read-Only)",
+          "description": "When enabled, users can't perform write actions (posts, messages, etc.); reading remains open."
+        }
+      }
+    },
+    "toasts": {
+      "cacheCleared": "'{{name}}' cache cleared.",
+      "allCachesCleared": "All caches cleared.",
+      "cacheClearError": "An error occurred while clearing the cache.",
+      "rateLimitsReset": "Rate-limit counters reset.",
+      "rateLimitResetError": "An error occurred while resetting the rate limit.",
+      "userBanned": "User banned.",
+      "banRemoved": "Ban removed.",
+      "sessionsEnded": "Sessions ended.",
+      "userPromoted": "User made ADMIN.",
+      "adminRevoked": "Admin privileges revoked.",
+      "passwordResetSent": "Password reset email sent.",
+      "reportResolved": "Report resolved.",
+      "postApproved": "Post approved and published.",
+      "postRemoved": "Post removed from the system.",
+      "systemSettingUpdated": "System setting updated.",
+      "systemSettingError": "An error occurred while updating the setting.",
+      "mobileReleaseUpdated": "Mobile release published.",
+      "mobileReleaseError": "Couldn't publish the mobile release."
+    },
+    "mobileRelease": {
+      "title": "Mobile Release",
+      "subtitle": "Publish the Android APK version metadata that the app and the download page read.",
+      "formTitle": "Current release",
+      "formDescription": "Upload the APK to the server first, then publish its details here. No redeploy needed — this takes effect immediately.",
+      "loadError": "Could not load the mobile release settings.",
+      "optional": "(optional)",
+      "checksumInvalid": "The checksum must be exactly 64 hexadecimal characters.",
+      "submit": "Publish release",
+      "fields": {
+        "latestVersionCode": {
+          "label": "Latest version code",
+          "placeholder": "e.g. 3",
+          "hint": "The version code EAS assigned to the build. Must match exactly, or the app will never see the update."
+        },
+        "latestVersionName": {
+          "label": "Latest version name",
+          "placeholder": "e.g. 1.0.0",
+          "hint": "The human-readable version shown to users."
+        },
+        "minSupportedVersionCode": {
+          "label": "Minimum supported version code",
+          "placeholder": "e.g. 1",
+          "hint": "Installs below this are hard-blocked until the user updates. For a first release, use the same value as the latest version code."
+        },
+        "apkUrl": {
+          "label": "APK URL",
+          "placeholder": "https://api.example.com/api/v1/mobile/download/socialhan-1.0.0.apk",
+          "hint": "Full download URL. Must point at a file already uploaded to the releases directory on the server."
+        },
+        "apkSha256": {
+          "label": "APK SHA-256 checksum",
+          "placeholder": "64 hex characters",
+          "hint": "Run: sha256sum socialhan-1.0.0.apk — shown on the download page so users can verify the file."
+        },
+        "changelogUrl": {
+          "label": "Changelog URL",
+          "placeholder": "https://example.com/changelog",
+          "hint": "Optional link to release notes."
+        }
+      }
+    }
+  },
+  "errors": {
+    "INCORRECT_PASSWORD": "Incorrect password.",
+    "EMAIL_VERIFICATION_REQUIRED_FOR_MFA": "You must verify your email before enabling two-factor authentication.",
+    "MFA_CODE_INVALID_OR_EXPIRED": "The code is invalid or has expired.",
+    "TOTP_SETUP_NOT_STARTED": "Start authenticator setup first.",
+    "TOTP_CODE_INVALID": "Invalid code. Enter the current code from your authenticator app.",
+    "EMAIL_LINK_ALREADY_USED": "This link has already been used.",
+    "EMAIL_LINK_EXPIRED": "This link has expired.",
+    "EMAIL_LINK_INVALID": "This link is invalid or has expired.",
+    "CANNOT_REPORT_OWN_POST": "You can't report your own post.",
+    "FILE_TOO_LARGE": "File size can't exceed 5MB.",
+    "INVALID_FILE_FORMAT": "Invalid file format. Only JPG, PNG, WEBP, and GIF can be uploaded.",
+    "POSTING_RESTRICTED": "Only accounts with a verified email can post right now."
+  }
+}

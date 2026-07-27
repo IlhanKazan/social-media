@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 import { useEditPost } from '../hooks/use-edit-post';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -10,12 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { PostResponse } from '@/types/api';
 
-const editPostSchema = z.object({
-  content: z.string().min(1, 'Gönderi boş olamaz').max(500, 'Maksimum 500 karakter'),
-  imageUrl: z.string().optional(),
-});
+function createEditPostSchema(t: TFunction) {
+  return z.object({
+    content: z.string().min(1, t('compose.contentEmpty')).max(500, t('compose.contentMax')),
+    imageUrl: z.string().optional(),
+  });
+}
 
-type EditPostInput = z.infer<typeof editPostSchema>;
+type EditPostInput = z.infer<ReturnType<typeof createEditPostSchema>>;
 
 interface Props {
   post: PostResponse;
@@ -24,7 +28,9 @@ interface Props {
 }
 
 export function EditPostDialog({ post, open, onOpenChange }: Props) {
+  const { t, i18n } = useTranslation();
   const editMutation = useEditPost(post.id);
+  const editPostSchema = useMemo(() => createEditPostSchema(t), [t, i18n.language]);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<EditPostInput>({
     resolver: zodResolver(editPostSchema),
@@ -52,7 +58,7 @@ export function EditPostDialog({ post, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Gönderiyi Düzenle</DialogTitle>
+          <DialogTitle>{t('post.editDialog.title')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
@@ -60,7 +66,7 @@ export function EditPostDialog({ post, open, onOpenChange }: Props) {
             <Textarea
               {...register('content')}
               className="min-h-[100px] resize-none border-input focus-visible:ring-1"
-              placeholder="Neler düşünüyorsun?"
+              placeholder={t('post.editDialog.placeholder')}
               aria-invalid={!!errors.content}
             />
             {errors.content && (
@@ -69,9 +75,9 @@ export function EditPostDialog({ post, open, onOpenChange }: Props) {
           </div>
 
           <DialogFooter className="pt-2">
-            <DialogClose render={<Button type="button" variant="ghost" />}>İptal</DialogClose>
+            <DialogClose render={<Button type="button" variant="ghost" />}>{t('post.editDialog.cancel')}</DialogClose>
             <Button type="submit" disabled={editMutation.isPending}>
-              {editMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+              {editMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('post.editDialog.save')}
             </Button>
           </DialogFooter>
         </form>

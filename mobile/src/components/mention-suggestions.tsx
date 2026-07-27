@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { useMentionSuggestions } from '@/features/mentions/queries';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function MentionSuggestions({ query, onSelect }: Props) {
+  const { t } = useTranslation();
   const { data, isLoading } = useMentionSuggestions(query);
   const results = data ?? [];
 
@@ -19,7 +21,7 @@ export function MentionSuggestions({ query, onSelect }: Props) {
       {isLoading ? (
         <View className="flex-row items-center gap-2 px-4 py-3">
           <ActivityIndicator size="small" />
-          <Text className="text-sm text-neutral-500">Aranıyor...</Text>
+          <Text className="text-sm text-neutral-500">{t('common.searching')}</Text>
         </View>
       ) : (
         <FlatList

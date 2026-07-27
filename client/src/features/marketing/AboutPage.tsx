@@ -1,36 +1,26 @@
+import { useTranslation } from 'react-i18next';
 import { LegalTitle, LegalSection, DemoDisclaimer } from './LegalProse';
 
+const CONTACT_EMAIL = 'ilhan.kazan3664@gmail.com';
+
 export function AboutPage() {
+  const { t } = useTranslation();
+
   return (
     <article>
-      <LegalTitle title="Hakkında · About" />
+      <LegalTitle title={t('legal.about.title')} />
 
       <DemoDisclaimer />
 
-      <LegalSection title="SocialHan nedir?">
-        <p>
-          SocialHan, gerçek zamanlı bir akış, konu zincirleri, direkt mesajlar ve görsel paylaşımı
-          sunan Twitter benzeri bir sosyal medya platformudur. 2024'te yapılan bir portfolyo
-          projesinin 2026 yılında modern bir yığınla sıfırdan yeniden yazılmış halidir.
-        </p>
-        <p>
-          Proje; Java 21 / Spring Boot tabanlı bir backend, React 19 + TypeScript bir frontend ve
-          PostgreSQL veritabanı kullanır. Amacı, üretim kalitesinde, gerçek zamanlı özelliklere sahip
-          bir uygulamayı uçtan uca göstermektir.
-        </p>
+      <LegalSection title={t('legal.about.whatIsTitle')}>
+        <p>{t('legal.about.whatIsP1')}</p>
+        <p>{t('legal.about.whatIsP2')}</p>
       </LegalSection>
 
-      <LegalSection title="In English">
+      <LegalSection title={t('legal.about.contactTitle')}>
         <p>
-          SocialHan is a Twitter-style social platform with a real-time feed, threaded conversations,
-          direct messages and image sharing. It is a 2026 ground-up rewrite of a 2024 portfolio
-          project, built to showcase a production-grade, real-time application end to end.
-        </p>
-      </LegalSection>
-
-      <LegalSection title="İletişim · Contact">
-        <p>
-          Sorular ve talepler için: <a className="text-primary hover:underline" href="mailto:ilhan.kazan3664@gmail.com">ilhan.kazan3664@gmail.com</a>
+          {t('legal.about.contactText')}{' '}
+          <a className="text-primary hover:underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
     </article>

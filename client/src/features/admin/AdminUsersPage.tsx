@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { User, ShieldAlert, LogOut, Ban, CheckCircle2, MoreVertical, Loader2, Search, FilterX, ShieldCheck, ShieldOff, KeyRound } from 'lucide-react';
 import { useAdminUsers, useAdminUserActions, type AdminUserDto } from './hooks/use-admin-users';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useDateLocale } from '@/hooks/use-date-locale';
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 export function AdminUsersPage() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const debouncedSearch = useDebounce(search, 500);
@@ -39,7 +42,7 @@ export function AdminUsersPage() {
 
   const renderUserCards = () => {
     if (isLoading) return <div className="col-span-full flex justify-center p-12"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>;
-    if (users.length === 0) return <div className="col-span-full p-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">Kullanıcı bulunamadı.</div>;
+    if (users.length === 0) return <div className="col-span-full p-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">{t('admin.users.notFound')}</div>;
 
     return users.map((user) => (
       <Card key={user.id} className="p-5 flex flex-col justify-between border-zinc-200 dark:border-zinc-800 shadow-sm bg-card">
@@ -59,7 +62,7 @@ export function AdminUsersPage() {
                 <span className="truncate font-bold text-foreground flex items-center gap-1.5">
                   {user.displayName || user.username}
                   {user.role === 'ROLE_ADMIN' && (
-                    <span title="Admin" className="flex items-center">
+                    <span title={t('admin.users.adminTitle')} className="flex items-center">
                       <ShieldAlert className="h-3.5 w-3.5 text-indigo-500" />
                     </span>
                   )}
@@ -72,7 +75,7 @@ export function AdminUsersPage() {
                 <span className="truncate text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                   {user.email}
                   {user.emailVerified && (
-                  <span title="Doğrulanmış E-posta" className="flex items-center">
+                  <span title={t('admin.users.verifiedEmailTitle')} className="flex items-center">
                     <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                   </span>
                   )}
@@ -86,36 +89,36 @@ export function AdminUsersPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>Yönetimsel İşlemler</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('admin.users.menu.label')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
 
                   {user.role === 'ROLE_ADMIN' ? (
                     <DropdownMenuItem onClick={() => demoteUser.mutate(user.id)} className="text-amber-600">
-                      <ShieldOff className="mr-2 h-4 w-4" /> Yetkiyi Geri Al
+                      <ShieldOff className="mr-2 h-4 w-4" /> {t('admin.users.menu.demote')}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={() => promoteUser.mutate(user.id)} className="text-indigo-600">
-                      <ShieldCheck className="mr-2 h-4 w-4" /> Admin Yap
+                      <ShieldCheck className="mr-2 h-4 w-4" /> {t('admin.users.menu.promote')}
                     </DropdownMenuItem>
                   )}
 
                   <DropdownMenuItem onClick={() => resetPassword.mutate(user.id)}>
-                    <KeyRound className="mr-2 h-4 w-4" /> Şifre Sıfırla
+                    <KeyRound className="mr-2 h-4 w-4" /> {t('admin.users.menu.resetPassword')}
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={() => forceLogout.mutate(user.id)}>
-                    <LogOut className="mr-2 h-4 w-4" /> Oturumları Kapat
+                    <LogOut className="mr-2 h-4 w-4" /> {t('admin.users.menu.forceLogout')}
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
 
                   {user.isBanned ? (
                     <DropdownMenuItem onClick={() => unbanUser.mutate(user.id)} className="text-green-600 font-bold">
-                      <CheckCircle2 className="mr-2 h-4 w-4" /> Yasağı Kaldır
+                      <CheckCircle2 className="mr-2 h-4 w-4" /> {t('admin.users.menu.unban')}
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem onClick={() => setBanTarget(user)} className="text-destructive font-bold">
-                      <Ban className="mr-2 h-4 w-4" /> Kullanıcıyı Banla
+                      <Ban className="mr-2 h-4 w-4" /> {t('admin.users.menu.ban')}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>
@@ -125,25 +128,25 @@ export function AdminUsersPage() {
 
           <div className="space-y-2 text-[13px] text-muted-foreground">
             <div className="flex justify-between items-center">
-              <span>Durum</span>
+              <span>{t('admin.users.stats.status')}</span>
               {user.isBanned ? (
-                <Badge variant="destructive">Banlı</Badge>
+                <Badge variant="destructive">{t('admin.users.stats.banned')}</Badge>
               ) : (
-                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none">Aktif</Badge>
+                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none">{t('admin.users.stats.active')}</Badge>
               )}
             </div>
             <div className="flex justify-between">
-              <span>Gönderi</span>
+              <span>{t('admin.users.stats.posts')}</span>
               <span className="font-medium text-foreground">{user.postCount}</span>
             </div>
             <div className="flex justify-between">
-              <span>Kayıt</span>
-              <span className="text-foreground">{user.joinedAt ? format(new Date(user.joinedAt), 'dd MMM yyyy', { locale: tr }) : '-'}</span>
+              <span>{t('admin.users.stats.joined')}</span>
+              <span className="text-foreground">{user.joinedAt ? format(new Date(user.joinedAt), 'dd MMM yyyy', { locale: dateLocale }) : '-'}</span>
             </div>
             <div className="flex justify-between">
-              <span>Son Giriş</span>
+              <span>{t('admin.users.stats.lastLogin')}</span>
               <span className="text-foreground italic">
-                {user.lastLoginAt ? formatDistanceToNow(new Date(user.lastLoginAt), { addSuffix: true, locale: tr }) : 'Hiç giriş yapmadı'}
+                {user.lastLoginAt ? formatDistanceToNow(new Date(user.lastLoginAt), { addSuffix: true, locale: dateLocale }) : t('admin.users.stats.neverLoggedIn')}
               </span>
             </div>
           </div>
@@ -155,8 +158,8 @@ export function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Kullanıcı Yönetimi</h1>
-        <p className="text-muted-foreground">Sistemdeki hesapları filtreleyin ve ADMIN yetkilerini yönetin.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('admin.users.title')}</h1>
+        <p className="text-muted-foreground">{t('admin.users.subtitle')}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -164,7 +167,7 @@ export function AdminUsersPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
           <Input
             className="pl-9 h-10 border-zinc-200 dark:border-zinc-800 bg-background text-foreground"
-            placeholder="Ara..."
+            placeholder={t('admin.users.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -175,9 +178,9 @@ export function AdminUsersPage() {
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="all" className="bg-background text-foreground">Tüm Durumlar</option>
-            <option value="active" className="bg-background text-emerald-600">Sadece Aktifler</option>
-            <option value="banned" className="bg-background text-destructive">Sadece Banlılar</option>
+            <option value="all" className="bg-background text-foreground">{t('admin.users.filters.all')}</option>
+            <option value="active" className="bg-background text-emerald-600">{t('admin.users.filters.active')}</option>
+            <option value="banned" className="bg-background text-destructive">{t('admin.users.filters.banned')}</option>
           </select>
           <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => { setSearch(''); setStatus('all'); }}>
             <FilterX className="h-4 w-4" />
@@ -195,24 +198,24 @@ export function AdminUsersPage() {
 
       <Dialog open={!!banTarget} onOpenChange={(open) => !open && setBanTarget(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Kullanıcıyı Yasakla</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('admin.users.banDialog.title')}</DialogTitle></DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm"><strong>@{banTarget?.username}</strong> kullanıcısı yasaklanacak.</p>
+            <p className="text-sm"><strong>@{banTarget?.username}</strong> {t('admin.users.banDialog.body')}</p>
             <Input
-              placeholder="Sebep girin..."
+              placeholder={t('admin.users.banDialog.reasonPlaceholder')}
               value={banReason}
               onChange={(e) => setBanReason(e.target.value)}
               className="bg-background text-foreground border-zinc-200 dark:border-zinc-800"
             />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setBanTarget(null)}>İptal</Button>
+            <Button variant="ghost" onClick={() => setBanTarget(null)}>{t('admin.users.banDialog.cancel')}</Button>
             <Button
               variant="destructive"
               onClick={() => banTarget && banReason.trim() && banUser.mutate({ id: banTarget.id, reason: banReason }, { onSuccess: () => setBanTarget(null) })}
               disabled={!banReason.trim() || banUser.isPending}
             >
-              Yasakla
+              {t('admin.users.banDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

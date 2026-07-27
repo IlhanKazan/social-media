@@ -1,9 +1,11 @@
 import { Loader2, Users, FileText, Activity, Mail, ShieldAlert, RefreshCw, Flag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAdminMetrics } from './hooks/use-admin-metrics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export function AdminDashboardPage() {
+  const { t, i18n } = useTranslation();
   const { data, isLoading, isError, isFetching } = useAdminMetrics();
 
   if (isLoading) {
@@ -17,56 +19,58 @@ export function AdminDashboardPage() {
   if (isError || !data) {
     return (
       <div className="p-8 text-center text-destructive border border-destructive/20 bg-destructive/10 rounded-xl">
-        Metrikler yüklenirken bir hata oluştu. Sunucu bağlantısını kontrol edin.
+        {t('admin.dashboard.loadError')}
       </div>
     );
   }
 
+  const numberLocale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+
   const statCards = [
     {
-      title: 'Toplam Kullanıcı',
+      title: t('admin.dashboard.statCards.totalUsers.title'),
       value: data.users.total,
-      subValue: `${data.users.banned} banlı hesap`,
+      subValue: t('admin.dashboard.statCards.totalUsers.subValue', { count: data.users.banned }),
       icon: Users,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
     },
     {
-      title: 'Aktif Oturumlar',
+      title: t('admin.dashboard.statCards.activeSessions.title'),
       value: data.activeSessions,
-      subValue: 'Şu an sistemde aktif token sayısı',
+      subValue: t('admin.dashboard.statCards.activeSessions.subValue'),
       icon: Activity,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
     },
     {
-      title: 'Açık Raporlar',
+      title: t('admin.dashboard.statCards.openReports.title'),
       value: data.openReports,
-      subValue: 'İncelenmeyi bekleyen şikayetler',
+      subValue: t('admin.dashboard.statCards.openReports.subValue'),
       icon: ShieldAlert,
       color: data.openReports > 0 ? 'text-destructive' : 'text-zinc-500',
       bgColor: data.openReports > 0 ? 'bg-destructive/10' : 'bg-zinc-500/10',
     },
     {
-      title: 'Kuyruktaki Gönderiler',
+      title: t('admin.dashboard.statCards.queuedPosts.title'),
       value: data.posts.flagged,
-      subValue: 'Moderatör onayı bekleyen',
+      subValue: t('admin.dashboard.statCards.queuedPosts.subValue'),
       icon: Flag,
       color: data.posts.flagged > 0 ? 'text-amber-500' : 'text-zinc-500',
       bgColor: data.posts.flagged > 0 ? 'bg-amber-500/10' : 'bg-zinc-500/10',
     },
     {
-      title: 'Toplam Gönderi',
+      title: t('admin.dashboard.statCards.totalPosts.title'),
       value: data.posts.total,
-      subValue: `${data.posts.removed} gönderi silindi`,
+      subValue: t('admin.dashboard.statCards.totalPosts.subValue', { count: data.posts.removed }),
       icon: FileText,
       color: 'text-indigo-500',
       bgColor: 'bg-indigo-500/10',
     },
     {
-      title: 'E-posta Durumu',
+      title: t('admin.dashboard.statCards.emailStatus.title'),
       value: data.emails.sentToday,
-      subValue: `Bugün gönderildi (${data.emails.failed} hatalı, ${data.emails.pending} bekleyen)`,
+      subValue: t('admin.dashboard.statCards.emailStatus.subValue', { failed: data.emails.failed, pending: data.emails.pending }),
       icon: Mail,
       color: data.emails.failed > 0 ? 'text-rose-500' : 'text-teal-500',
       bgColor: data.emails.failed > 0 ? 'bg-rose-500/10' : 'bg-teal-500/10',
@@ -77,15 +81,15 @@ export function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-center">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Sistem Özeti</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('admin.dashboard.title')}</h1>
           <p className="text-muted-foreground text-[15px]">
-            Platformun güncel durumu ve istatistikleri.
+            {t('admin.dashboard.subtitle')}
           </p>
         </div>
 
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground bg-zinc-100 dark:bg-zinc-800/50 px-3 py-1.5 rounded-full">
           <RefreshCw className={cn("h-3 w-3", isFetching ? "animate-spin text-primary" : "")} />
-          <span>Canlı Veri (30s)</span>
+          <span>{t('admin.dashboard.liveData')}</span>
         </div>
       </div>
 
@@ -101,7 +105,7 @@ export function AdminDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stat.value.toLocaleString('tr-TR')}</div>
+              <div className="text-3xl font-bold">{stat.value.toLocaleString(numberLocale)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {stat.subValue}
               </p>

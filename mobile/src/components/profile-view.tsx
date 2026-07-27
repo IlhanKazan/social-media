@@ -1,8 +1,10 @@
 import { format } from 'date-fns';
+import { enUS, tr } from 'date-fns/locale';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { BadgeCheck, CalendarDays, Mail, Settings } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
@@ -52,6 +54,8 @@ function ProfileHeader({
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'en' ? enUS : tr;
   const router = useRouter();
   const followUser = useFollowUser(profile.username, profile.id);
   const startConversation = useStartConversation();
@@ -88,7 +92,7 @@ function ProfileHeader({
                   className="rounded-full border border-neutral-300 px-5 py-2 active:opacity-70 dark:border-neutral-700"
                   onPress={() => router.push('/edit-profile')}
                 >
-                  <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">Profili Düzenle</Text>
+                  <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{t('profile.editProfile')}</Text>
                 </Pressable>
               </>
             ) : (
@@ -120,7 +124,7 @@ function ProfileHeader({
                         : 'font-sans-bold text-white'
                     }
                   >
-                    {profile.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+                    {profile.isFollowing ? t('profile.following') : t('profile.follow')}
                   </Text>
                 </Pressable>
               </>
@@ -143,7 +147,7 @@ function ProfileHeader({
         <View className="mt-3 flex-row items-center gap-1.5">
           <CalendarDays size={15} color="#737373" />
           <Text className="text-sm text-neutral-500">
-            {format(new Date(profile.joinedAt), 'MMMM yyyy')} tarihinde katıldı
+            {t('profile.joinedOn', { date: format(new Date(profile.joinedAt), 'MMMM yyyy', { locale: dateLocale }) })}
           </Text>
         </View>
 
@@ -158,7 +162,7 @@ function ProfileHeader({
             }
           >
             <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{profile.followingCount}</Text>
-            <Text className="text-neutral-500">Takip Edilen</Text>
+            <Text className="text-neutral-500">{t('profile.followingLabel')}</Text>
           </Pressable>
           <Pressable
             className="flex-row gap-1"
@@ -170,7 +174,7 @@ function ProfileHeader({
             }
           >
             <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{profile.followerCount}</Text>
-            <Text className="text-neutral-500">Takipçi</Text>
+            <Text className="text-neutral-500">{t('profile.followersLabel')}</Text>
           </Pressable>
         </View>
       </View>
@@ -178,7 +182,7 @@ function ProfileHeader({
       <View className="flex-row border-b border-neutral-100 dark:border-neutral-800">
         {(['posts', 'replies', 'likes'] as const).map((tab) => {
           const active = activeTab === tab;
-          const label = tab === 'posts' ? 'Gönderiler' : tab === 'replies' ? 'Yanıtlar' : 'Beğeniler';
+          const label = tab === 'posts' ? t('profile.tabPosts') : tab === 'replies' ? t('profile.tabReplies') : t('profile.tabLikes');
           return (
             <Pressable
               key={tab}
@@ -208,6 +212,7 @@ function ProfileHeader({
 }
 
 export function ProfileView({ username }: { username: string | undefined }) {
+  const { t } = useTranslation();
   const account = useAuthStore((s) => s.account);
   const [activeTab, setActiveTab] = useState<Tab>('posts');
 
@@ -231,7 +236,7 @@ export function ProfileView({ username }: { username: string | undefined }) {
   if (profileQuery.status === 'error' || !profileQuery.data) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-8 dark:bg-neutral-950">
-        <Text className="text-center text-neutral-500">Kullanıcı bulunamadı.</Text>
+        <Text className="text-center text-neutral-500">{t('profile.userNotFound')}</Text>
       </View>
     );
   }
@@ -286,7 +291,7 @@ export function ProfileView({ username }: { username: string | undefined }) {
             </View>
           ) : (
             <View className="items-center py-10">
-              <Text className="text-neutral-500">Henüz bir şey yok.</Text>
+              <Text className="text-neutral-500">{t('profile.emptyList')}</Text>
             </View>
           )
         }

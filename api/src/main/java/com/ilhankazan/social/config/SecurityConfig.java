@@ -5,7 +5,17 @@ import com.ilhankazan.social.security.ReadOnlyModeFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,8 +44,75 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ReadOnlyModeFilter readOnlyModeFilter;
     private final AppProperties.CorsProperties corsProps;
+    private final AppProperties.MetricsProperties metricsProps;
+
+    /**
+     * Scoped to /actuator/prometheus only, and ordered ahead of the main chain.
+     * A monitoring agent can't hold a 15-minute JWT, so this single endpoint takes
+     * long-lived HTTP Basic credentials instead. Every other /actuator path still
+     * falls through to the main chain's ROLE_ADMIN rule.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain prometheusFilterChain(HttpSecurity http) throws Exception {
+        UserDetails scraper = User.withUsername(metricsProps.username())
+            .password(metricsProps.password())
+            .roles("METRICS")
+            .build();
+
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        // Scoped to this chain only — the app's own UserDetailsService and its
+        // BCrypt encoder are untouched.
+        provider.setUserDetailsService(new InMemoryUserDetailsManager(scraper));
+        provider.setPasswordEncoder(SCRAPER_SECRET_ENCODER);
+
+        return http
+            .securityMatcher("/actuator/prometheus")
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("METRICS"))
+            .httpBasic(Customizer.withDefaults())
+            .authenticationProvider(provider)
+            .build();
+    }
+
+    /**
+     * Constant-time SHA-256 comparison for the scraper credential.
+     *
+     * Deliberately NOT BCrypt. A work factor exists to slow brute-force of
+     * low-entropy human passwords; this secret is machine-generated and
+     * length-enforced at startup, so the factor buys nothing — while costing
+     * ~875ms of CPU on every *failed* attempt. Since the endpoint is
+     * unauthenticated by definition (anyone may present a Basic header) and the
+     * @RateLimit aspect cannot apply to framework-provided actuator endpoints,
+     * that turned a handful of concurrent requests into a CPU-exhaustion DoS.
+     * Hashing both sides to a fixed length keeps the comparison constant-time
+     * and leaks no length information.
+     */
+    private static final PasswordEncoder SCRAPER_SECRET_ENCODER = new PasswordEncoder() {
+        @Override
+        public String encode(CharSequence rawPassword) {
+            return rawPassword.toString();
+        }
+
+        @Override
+        public boolean matches(CharSequence rawPassword, String encodedPassword) {
+            if (rawPassword == null || encodedPassword == null) return false;
+            return MessageDigest.isEqual(sha256(rawPassword.toString()), sha256(encodedPassword));
+        }
+
+        private byte[] sha256(String value) {
+            try {
+                return MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException("SHA-256 unavailable", e);
+            }
+        }
+    };
 
     @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -57,6 +134,7 @@ public class SecurityConfig {
                 // SockJS handshake is permitAll here; STOMP-level auth is enforced by WebSocketAuthInterceptor
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers("/ws-native", "/ws-native/**").permitAll()
+                .requestMatchers("/api/v1/mobile/version", "/api/v1/mobile/download/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

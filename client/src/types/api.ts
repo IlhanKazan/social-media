@@ -224,3 +224,12 @@ export interface CursorPageResponse<T> {
   nextCursor: number | null;
   hasMore: boolean;
 }
+
+export interface MobileVersionResponse {
+  latestVersionCode: number;
+  latestVersionName: string;
+  minSupportedVersionCode: number;
+  apkUrl: string;
+  apkSha256: string;
+  changelogUrl: string;
+}

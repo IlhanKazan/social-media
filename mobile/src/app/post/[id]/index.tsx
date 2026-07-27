@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageSquare } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
@@ -7,6 +8,7 @@ import { useAncestors, usePost, useReplies } from '@/features/posts/queries';
 import { useLiveReplies } from '@/features/posts/use-live-replies';
 
 export default function PostDetailScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const postId = Number(params.id);
@@ -22,7 +24,7 @@ export default function PostDetailScreen() {
   if (post.status === 'pending') {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-950">
-        <Stack.Screen options={{ title: 'Gönderi', headerShown: true }} />
+        <Stack.Screen options={{ title: t('post.detail.title'), headerShown: true }} />
         <ActivityIndicator size="large" />
       </View>
     );
@@ -31,10 +33,10 @@ export default function PostDetailScreen() {
   if (post.status === 'error' || !post.data) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-8 dark:bg-neutral-950">
-        <Stack.Screen options={{ title: 'Gönderi', headerShown: true }} />
-        <Text className="text-center text-neutral-500">Gönderi yüklenemedi.</Text>
+        <Stack.Screen options={{ title: t('post.detail.title'), headerShown: true }} />
+        <Text className="text-center text-neutral-500">{t('post.detail.loadError')}</Text>
         <Pressable className="mt-4 rounded-full bg-primary px-5 py-2" onPress={() => post.refetch()}>
-          <Text className="font-sans-semibold text-white">Tekrar Dene</Text>
+          <Text className="font-sans-semibold text-white">{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -42,7 +44,7 @@ export default function PostDetailScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: 'Gönderi', headerShown: true }} />
+      <Stack.Screen options={{ title: t('post.detail.title'), headerShown: true }} />
 
       <FlatList
         data={replyItems}
@@ -61,7 +63,7 @@ export default function PostDetailScreen() {
                     onPress={() => router.push(`/post/${postId}/reposters`)}
                   >
                     <Text className="text-sm text-neutral-700 dark:text-neutral-300">
-                      <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.repostCount}</Text> repost
+                      <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.repostCount}</Text> {t('post.detail.repostsWord')}
                     </Text>
                   </Pressable>
                 )}
@@ -71,19 +73,19 @@ export default function PostDetailScreen() {
                     onPress={() => router.push(`/post/${postId}/likers`)}
                   >
                     <Text className="text-sm text-neutral-700 dark:text-neutral-300">
-                      <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.likeCount}</Text> beğeni
+                      <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.likeCount}</Text> {t('post.detail.likesWord')}
                     </Text>
                   </Pressable>
                 )}
                 {post.data.viewCount > 0 && (
                   <Text className="text-sm text-neutral-700 dark:text-neutral-300">
-                    <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.viewCount}</Text> görüntülenme
+                    <Text className="font-sans-bold text-neutral-900 dark:text-neutral-50">{post.data.viewCount}</Text> {t('post.detail.viewsWord')}
                   </Text>
                 )}
               </View>
             )}
             <View className="border-b border-neutral-100 px-4 py-2 dark:border-neutral-800">
-              <Text className="text-sm font-sans-bold text-neutral-500">Yanıtlar</Text>
+              <Text className="text-sm font-sans-bold text-neutral-500">{t('post.detail.repliesHeader')}</Text>
             </View>
           </>
         }
@@ -101,7 +103,7 @@ export default function PostDetailScreen() {
             </View>
           ) : (
             <View className="items-center px-8 py-8">
-              <Text className="text-center text-neutral-500">Henüz yanıt yok.</Text>
+              <Text className="text-center text-neutral-500">{t('post.detail.noReplies')}</Text>
             </View>
           )
         }

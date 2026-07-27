@@ -1,10 +1,13 @@
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 
-export const reportPostSchema = z.object({
-  reason: z.enum(['HATE', 'HARASSMENT', 'SPAM', 'SELF_HARM', 'OTHER'], {
-    message: 'Lütfen bir neden seçin',
-  }),
-  details: z.string().max(500, 'Detaylar en fazla 500 karakter olabilir').optional(),
-});
+export function createReportPostSchema(t: TFunction) {
+  return z.object({
+    reason: z.enum(['HATE', 'HARASSMENT', 'SPAM', 'SELF_HARM', 'OTHER'], {
+      message: t('post.reportDialog.reasonRequired'),
+    }),
+    details: z.string().max(500, t('post.reportDialog.detailsMax')).optional(),
+  });
+}
 
-export type ReportPostInput = z.infer<typeof reportPostSchema>;
+export type ReportPostInput = z.infer<ReturnType<typeof createReportPostSchema>>;

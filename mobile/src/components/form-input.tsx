@@ -6,19 +6,25 @@ type Props<T extends FieldValues> = {
   control: Control<T>;
   name: Path<T>;
   error?: string;
+  label?: string;
 } & TextInputProps;
 
-export function FormInput<T extends FieldValues>({ control, name, error, ...inputProps }: Props<T>) {
+export function FormInput<T extends FieldValues>({ control, name, error, label, ...inputProps }: Props<T>) {
   const [focused, setFocused] = useState(false);
 
   return (
     <>
+      {label && (
+        <Text className="mb-1.5 mt-3 text-sm font-sans-medium text-neutral-700 dark:text-neutral-300">
+          {label}
+        </Text>
+      )}
       <Controller
         control={control}
         name={name}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            className={`mt-3 rounded-xl border px-4 py-3.5 text-[16px] text-neutral-900 dark:text-neutral-50 ${
+            className={`${label ? '' : 'mt-3'} rounded-xl border px-4 py-3.5 text-[16px] text-neutral-900 dark:text-neutral-50 ${
               error
                 ? 'border-red-500 bg-red-500/5'
                 : focused

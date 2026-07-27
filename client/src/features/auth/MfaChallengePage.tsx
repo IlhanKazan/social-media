@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,16 +12,21 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { LoginResponse, ErrorResponse, MfaMethod } from '@/types/api';
+import type { TFunction } from 'i18next';
 
 type MfaState = { mfaToken?: string; methods?: MfaMethod[]; from?: string };
 
-const COPY: Record<MfaMethod, { title: string; desc: string; placeholder: string; numeric: boolean }> = {
-  TOTP: { title: 'İki adımlı doğrulama', desc: 'Authenticator uygulamandaki 6 haneli kodu gir.', placeholder: '000000', numeric: true },
-  EMAIL: { title: 'İki adımlı doğrulama', desc: 'E-postana gönderdiğimiz 6 haneli kodu gir.', placeholder: '000000', numeric: true },
-  RECOVERY: { title: 'Kurtarma kodu', desc: 'Kurtarma kodlarından birini gir.', placeholder: 'kurtarma kodu', numeric: false },
-};
+function getCopy(t: TFunction, method: MfaMethod) {
+  const copy: Record<MfaMethod, { title: string; desc: string; placeholder: string; numeric: boolean }> = {
+    TOTP: { title: t('auth.mfa.totpTitle'), desc: t('auth.mfa.totpDesc'), placeholder: '000000', numeric: true },
+    EMAIL: { title: t('auth.mfa.emailTitle'), desc: t('auth.mfa.emailDesc'), placeholder: '000000', numeric: true },
+    RECOVERY: { title: t('auth.mfa.recoveryTitle'), desc: t('auth.mfa.recoveryDesc'), placeholder: t('auth.mfa.recoveryPlaceholder'), numeric: false },
+  };
+  return copy[method];
+}
 
 export function MfaChallengePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const login = useAuthStore((s) => s.login);
@@ -43,22 +50,22 @@ export function MfaChallengePage() {
       });
       navigate(from, { replace: true });
     },
-    onError: (e) => setError(e.response?.data?.message || 'Doğrulanamadı. Lütfen tekrar dene.'),
+    onError: (e) => setError(getApiErrorMessage(t, e, 'auth.mfa.verifyError')),
   });
 
   const resend = useMutation({
     mutationFn: async () => {
       await api.post('/auth/mfa/resend', { mfaToken: state.mfaToken });
     },
-    onSuccess: () => toast.success('Yeni kod e-postana gönderildi.'),
-    onError: () => toast.error('Kod gönderilemedi.'),
+    onSuccess: () => toast.success(t('auth.mfa.resendSuccess')),
+    onError: () => toast.error(t('auth.mfa.resendError')),
   });
 
   if (!state.mfaToken) {
     return <Navigate to="/login" replace />;
   }
 
-  const c = COPY[method];
+  const c = getCopy(t, method);
   const switchMethod = (m: MfaMethod) => {
     setMethod(m);
     setCode('');
@@ -83,7 +90,7 @@ export function MfaChallengePage() {
         className="space-y-5"
       >
         <div className="space-y-2">
-          <Label htmlFor="code">{method === 'RECOVERY' ? 'Kurtarma kodu' : 'Doğrulama kodu'}</Label>
+          <Label htmlFor="code">{method === 'RECOVERY' ? t('auth.mfa.recoveryCodeLabel') : t('auth.mfa.codeLabel')}</Label>
           <Input
             id="code"
             inputMode={c.numeric ? 'numeric' : 'text'}
@@ -102,7 +109,7 @@ export function MfaChallengePage() {
           className="w-full h-12 text-base font-semibold transition-transform active:scale-95"
           disabled={verify.isPending || code.trim().length < (method === 'RECOVERY' ? 8 : 6)}
         >
-          {verify.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Doğrula ve giriş yap'}
+          {verify.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t('auth.mfa.verify')}
         </Button>
       </form>
 
@@ -112,12 +119,12 @@ export function MfaChallengePage() {
           <div className="flex gap-3 text-muted-foreground">
             {methods.includes('TOTP') && method !== 'TOTP' && (
               <button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMethod('TOTP')}>
-                Authenticator kodu kullan
+                {t('auth.mfa.useAuthenticatorCode')}
               </button>
             )}
             {methods.includes('EMAIL') && method !== 'EMAIL' && (
               <button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMethod('EMAIL')}>
-                E-posta kodu kullan
+                {t('auth.mfa.useEmailCode')}
               </button>
             )}
           </div>
@@ -126,19 +133,19 @@ export function MfaChallengePage() {
         <div className="flex items-center justify-between text-muted-foreground">
           {method === 'EMAIL' ? (
             <button type="button" className="font-medium text-primary hover:underline disabled:opacity-50" onClick={() => resend.mutate()} disabled={resend.isPending}>
-              Kodu tekrar gönder
+              {t('auth.mfa.resendCode')}
             </button>
           ) : method === 'RECOVERY' ? (
             <button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMethod(methods.includes('TOTP') ? 'TOTP' : 'EMAIL')}>
-              Normal koda dön
+              {t('auth.mfa.backToNormalCode')}
             </button>
           ) : (
             <button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMethod('RECOVERY')}>
-              Kurtarma kodu kullan
+              {t('auth.mfa.useRecoveryCode')}
             </button>
           )}
           <button type="button" className="hover:text-foreground" onClick={() => navigate('/login', { replace: true })}>
-            Girişe dön
+            {t('auth.mfa.backToLogin')}
           </button>
         </div>
       </div>

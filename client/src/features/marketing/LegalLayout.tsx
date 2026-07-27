@@ -1,8 +1,11 @@
 import { Link, Outlet } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Footer } from './Footer';
 
 export function LegalLayout() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b border-zinc-200 dark:border-zinc-800/60">
@@ -15,7 +18,7 @@ export function LegalLayout() {
             to="/"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" /> Ana sayfa
+            <ArrowLeft className="h-4 w-4" /> {t('legal.backHome')}
           </Link>
         </div>
       </header>

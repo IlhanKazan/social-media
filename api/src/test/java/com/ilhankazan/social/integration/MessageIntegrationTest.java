@@ -78,4 +78,31 @@ class MessageIntegrationTest extends BaseIntegrationTest {
         ResponseEntity<String> listRes = restTemplate.exchange("/api/v1/conversations", HttpMethod.GET, new HttpEntity<>(headersB), String.class);
         assertThat(listRes.getBody()).contains("\"unreadCount\":0");
     }
+
+    @Test
+    void totalUnreadCountCountsConversationsNotMessages() throws Exception {
+        AuthResponse userA = registerAndGetAuth("dm_unread_a");
+        AuthResponse userB = registerAndGetAuth("dm_unread_b");
+
+        HttpHeaders headersA = new HttpHeaders();
+        headersA.setBearerAuth(userA.accessToken());
+
+        HttpHeaders headersB = new HttpHeaders();
+        headersB.setBearerAuth(userB.accessToken());
+
+        ResponseEntity<String> convRes = restTemplate.exchange("/api/v1/conversations/with/" + userB.account().id(), HttpMethod.POST, new HttpEntity<>(headersA), String.class);
+        ConversationResponse conversation = objectMapper.readValue(convRes.getBody(), ConversationResponse.class);
+
+        setSecurityContext("dm_unread_a");
+        messageManager.sendMessage(conversation.id(), "mesaj 1");
+        messageManager.sendMessage(conversation.id(), "mesaj 2");
+        messageManager.sendMessage(conversation.id(), "mesaj 3");
+        messageManager.sendMessage(conversation.id(), "mesaj 4");
+        SecurityContextHolder.clearContext();
+
+        // 4 unread messages, but only 1 conversation has unread activity.
+        ResponseEntity<Integer> countRes = restTemplate.exchange("/api/v1/conversations/unread-count", HttpMethod.GET, new HttpEntity<>(headersB), Integer.class);
+        assertThat(countRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(countRes.getBody()).isEqualTo(1);
+    }
 }

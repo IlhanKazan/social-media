@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useFeed } from './hooks/use-feed';
 import { useExploreFeed } from './hooks/use-explore-feed';
 import { PostCard } from './components/PostCard';
@@ -31,6 +32,7 @@ function FeedTabContent({
                           isFetchingNextPage,
                           emptyMessage,
                         }: FeedTabContentProps) {
+  const { t } = useTranslation();
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
 
   useEffect(() => {
@@ -45,7 +47,7 @@ function FeedTabContent({
     return (
       <EmptyState
         icon={<MessageSquareOff className="h-12 w-12" />}
-        title="Burası çok sessiz"
+        title={t('feed.emptyTitle')}
         description={emptyMessage}
       />
     );
@@ -80,7 +82,7 @@ function FeedTabContent({
       <div ref={targetRef} className="flex h-16 items-center justify-center mt-4">
         {isFetchingNextPage && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
         {!hasNextPage && (data.pages[0]?.content.length ?? 0) > 0 && (
-          <span className="text-sm text-muted-foreground">Tüm gönderileri gördün.</span>
+          <span className="text-sm text-muted-foreground">{t('feed.allSeen')}</span>
         )}
       </div>
     </>
@@ -92,6 +94,7 @@ interface FeedPageProps {
 }
 
 export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const account = useAuthStore((state) => state.account);
@@ -144,9 +147,9 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
       return (
         <EmptyState
           icon={<AlertCircle className="h-12 w-12 text-destructive" />}
-          title="Bir hata oluştu"
-          description="Akış yüklenirken bir sorunla karşılaştık. Lütfen sayfayı yenileyin."
-          actionLabel="Tekrar Dene"
+          title={t('feed.loadErrorTitle')}
+          description={t('feed.loadErrorDesc')}
+          actionLabel={t('common.retry')}
           onAction={() => query.refetch()}
         />
       );
@@ -168,7 +171,7 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
   return (
     <div className="flex flex-col gap-0 pb-4 relative">
       <div className="px-4 py-3 border-b sticky top-0 bg-background/95 backdrop-blur z-50">
-        <h2 className="text-xl font-bold">{account ? 'Akış' : 'Keşfet'}</h2>
+        <h2 className="text-xl font-bold">{account ? t('feed.headerFeed') : t('feed.headerExplore')}</h2>
       </div>
 
       {account && (
@@ -187,7 +190,7 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
           } />
           <SheetContent side="bottom" className="h-[85dvh] p-0 flex flex-col rounded-t-2xl sm:max-w-none w-full border-t border-zinc-200 dark:border-zinc-800" showCloseButton={true}>
             <SheetHeader className="p-4 border-b text-left shrink-0">
-              <SheetTitle>Gönderi Oluştur</SheetTitle>
+              <SheetTitle>{t('feed.composerSheetTitle')}</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto bg-background">
               <CreatePost onSuccessCallback={() => setIsComposerOpen(false)} />
@@ -205,24 +208,24 @@ export function FeedPage({ defaultTab = 'following' }: FeedPageProps) {
         >
           <TabsList variant="line" className="w-full border-b rounded-none px-4">
             <TabsTrigger value="following" className="flex-1">
-              Takip Edilen
+              {t('feed.followingTab')}
             </TabsTrigger>
             <TabsTrigger value="explore" className="flex-1">
-              Keşfet
+              {t('feed.exploreTab')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="following" className="outline-none m-0">
-            {renderTabBody(following, 'Henüz hiç gönderi yok. Birilerini takip etmeye başla!')}
+            {renderTabBody(following, t('feed.followingEmptyDesc'))}
           </TabsContent>
 
           <TabsContent value="explore" className="outline-none m-0">
-            {renderTabBody(explore, 'Henüz hiç gönderi yok.')}
+            {renderTabBody(explore, t('feed.exploreEmptyDesc'))}
           </TabsContent>
         </Tabs>
       ) : (
         <div className="outline-none m-0">
-          {renderTabBody(explore, 'Henüz hiç gönderi yok.')}
+          {renderTabBody(explore, t('feed.exploreEmptyDesc'))}
         </div>
       )}
     </div>

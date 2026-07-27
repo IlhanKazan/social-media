@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { useLikers } from '@/features/posts/queries';
@@ -9,6 +10,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import type { PublicAccountResponse } from '@/types/api';
 
 function LikerRow({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const account = useAuthStore((s) => s.account);
   const [following, setFollowing] = useState(user.isFollowing);
@@ -71,7 +73,7 @@ function LikerRow({ user }: { user: PublicAccountResponse }) {
               following ? 'text-sm font-sans-bold text-neutral-900 dark:text-neutral-50' : 'text-sm font-sans-bold text-white'
             }
           >
-            {following ? 'Takip Ediliyor' : 'Takip Et'}
+            {following ? t('post.userRow.following') : t('post.userRow.follow')}
           </Text>
         </Pressable>
       )}
@@ -80,6 +82,7 @@ function LikerRow({ user }: { user: PublicAccountResponse }) {
 }
 
 export default function LikersScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string }>();
   const postId = Number(params.id);
   const query = useLikers(postId);
@@ -87,7 +90,7 @@ export default function LikersScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <Stack.Screen options={{ title: 'Beğenenler', headerShown: true }} />
+      <Stack.Screen options={{ title: t('post.likers.title'), headerShown: true }} />
 
       <FlatList
         data={items}
@@ -106,7 +109,7 @@ export default function LikersScreen() {
             </View>
           ) : (
             <View className="items-center py-10">
-              <Text className="text-neutral-500">Henüz beğeni yok.</Text>
+              <Text className="text-neutral-500">{t('post.likers.empty')}</Text>
             </View>
           )
         }

@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { toast } from 'sonner';
 import type { NotificationPreferences, ErrorResponse } from '@/types/api';
 
@@ -18,12 +20,13 @@ export function useNotificationPreferences() {
 
 export function useUpdateNotificationPreferences() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: async (prefs: NotificationPreferences) => {
       const { data } = await api.put<NotificationPreferences>('/notifications/preferences', prefs);
       return data;
     },
     onSuccess: (data) => queryClient.setQueryData(['notification-preferences'], data),
-    onError: (e: ApiError) => toast.error(e.response?.data?.message || 'Tercihler güncellenemedi.'),
+    onError: (e: ApiError) => toast.error(getApiErrorMessage(t, e, 'settings.notificationPreferences.updateError')),
   });
 }

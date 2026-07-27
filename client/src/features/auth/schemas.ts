@@ -1,40 +1,48 @@
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 
-export const loginSchema = z.object({
-  identifier: z.string().trim().min(1, 'Username or Email is required'),
-  password: z.string().min(1, 'Password is required'),
-});
-export type LoginInput = z.infer<typeof loginSchema>;
+export function createLoginSchema(t: TFunction) {
+  return z.object({
+    identifier: z.string().trim().min(1, t('auth.login.identifierRequired')),
+    password: z.string().min(1, t('auth.login.passwordRequired')),
+  });
+}
+export type LoginInput = z.infer<ReturnType<typeof createLoginSchema>>;
 
-export const registerSchema = z.object({
-  username: z.string().trim().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, 'Sadece harf, rakam ve alt çizgi'),
-  email: z.string().trim().email('Geçerli bir e-posta girin').max(254),
-  displayName: z.string().trim().max(50).optional(),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalı').max(72),
-  confirmPassword: z.string(),
-  acceptedTerms: z.boolean().refine((v) => v === true, {
-    message: 'Devam etmek için Şartlar ve Gizlilik Politikası\'nı kabul etmelisin',
-  }),
-  confirmedAge: z.boolean().refine((v) => v === true, {
-    message: '13 yaş ve üzerinde olduğunu onaylamalısın',
-  }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Şifreler eşleşmiyor",
-  path: ["confirmPassword"],
-});
+export function createRegisterSchema(t: TFunction) {
+  return z.object({
+    username: z.string().trim().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/, t('auth.register.usernameFormat')),
+    email: z.string().trim().email(t('auth.register.emailInvalid')).max(254),
+    displayName: z.string().trim().max(50).optional(),
+    password: z.string().min(6, t('auth.register.passwordMin')).max(72),
+    confirmPassword: z.string(),
+    acceptedTerms: z.boolean().refine((v) => v === true, {
+      message: t('auth.register.mustAcceptTerms'),
+    }),
+    confirmedAge: z.boolean().refine((v) => v === true, {
+      message: t('auth.register.mustConfirmAge'),
+    }),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('auth.register.passwordsMismatch'),
+    path: ['confirmPassword'],
+  });
+}
+export type RegisterInput = z.infer<ReturnType<typeof createRegisterSchema>>;
 
-export type RegisterInput = z.infer<typeof registerSchema>;
+export function createForgotPasswordSchema(t: TFunction) {
+  return z.object({
+    email: z.string().trim().email(t('auth.forgotPassword.emailInvalid')),
+  });
+}
+export type ForgotPasswordInput = z.infer<ReturnType<typeof createForgotPasswordSchema>>;
 
-export const forgotPasswordSchema = z.object({
-  email: z.string().trim().email('Geçerli bir e-posta adresi giriniz.'),
-});
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-
-export const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, 'Şifre en az 8 karakter olmalıdır.').max(72),
-  confirmPassword: z.string()
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Şifreler eşleşmiyor.",
-  path: ["confirmPassword"],
-});
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export function createResetPasswordSchema(t: TFunction) {
+  return z.object({
+    newPassword: z.string().min(8, t('auth.resetPassword.passwordMin')).max(72),
+    confirmPassword: z.string(),
+  }).refine((data) => data.newPassword === data.confirmPassword, {
+    message: t('auth.resetPassword.passwordsMismatch'),
+    path: ['confirmPassword'],
+  });
+}
+export type ResetPasswordInput = z.infer<ReturnType<typeof createResetPasswordSchema>>;

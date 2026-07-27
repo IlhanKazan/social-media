@@ -5,5 +5,7 @@ import com.ilhankazan.social.dto.message.MessageResponse;
 public record MessageCreatedEvent(
     MessageResponse message,
     String participantAUsername,
-    String participantBUsername
+    String participantBUsername,
+    Long recipientId,
+    String recipientPreferredLanguage
 ) {}

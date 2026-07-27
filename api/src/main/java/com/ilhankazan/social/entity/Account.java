@@ -62,6 +62,9 @@ public class Account extends BaseEntity {
     @Column(name = "consent_version", length = 20)
     private String consentVersion;
 
+    @Column(name = "preferred_language", nullable = false, length = 2)
+    private String preferredLanguage = "tr";
+
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 

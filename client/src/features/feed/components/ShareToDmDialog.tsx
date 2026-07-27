@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,6 +17,7 @@ interface ShareToDmDialogProps {
 }
 
 export function ShareToDmDialog({ post, open, onOpenChange }: ShareToDmDialogProps) {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('');
   const [caption, setCaption] = useState('');
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useConversations(open);
@@ -40,10 +42,10 @@ export function ShareToDmDialog({ post, open, onOpenChange }: ShareToDmDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[460px]" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
-          <DialogTitle>Mesajla paylaş</DialogTitle>
+          <DialogTitle>{t('post.shareDialog.title')}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3">
-          <Input placeholder="Sohbet ara..." value={filter} onChange={(e) => setFilter(e.target.value)} />
+          <Input placeholder={t('post.shareDialog.searchPlaceholder')} value={filter} onChange={(e) => setFilter(e.target.value)} />
 
           <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
             {status === 'pending' && (
@@ -52,7 +54,7 @@ export function ShareToDmDialog({ post, open, onOpenChange }: ShareToDmDialogPro
               </div>
             )}
             {status !== 'pending' && filtered.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">Sohbet bulunamadı</p>
+              <p className="text-sm text-muted-foreground text-center py-6">{t('post.shareDialog.noResults')}</p>
             )}
             {filtered.map((c) => (
               <button
@@ -74,13 +76,13 @@ export function ShareToDmDialog({ post, open, onOpenChange }: ShareToDmDialogPro
             ))}
             {hasNextPage && (
               <Button variant="ghost" size="sm" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-                {isFetchingNextPage ? 'Yükleniyor...' : 'Daha fazla'}
+                {isFetchingNextPage ? t('post.shareDialog.loadingMore') : t('post.shareDialog.loadMore')}
               </Button>
             )}
           </div>
 
           <Textarea
-            placeholder="Bir not ekle (opsiyonel)..."
+            placeholder={t('post.shareDialog.captionPlaceholder')}
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             className="min-h-[60px] resize-none"

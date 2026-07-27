@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { BadgeCheck, CornerDownRight, Heart, MessageSquare, MoreHorizontal, Pencil, Quote, Repeat2, Send, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
@@ -42,6 +43,7 @@ function Avatar({ account, size }: { account: PublicAccountResponse; size: numbe
 }
 
 function ActionRow({ post }: { post: PostResponse }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const toggleLike = useToggleLike();
   const toggleRepost = useToggleRepost();
@@ -55,12 +57,12 @@ function ActionRow({ post }: { post: PostResponse }) {
         onClose={() => setRepostSheetOpen(false)}
         options={[
           {
-            label: post.repostedByMe ? 'Repostu Geri Al' : 'Repost',
+            label: post.repostedByMe ? t('post.card.undoRepost') : t('post.card.repost'),
             icon: Repeat2,
             onPress: () => toggleRepost.mutate(post.id),
           },
           {
-            label: 'Alıntıla',
+            label: t('post.card.quote'),
             icon: Quote,
             onPress: () =>
               router.push({
@@ -73,7 +75,7 @@ function ActionRow({ post }: { post: PostResponse }) {
               }),
           },
           {
-            label: 'Mesajla Paylaş',
+            label: t('post.card.shareToDm'),
             icon: Send,
             onPress: () => setShareOpen(true),
           },
@@ -159,6 +161,7 @@ function QuotedPostPreview({ post }: { post: PostResponse }) {
 }
 
 export function PostCard({ post, feedType = 'POST', reposter, pressable = true }: PostCardProps) {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const account = useAuthStore((s) => s.account);
   const deletePost = useDeletePost();
@@ -176,7 +179,9 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
         <View className="mb-1 flex-row items-center gap-1.5 pl-8">
           <Repeat2 size={14} color="#737373" />
           <Text className="text-[13px] font-sans-bold text-neutral-500">
-            {reposter.id === account?.id ? 'Sen paylaştın' : `${reposter.displayName || reposter.username} paylaştı`}
+            {reposter.id === account?.id
+              ? t('post.card.youReposted')
+              : t('post.card.userReposted', { name: reposter.displayName || reposter.username })}
           </Text>
         </View>
       )}
@@ -184,7 +189,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
       {showReplyContext && (
         <View className="mb-1 flex-row items-center gap-1.5 pl-8">
           <CornerDownRight size={13} color="#737373" />
-          <Text className="text-[13px] text-neutral-500">@{post.parentPostAuthorUsername} kullanıcısına yanıt</Text>
+          <Text className="text-[13px] text-neutral-500">{t('post.card.replyingTo', { username: post.parentPostAuthorUsername })}</Text>
         </View>
       )}
 
@@ -218,14 +223,14 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
               </Pressable>
               <Text className="text-[15px] text-neutral-500">·</Text>
               <Text className="text-[15px] text-neutral-500">
-                {formatShortRelativeTime(post.createdAt, now)}
+                {formatShortRelativeTime(post.createdAt, now, t, i18n.language)}
               </Text>
-              {post.isEdited && <Text className="text-[13px] italic text-neutral-500">(düzenlendi)</Text>}
+              {post.isEdited && <Text className="text-[13px] italic text-neutral-500">{t('post.card.edited')}</Text>}
             </View>
 
             {account?.id === post.author.id && post.moderationStatus === 'FLAGGED' && (
               <View className="mr-1 rounded-md bg-red-500 px-1.5 py-0.5">
-                <Text className="text-[10px] font-sans-bold text-white">İhlal: Gizlendi</Text>
+                <Text className="text-[10px] font-sans-bold text-white">{t('post.card.flaggedBadge')}</Text>
               </View>
             )}
 
@@ -267,7 +272,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
         onClose={() => setOwnSheetOpen(false)}
         options={[
           {
-            label: 'Düzenle',
+            label: t('post.card.edit'),
             icon: Pencil,
             onPress: () =>
               router.push({
@@ -280,7 +285,7 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
               }),
           },
           {
-            label: 'Sil',
+            label: t('post.card.delete'),
             icon: Trash2,
             destructive: true,
             onPress: () => setDeleteConfirmOpen(true),
@@ -291,10 +296,10 @@ export function PostCard({ post, feedType = 'POST', reposter, pressable = true }
       <ActionSheet
         visible={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        title="Gönderi silinsin mi? Bu işlem geri alınamaz."
+        title={t('post.card.deleteConfirmTitle')}
         options={[
           {
-            label: 'Gönderiyi Sil',
+            label: t('post.card.deleteConfirm'),
             icon: Trash2,
             destructive: true,
             onPress: () => deletePost.mutate(post.id),

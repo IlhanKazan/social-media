@@ -39,6 +39,42 @@ class ActuatorSecurityIntegrationTest extends BaseIntegrationTest {
             .getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
+    @Test
+    void prometheusRequiresScraperCredentialsAndIsNotOpenedToJwtUsers() throws Exception {
+        // Anonymous scrape is rejected.
+        assertThat(restTemplate.getForEntity("/actuator/prometheus", String.class).getStatusCode().value())
+            .isIn(401, 403);
+
+        // The basic-auth chain is scoped to this endpoint only: a normal logged-in
+        // user's JWT must not become a way in.
+        AuthResponse user = register("prom-plainuser");
+        HttpHeaders jwtHeaders = new HttpHeaders();
+        jwtHeaders.setBearerAuth(user.accessToken());
+        assertThat(restTemplate.exchange("/actuator/prometheus", HttpMethod.GET, new HttpEntity<>(jwtHeaders), String.class)
+            .getStatusCode().value()).isIn(401, 403);
+
+        // The configured scraper credential works and returns OpenMetrics text.
+        ResponseEntity<String> scraped = restTemplate
+            .withBasicAuth("metrics", "dev-metrics-password-change-me")
+            .getForEntity("/actuator/prometheus", String.class);
+        assertThat(scraped.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(scraped.getBody()).contains("jvm_memory_used_bytes");
+
+        // Wrong password is rejected.
+        assertThat(restTemplate.withBasicAuth("metrics", "wrong")
+            .getForEntity("/actuator/prometheus", String.class).getStatusCode().value()).isIn(401, 403);
+    }
+
+    @Test
+    void scraperCredentialsDoNotUnlockOtherActuatorEndpoints() {
+        // The basic-auth identity has ROLE_METRICS, not ROLE_ADMIN — it must not
+        // reach the diagnostics endpoints that the main chain guards.
+        assertThat(restTemplate.withBasicAuth("metrics", "dev-metrics-password-change-me")
+            .getForEntity("/actuator/metrics", String.class).getStatusCode().value()).isIn(401, 403);
+        assertThat(restTemplate.withBasicAuth("metrics", "dev-metrics-password-change-me")
+            .getForEntity("/actuator/loggers", String.class).getStatusCode().value()).isIn(401, 403);
+    }
+
     private AuthResponse register(String username) throws Exception {
         RegisterRequest request = new RegisterRequest(username, username + "@example.com", "Pass123!", username, true, true);
         HttpHeaders headers = new HttpHeaders();

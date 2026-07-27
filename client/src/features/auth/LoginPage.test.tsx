@@ -14,8 +14,8 @@ describe('LoginPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Giriş Yap' }));
 
-    expect(await screen.findByText('Username or Email is required')).toBeInTheDocument();
-    expect(await screen.findByText('Password is required')).toBeInTheDocument();
+    expect(await screen.findByText('Kullanıcı adı veya e-posta gerekli')).toBeInTheDocument();
+    expect(await screen.findByText('Şifre gerekli')).toBeInTheDocument();
   });
 
   it('stores the token after a successful login', async () => {

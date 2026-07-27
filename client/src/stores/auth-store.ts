@@ -13,9 +13,15 @@ const authUrl = (path: string) =>
 // shares this one in-flight promise.
 let refreshInFlight: Promise<boolean> | null = null;
 
+// Fallback when a response doesn't carry an explicit TTL. Deliberately shorter
+// than the server's 15min so a stale assumption expires early rather than late.
+const DEFAULT_ACCESS_TTL_MS = 10 * 60 * 1000;
+
 interface AuthState {
   token: string | null;
   account: AccountSummary | null;
+  /** Absolute epoch-ms the current access token expires at; null when signed out. */
+  tokenExpiresAt: number | null;
   setAuth: (token: string, account: AccountSummary) => void;
   login: (response: AuthResponse) => void;
   logout: () => Promise<void>;
@@ -27,10 +33,16 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       account: null,
-      setAuth: (token, account) => set({ token, account }),
+      tokenExpiresAt: null,
+      setAuth: (token, account) => set({
+        token,
+        account,
+        tokenExpiresAt: Date.now() + DEFAULT_ACCESS_TTL_MS,
+      }),
       login: (resp) => set({
         token: resp.accessToken,
         account: resp.account,
+        tokenExpiresAt: Date.now() + (resp.accessTokenExpiresIn || DEFAULT_ACCESS_TTL_MS),
       }),
       logout: async () => {
         try {
@@ -46,7 +58,7 @@ export const useAuthStore = create<AuthState>()(
           // best-effort server-side revocation; clear local state regardless
         }
 
-        set({ token: null, account: null });
+        set({ token: null, account: null, tokenExpiresAt: null });
         useNotificationStore.getState().reset();
 
         localStorage.removeItem('auth-storage');
@@ -62,10 +74,14 @@ export const useAuthStore = create<AuthState>()(
               null,
               { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
             );
-            set({ token: data.accessToken, account: data.account });
+            set({
+              token: data.accessToken,
+              account: data.account,
+              tokenExpiresAt: Date.now() + (data.accessTokenExpiresIn || DEFAULT_ACCESS_TTL_MS),
+            });
             return true;
           } catch {
-            set({ token: null, account: null });
+            set({ token: null, account: null, tokenExpiresAt: null });
             localStorage.removeItem('auth-storage');
             return false;
           }

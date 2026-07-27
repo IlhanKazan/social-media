@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useTypeaheadUsers } from '../hooks/use-typeahead-users';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function RightSidebarSearch() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [inputValue, setInputValue] = useState('');
@@ -50,7 +52,7 @@ export function RightSidebarSearch() {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          placeholder="Ara..."
+          placeholder={t('search.sidebarPlaceholder')}
           className="w-full h-12 pl-10 bg-zinc-100 dark:bg-zinc-900 border-transparent focus-visible:bg-transparent focus-visible:border-primary focus-visible:ring-1 rounded-full text-base transition-colors"
         />
       </form>
@@ -87,12 +89,12 @@ export function RightSidebarSearch() {
                 onClick={handleSearchSubmit}
                 className="p-3 text-[15px] text-primary hover:bg-zinc-50 dark:hover:bg-zinc-900 text-left border-t border-zinc-100 dark:border-zinc-800 font-medium transition-colors"
               >
-                "{inputValue}" için tüm sonuçları gör
+                {t('search.viewAllResults', { query: inputValue })}
               </button>
             </>
           ) : (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              Sonuç bulunamadı
+              {t('search.noResults')}
             </div>
           )}
         </div>

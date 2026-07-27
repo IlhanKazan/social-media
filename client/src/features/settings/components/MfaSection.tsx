@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useStartEmailMfaSetup, useEnableEmailMfa, useDisableEmailMfa } from '../hooks/use-mfa';
 
 export function MfaSection({ enabled, emailVerified }: { enabled: boolean; emailVerified: boolean }) {
+  const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -21,11 +23,11 @@ export function MfaSection({ enabled, emailVerified }: { enabled: boolean; email
           <ShieldCheck className="h-5 w-5 text-primary" />
         </div>
         <div className="space-y-1">
-          <p className="text-[15px] font-bold">E-posta ile İki Adımlı Doğrulama (2FA)</p>
+          <p className="text-[15px] font-bold">{t('settings.mfaEmail.title')}</p>
           <p className="text-sm text-muted-foreground">
             {enabled
-              ? 'Açık. Her girişte e-postana gönderilen 6 haneli kod istenir.'
-              : 'Girişlerini e-postana gönderilen tek kullanımlık kodla koru.'}
+              ? t('settings.mfaEmail.enabledDesc')
+              : t('settings.mfaEmail.disabledDesc')}
           </p>
         </div>
       </div>
@@ -40,20 +42,20 @@ export function MfaSection({ enabled, emailVerified }: { enabled: boolean; email
         >
           <Input
             type="password"
-            placeholder="Şifreni gir"
+            placeholder={t('settings.mfaEmail.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="sm:max-w-xs"
           />
           <Button type="submit" variant="destructive" disabled={disable.isPending || !password}>
-            {disable.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Devre dışı bırak'}
+            {disable.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('settings.mfaEmail.disable')}
           </Button>
         </form>
       ) : !confirming ? (
         <div className="space-y-2">
           {!emailVerified && (
             <p className="text-sm text-amber-600 dark:text-amber-500">
-              Bunu açmak için önce e-posta adresini doğrulamalısın (yukarıdaki "Hesap Doğrulama").
+              {t('settings.mfaEmail.verifyFirstWarning')}
             </p>
           )}
           <Button
@@ -61,13 +63,13 @@ export function MfaSection({ enabled, emailVerified }: { enabled: boolean; email
             disabled={start.isPending}
             onClick={() => {
               if (!emailVerified) {
-                toast.error('Önce e-posta adresini doğrulamalısın.');
+                toast.error(t('settings.mfaEmail.verifyFirstToast'));
                 return;
               }
               start.mutate(undefined, { onSuccess: () => setConfirming(true) });
             }}
           >
-            {start.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Etkinleştir'}
+            {start.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('settings.mfaEmail.enable')}
           </Button>
         </div>
       ) : (
@@ -81,17 +83,17 @@ export function MfaSection({ enabled, emailVerified }: { enabled: boolean; email
           <Input
             inputMode="numeric"
             autoComplete="one-time-code"
-            placeholder="E-postandaki 6 haneli kod"
+            placeholder={t('settings.mfaEmail.codePlaceholder')}
             maxLength={6}
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             className="sm:max-w-xs"
           />
           <Button type="submit" disabled={enable.isPending || code.length < 6}>
-            {enable.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Onayla'}
+            {enable.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('settings.mfaEmail.confirm')}
           </Button>
           <Button type="button" variant="ghost" onClick={() => { setConfirming(false); setCode(''); }}>
-            Vazgeç
+            {t('settings.mfaEmail.cancel')}
           </Button>
         </form>
       )}

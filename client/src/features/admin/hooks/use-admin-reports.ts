@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+// Not a component: read the i18next singleton directly rather than the
+// useTranslation hook (this callback runs inside a mutation, not render).
+import i18n from '@/i18n';
 
 export interface ReportGroup {
   postId: number;
@@ -26,7 +29,7 @@ export function useResolveReport() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] });
-      toast.success('Rapor çözümlendi.');
+      toast.success(i18n.t('admin.toasts.reportResolved'));
     }
   });
 }

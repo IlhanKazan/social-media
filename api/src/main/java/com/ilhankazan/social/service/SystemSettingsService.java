@@ -24,6 +24,13 @@ public class SystemSettingsService {
     public static final String BOT_ENABLED = "bot_enabled";
     public static final String READ_ONLY_MODE = "read_only_mode";
 
+    public static final String MOBILE_LATEST_VERSION_CODE = "mobile_latest_version_code";
+    public static final String MOBILE_LATEST_VERSION_NAME = "mobile_latest_version_name";
+    public static final String MOBILE_MIN_SUPPORTED_VERSION_CODE = "mobile_min_supported_version_code";
+    public static final String MOBILE_APK_URL = "mobile_apk_url";
+    public static final String MOBILE_APK_SHA256 = "mobile_apk_sha256";
+    public static final String MOBILE_CHANGELOG_URL = "mobile_changelog_url";
+
     @Cacheable(cacheNames = "systemSettings", key = "#key")
     @Transactional(readOnly = true)
     public boolean getBooleanSetting(String key, boolean defaultValue) {
@@ -48,5 +55,26 @@ public class SystemSettingsService {
     @Transactional(readOnly = true)
     public List<SystemSetting> getAllSettingsRaw() {
         return systemSettingRepository.findAll();
+    }
+
+    @Cacheable(cacheNames = "systemSettings", key = "#key")
+    @Transactional(readOnly = true)
+    public String getStringSetting(String key, String defaultValue) {
+        return systemSettingRepository.findById(key)
+            .map(SystemSetting::getValueText)
+            .orElse(defaultValue);
+    }
+
+    @CacheEvict(cacheNames = "systemSettings", key = "#key")
+    @Transactional
+    public void updateStringSetting(String key, String value, Long adminAccountId) {
+        SystemSetting setting = systemSettingRepository.findById(key)
+            .orElseGet(() -> SystemSetting.builder().key(key).build());
+
+        setting.setValueText(value);
+        setting.setUpdatedById(adminAccountId);
+
+        systemSettingRepository.save(setting);
+        log.info("System setting '{}' updated to '{}' by admin ID: {}", key, value, adminAccountId);
     }
 }

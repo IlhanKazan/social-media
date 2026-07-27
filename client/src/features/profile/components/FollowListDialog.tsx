@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, UserMinus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useFollowList } from '../hooks/use-follow-list';
 import { useFollowUser } from '../hooks/use-follow-user';
 import { useRemoveFollower } from '../hooks/use-remove-follower';
@@ -102,6 +103,7 @@ export function FollowListDialog({ accountId, type, count, label }: Props) {
 }
 
 function FollowButton({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const followMutation = useFollowUser(user.username, user.id);
 
   return (
@@ -115,12 +117,13 @@ function FollowButton({ user }: { user: PublicAccountResponse }) {
       }}
       disabled={followMutation.isPending}
     >
-      {user.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+      {user.isFollowing ? t('profile.following') : t('profile.follow')}
     </Button>
   );
 }
 
 function RemoveFollowerButton({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const removeMutation = useRemoveFollower();
 
   return (
@@ -133,7 +136,7 @@ function RemoveFollowerButton({ user }: { user: PublicAccountResponse }) {
         removeMutation.mutate(user.id);
       }}
       disabled={removeMutation.isPending}
-      title="Takipçiyi Çıkar"
+      title={t('profile.removeFollowerTitle')}
     >
       {removeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserMinus className="h-4 w-4" />}
     </Button>

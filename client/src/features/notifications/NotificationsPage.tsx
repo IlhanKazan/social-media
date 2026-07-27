@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, CheckCheck, Bell, BellOff, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNotifications, useMarkAllAsRead, useDeleteAllNotifications } from './hooks/use-notifications';
 import { useNotificationStore } from '@/stores/notification-store';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 
 export function NotificationsPage() {
+  const { t } = useTranslation();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useNotifications();
   const markAllAsRead = useMarkAllAsRead();
   const deleteAll = useDeleteAllNotifications();
@@ -55,16 +57,16 @@ export function NotificationsPage() {
     tabContent = (
       <EmptyState
         icon={<BellOff className="h-12 w-12 text-destructive" />}
-        title="Yüklenemedi"
-        description="Bildirimler getirilirken bir sorun oluştu."
+        title={t('notifications.loadErrorTitle')}
+        description={t('notifications.loadErrorDesc')}
       />
     );
   } else if (filteredNotifications.length === 0) {
     tabContent = (
       <EmptyState
         icon={<Bell className="h-12 w-12" />}
-        title="Bildirim Yok"
-        description={activeTab === 'unread' ? 'Okunmamış bildiriminiz yok.' : 'Henüz bildiriminiz yok.'}
+        title={t('notifications.emptyTitle')}
+        description={activeTab === 'unread' ? t('notifications.emptyUnreadDesc') : t('notifications.emptyAllDesc')}
       />
     );
   } else {
@@ -83,7 +85,7 @@ export function NotificationsPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-100 bg-background/80 px-4 py-3 backdrop-blur-md dark:border-zinc-800/50">
-        <h1 className="text-xl font-bold">Bildirimler</h1>
+        <h1 className="text-xl font-bold">{t('notifications.title')}</h1>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -93,7 +95,7 @@ export function NotificationsPage() {
             className="h-8 gap-2 text-xs"
           >
             <CheckCheck className="h-4 w-4" />
-            <span className="hidden sm:inline">Tümünü Okundu İşaretle</span>
+            <span className="hidden sm:inline">{t('notifications.markAllRead')}</span>
           </Button>
           <Button
             variant="ghost"
@@ -103,7 +105,7 @@ export function NotificationsPage() {
             className="h-8 gap-2 text-xs text-destructive hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Tümünü Sil</span>
+            <span className="hidden sm:inline">{t('notifications.deleteAll')}</span>
           </Button>
         </div>
       </div>
@@ -111,11 +113,11 @@ export function NotificationsPage() {
       <Dialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Tüm bildirimler silinsin mi?</DialogTitle>
-            <DialogDescription>Bu işlem geri alınamaz.</DialogDescription>
+            <DialogTitle>{t('notifications.deleteAllConfirmTitle')}</DialogTitle>
+            <DialogDescription>{t('notifications.deleteAllConfirmDesc')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose render={<Button variant="ghost" />}>Vazgeç</DialogClose>
+            <DialogClose render={<Button variant="ghost" />}>{t('notifications.cancel')}</DialogClose>
             <Button
               variant="destructive"
               disabled={deleteAll.isPending}
@@ -128,7 +130,7 @@ export function NotificationsPage() {
                 })
               }
             >
-              {deleteAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Tümünü Sil'}
+              {deleteAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('notifications.deleteAll')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -137,10 +139,10 @@ export function NotificationsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start rounded-none border-b border-zinc-100 bg-transparent p-0 h-12 dark:border-zinc-800/50">
           <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
-            Tümü
+            {t('notifications.tabAll')}
           </TabsTrigger>
           <TabsTrigger value="unread" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
-            Okunmayanlar
+            {t('notifications.tabUnread')}
           </TabsTrigger>
         </TabsList>
 

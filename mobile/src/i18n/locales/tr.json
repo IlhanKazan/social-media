@@ -1,0 +1,362 @@
+{
+  "auth": {
+    "login": {
+      "title": "Tekrar hoş geldin",
+      "subtitle": "Hesabına giriş yap",
+      "identifierLabel": "Kullanıcı Adı veya E-posta",
+      "identifierPlaceholder": "Kullanıcı adı veya e-posta",
+      "passwordLabel": "Şifre",
+      "passwordPlaceholder": "Şifre",
+      "submit": "Giriş Yap",
+      "submitPending": "Giriş yapılıyor…",
+      "forgotPassword": "Şifreni mi unuttun?",
+      "noAccount": "Hesabın yok mu?",
+      "signUp": "Kayıt ol",
+      "genericError": "Giriş yapılamadı. Bağlantını kontrol et.",
+      "identifierRequired": "Kullanıcı adı veya e-posta gerekli",
+      "passwordRequired": "Şifre gerekli"
+    },
+    "register": {
+      "title": "Hesap oluştur",
+      "subtitle": "SocialHan'a katıl",
+      "usernameLabel": "Kullanıcı Adı",
+      "usernamePlaceholder": "Kullanıcı adı",
+      "emailLabel": "E-posta",
+      "emailPlaceholder": "E-posta",
+      "displayNameLabel": "Görünen ad (opsiyonel)",
+      "displayNamePlaceholder": "Görünen ad (opsiyonel)",
+      "passwordLabel": "Şifre",
+      "passwordPlaceholder": "Şifre",
+      "confirmPasswordLabel": "Şifre (tekrar)",
+      "confirmPasswordPlaceholder": "Şifre (tekrar)",
+      "termsPrefix": "",
+      "termsLink": "Kullanım Şartları",
+      "termsAnd": " ve ",
+      "privacyLink": "Gizlilik Politikası",
+      "termsSuffix": "'nı okudum ve kabul ediyorum.",
+      "confirmAge": "Asgari yaş şartını karşıladığımı onaylıyorum",
+      "submit": "Kayıt Ol",
+      "submitPending": "Oluşturuluyor…",
+      "haveAccount": "Zaten hesabın var mı?",
+      "signIn": "Giriş yap",
+      "genericError": "Kayıt olunamadı. Bağlantını kontrol et.",
+      "usernameMin": "En az 3 karakter",
+      "usernameMax": "En fazla 30 karakter",
+      "emailInvalid": "Geçerli bir e-posta girin",
+      "passwordMin": "En az 6 karakter",
+      "passwordMax": "En fazla 100 karakter",
+      "displayNameMax": "En fazla 50 karakter",
+      "mustAcceptTerms": "Şartları ve Gizlilik Politikası'nı kabul etmelisin",
+      "mustConfirmAge": "Asgari yaş şartını sağladığını onaylamalısın",
+      "passwordsMismatch": "Şifreler eşleşmiyor"
+    },
+    "forgotPassword": {
+      "title": "Şifreni Sıfırla",
+      "subtitle": "E-posta adresini gir, sana bağlantı gönderelim",
+      "emailPlaceholder": "E-posta",
+      "submit": "Sıfırlama Bağlantısı Gönder",
+      "submitPending": "Gönderiliyor…",
+      "sentMessage": "Bu e-posta kayıtlıysa bir sıfırlama bağlantısı gönderildi. Bağlantı web uygulamasında yeni şifre belirlemeni sağlar; ardından buradan tekrar giriş yap.",
+      "backToLogin": "Girişe geri dön",
+      "emailInvalid": "Geçerli bir e-posta girin"
+    },
+    "mfa": {
+      "title": "İki Adımlı Doğrulama",
+      "methodLabel": "Doğrulama yöntemi: {{method}}",
+      "methodTotp": "Kimlik doğrulayıcı uygulama",
+      "methodEmail": "E-posta kodu",
+      "methodRecovery": "Kurtarma kodu",
+      "codePlaceholder": "Doğrulama kodu",
+      "verify": "Doğrula",
+      "verifying": "Doğrulanıyor…",
+      "resendEmailCode": "E-posta kodunu tekrar gönder",
+      "resendSuccess": "E-postana yeni bir kod gönderildi.",
+      "resendError": "Kod tekrar gönderilemedi.",
+      "verifyError": "Doğrulama başarısız."
+    },
+    "codeRequired": "Kod gerekli"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "account": {
+      "title": "Hesap",
+      "emailLabel": "E-posta"
+    },
+    "appearance": {
+      "title": "Görünüm",
+      "subtitle": "Uygulama temasını özelleştir.",
+      "light": "Aydınlık",
+      "dark": "Karanlık",
+      "system": "Sistem"
+    },
+    "language": {
+      "title": "Dil",
+      "subtitle": "Uygulamanın görüntülenme dilini seç.",
+      "turkish": "Türkçe",
+      "english": "English"
+    },
+    "notificationPreferences": {
+      "title": "Bildirim Tercihleri",
+      "subtitle": "Hangi anlık bildirimleri alacağını seç."
+    },
+    "emailVerification": {
+      "title": "E-posta doğrulama",
+      "subtitle": "Mavi tik rozeti için e-postanı doğrula.",
+      "sendButton": "Doğrulama e-postası gönder",
+      "sendButtonPending": "Gönderiliyor…",
+      "successTitle": "Gönderildi",
+      "successBody": "Doğrulama e-postası için gelen kutunu kontrol et.",
+      "errorTitle": "Hata",
+      "errorBody": "Doğrulama e-postası gönderilemedi."
+    },
+    "changePassword": {
+      "title": "Şifre değiştir",
+      "subtitle": "Değiştirdikten sonra oturumun kapanacak.",
+      "currentPlaceholder": "Mevcut şifre",
+      "newPlaceholder": "Yeni şifre",
+      "confirmPlaceholder": "Yeni şifre (tekrar)",
+      "submit": "Şifreyi güncelle",
+      "submitPending": "Güncelleniyor…",
+      "weakPasswordTitle": "Zayıf şifre",
+      "weakPasswordBody": "Yeni şifre en az 6 karakter olmalı.",
+      "mismatchTitle": "Uyuşmuyor",
+      "mismatchBody": "Yeni şifreler eşleşmiyor.",
+      "sameTitle": "Aynı şifre",
+      "sameBody": "Yeni şifre eskisiyle aynı olamaz."
+    },
+    "session": {
+      "title": "Oturum",
+      "subtitle": "Oturumlarını yönet.",
+      "signOut": "Çıkış yap",
+      "signOutAll": "Tüm cihazlardan çıkış yap",
+      "signOutAllConfirmTitle": "Her yerden çıkış yapılsın mı?",
+      "signOutAllConfirmBody": "Bu cihaz dahil tüm oturumların sonlanacak.",
+      "cancel": "Vazgeç",
+      "confirmSignOutAll": "Tümünden çık"
+    },
+    "legal": {
+      "title": "Yasal",
+      "about": "Hakkında",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Şartları"
+    },
+    "updates": {
+      "title": "Güncellemeler",
+      "checkAppUpdate": "Uygulama güncellemesini kontrol et",
+      "upToDate": "En güncel sürümdesin.",
+      "updateAvailable": "Yeni bir sürüm ({{version}}) mevcut.",
+      "checkOta": "JS güncellemesini kontrol et",
+      "otaUpToDate": "Güncelleme yok.",
+      "otaDownloading": "Güncelleme indiriliyor...",
+      "otaReadyTitle": "Güncelleme hazır",
+      "otaReadyBody": "Güncellemeyi uygulamak için uygulamayı yeniden başlat.",
+      "otaRestart": "Şimdi yeniden başlat",
+      "otaLater": "Daha sonra",
+      "otaError": "Güncellemeler kontrol edilemedi."
+    },
+    "dangerZone": {
+      "title": "Tehlikeli bölge",
+      "disclaimer": "Bu işlemler geri alınamaz.",
+      "deleteAccount": "Hesabı sil",
+      "deleteAccountPending": "Siliniyor…",
+      "deleteConfirmTitle": "Hesap silinsin mi?",
+      "deleteConfirmBody": "Bu işlem kalıcıdır. Gönderilerin, beğenilerin ve mesajların silinecek.",
+      "cancel": "Vazgeç",
+      "confirmDelete": "Sil"
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Beğeniler",
+    "reposts": "Yeniden paylaşımlar",
+    "follows": "Yeni takipçiler",
+    "replies": "Yanıtlar",
+    "mentions": "Bahsetmeler",
+    "recommendations": "Senin için öneriler"
+  },
+  "common": {
+    "retry": "Tekrar Dene",
+    "cancel": "Vazgeç",
+    "searching": "Aranıyor..."
+  },
+  "feed": {
+    "followingTab": "Takip Edilen",
+    "exploreTab": "Keşfet",
+    "loadError": "Akış yüklenemedi.",
+    "followingEmpty": "Henüz gönderi yok. Akışını doldurmak için birilerini takip et!",
+    "exploreEmpty": "Henüz gönderi yok."
+  },
+  "compose": {
+    "editTitle": "Gönderiyi Düzenle",
+    "quoteTitle": "Alıntıla",
+    "replyTitle": "Yanıtla",
+    "newPostTitle": "Yeni gönderi",
+    "replyingTo": "@{{username}} kullanıcısına yanıt",
+    "quotePlaceholder": "Düşüncelerini ekle...",
+    "replyPlaceholder": "Yanıtını gönder",
+    "newPostPlaceholder": "Neler oluyor?",
+    "imageTooLargeTitle": "Fotoğraf çok büyük",
+    "imageTooLargeBody": "Fotoğraf 5MB'den küçük olmalı.",
+    "uploadFailedTitle": "Yükleme başarısız",
+    "uploadFailedBody": "Sadece JPG, PNG, WEBP veya GIF, 5MB'a kadar yüklenebilir.",
+    "postFailedTitle": "Gönderi paylaşılamadı",
+    "postFailedGenericBody": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "submitPost": "Gönder",
+    "submitReply": "Yanıtla",
+    "submitEdit": "Kaydet"
+  },
+  "search": {
+    "placeholder": "Kişi veya gönderi ara",
+    "promptEmpty": "Aramak istediğin kelimeyi yukarıya yaz.",
+    "loadError": "Arama sonuçları getirilirken bir hata oluştu.",
+    "usersTab": "Kişiler ({{count}})",
+    "postsTab": "Gönderiler ({{count}})",
+    "noUsers": "Kullanıcı bulunamadı.",
+    "noPosts": "Gönderi bulunamadı."
+  },
+  "post": {
+    "card": {
+      "undoRepost": "Repostu Geri Al",
+      "repost": "Repost",
+      "quote": "Alıntıla",
+      "shareToDm": "Mesajla Paylaş",
+      "youReposted": "Sen paylaştın",
+      "userReposted": "{{name}} paylaştı",
+      "replyingTo": "@{{username}} kullanıcısına yanıt",
+      "edited": "(düzenlendi)",
+      "flaggedBadge": "İhlal: Gizlendi",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "deleteConfirmTitle": "Gönderi silinsin mi? Bu işlem geri alınamaz.",
+      "deleteConfirm": "Gönderiyi Sil"
+    },
+    "detail": {
+      "title": "Gönderi",
+      "loadError": "Gönderi yüklenemedi.",
+      "repostsWord": "repost",
+      "likesWord": "beğeni",
+      "viewsWord": "görüntülenme",
+      "repliesHeader": "Yanıtlar",
+      "noReplies": "Henüz yanıt yok."
+    },
+    "likers": {
+      "title": "Beğenenler",
+      "empty": "Henüz beğeni yok."
+    },
+    "reposters": {
+      "title": "Yeniden Paylaşanlar",
+      "empty": "Henüz repost yok."
+    },
+    "userRow": {
+      "following": "Takip Ediliyor",
+      "follow": "Takip Et"
+    },
+    "shareSheet": {
+      "title": "Mesajla Paylaş",
+      "captionPlaceholder": "Bir not ekle (opsiyonel)",
+      "noChats": "Henüz sohbet yok.",
+      "sendFailedTitle": "Gönderilemedi",
+      "sendFailedBody": "Gönderi paylaşılamadı."
+    }
+  },
+  "messaging": {
+    "list": {
+      "loadError": "Sohbetler yüklenemedi.",
+      "empty": "Henüz sohbet yok.",
+      "startChat": "Sohbeti başlat",
+      "deleteConfirmTitle": "Bu sohbet silinsin mi? Yeni mesaj gelirse geri görünür.",
+      "deleteConfirm": "Sohbeti Sil"
+    },
+    "conversation": {
+      "defaultTitle": "Sohbet",
+      "loadError": "Mesajlar yüklenemedi.",
+      "emptyGreeting": "Merhaba de 👋",
+      "inputPlaceholder": "Yeni mesaj...",
+      "imageUploadFailedTitle": "Gönderilemedi",
+      "imageUploadFailedBody": "Fotoğraf yüklenirken bir hata oluştu.",
+      "sending": "Gönderiliyor…",
+      "readPrefix": "Okundu",
+      "delivered": "İletildi"
+    }
+  },
+  "notifications": {
+    "markAllRead": "Tümünü Okundu İşaretle",
+    "deleteAll": "Tümünü Sil",
+    "deleteAllConfirmTitle": "Tüm bildirimler silinsin mi? Bu işlem geri alınamaz.",
+    "loadError": "Bildirimler yüklenemedi.",
+    "empty": "Henüz bildirim yok.",
+    "systemNotification": "Sistem Bildirimi",
+    "moreCount": "ve {{count}} kişi daha",
+    "types": {
+      "like": "gönderini beğendi.",
+      "reply": "sana bir yanıt verdi.",
+      "mention": "senden bahsetti.",
+      "follow": "seni takip etmeye başladı.",
+      "repost": "gönderini yeniden paylaştı.",
+      "quoteRepost": "gönderini alıntıladı.",
+      "moderationAlert": "Gönderin topluluk kuralları ihlali sebebiyle gizlendi.",
+      "recommendation": "beğenebileceğin bir gönderi paylaştı.",
+      "default": "yeni bir bildirim gönderdi."
+    }
+  },
+  "time": {
+    "now": "şimdi",
+    "seconds": "{{count}}sn",
+    "minutes": "{{count}}dk",
+    "hours": "{{count}}s",
+    "days": "{{count}}g"
+  },
+  "profile": {
+    "editProfile": "Profili Düzenle",
+    "following": "Takip Ediliyor",
+    "follow": "Takip Et",
+    "joinedOn": "{{date}} tarihinde katıldı",
+    "followingLabel": "Takip Edilen",
+    "followersLabel": "Takipçi",
+    "followersTab": "Takipçiler",
+    "tabPosts": "Gönderiler",
+    "tabReplies": "Yanıtlar",
+    "tabLikes": "Beğeniler",
+    "userNotFound": "Kullanıcı bulunamadı.",
+    "emptyList": "Henüz bir şey yok.",
+    "emptyFollowList": "Henüz kimse yok.",
+    "defaultTitle": "Profil",
+    "followListDefaultTitle": "Takip",
+    "displayNameLabel": "Görünen ad",
+    "displayNamePlaceholder": "Adın",
+    "bioLabel": "Hakkında",
+    "bioPlaceholder": "Kendinden bahset",
+    "displayNameMax": "En fazla 50 karakter",
+    "bioMax": "En fazla 160 karakter",
+    "save": "Kaydet",
+    "updateFailedTitle": "Güncellenemedi",
+    "updateFailedBody": "Bir şeyler ters gitti. Lütfen tekrar dene."
+  },
+  "nav": {
+    "home": "Anasayfa",
+    "search": "Ara",
+    "notifications": "Bildirimler",
+    "messages": "Mesajlar",
+    "profile": "Profil"
+  },
+  "errors": {
+    "INCORRECT_PASSWORD": "Şifre hatalı.",
+    "EMAIL_VERIFICATION_REQUIRED_FOR_MFA": "İki adımlı doğrulamayı açmadan önce e-posta adresini doğrulamalısın.",
+    "MFA_CODE_INVALID_OR_EXPIRED": "Kod geçersiz veya süresi dolmuş.",
+    "TOTP_SETUP_NOT_STARTED": "Önce authenticator kurulumunu başlat.",
+    "TOTP_CODE_INVALID": "Kod geçersiz. Authenticator uygulamandaki güncel kodu gir.",
+    "EMAIL_LINK_ALREADY_USED": "Bu bağlantı daha önce kullanılmış.",
+    "EMAIL_LINK_EXPIRED": "Bu bağlantının süresi dolmuş.",
+    "EMAIL_LINK_INVALID": "Geçersiz veya süresi dolmuş bağlantı.",
+    "CANNOT_REPORT_OWN_POST": "Kendi gönderinizi şikayet edemezsiniz.",
+    "FILE_TOO_LARGE": "Dosya boyutu 5MB'dan büyük olamaz.",
+    "INVALID_FILE_FORMAT": "Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.",
+    "POSTING_RESTRICTED": "Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir."
+  },
+  "appUpdate": {
+    "requiredTitle": "Güncelleme gerekli",
+    "requiredBody": "Uygulamanın bu sürümü artık desteklenmiyor. Devam etmek için lütfen en güncel sürümü indir.",
+    "availableBanner": "Yeni bir sürüm ({{version}}) mevcut.",
+    "updateButton": "Güncelle",
+    "dismiss": "Daha sonra"
+  }
+}

@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
-import { editProfileSchema, type EditProfileInput } from '../schemas';
+import { createEditProfileSchema, type EditProfileInput } from '../schemas';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ import type { MyAccountResponse } from '@/types/api';
 const clampPosition = (value: number) => Math.min(100, Math.max(0, Math.round(value)));
 
 export function EditProfileDialog() {
+  const { t, i18n } = useTranslation();
   const account = useAuthStore((state) => state.account);
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
@@ -39,6 +41,7 @@ export function EditProfileDialog() {
   const [coverPosition, setCoverPosition] = useState(50);
   const dragState = useRef<{ startY: number; startPos: number; height: number } | null>(null);
 
+  const editProfileSchema = useMemo(() => createEditProfileSchema(t), [t, i18n.language]);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<EditProfileInput>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: { displayName: '', bio: '' },
@@ -80,9 +83,9 @@ export function EditProfileDialog() {
         setCoverUrl(url);
       }
       syncCaches();
-      toast.success('Fotoğraf güncellendi');
+      toast.success(t('profile.photoUpdated'));
     },
-    onError: () => toast.error('Fotoğraf yüklenemedi'),
+    onError: () => toast.error(t('profile.photoUploadFailed')),
   });
 
   const removeImageMutation = useMutation({
@@ -97,9 +100,9 @@ export function EditProfileDialog() {
         setCoverPosition(data.coverPosition ?? 50);
       }
       syncCaches();
-      toast.success('Fotoğraf kaldırıldı');
+      toast.success(t('profile.photoRemoved'));
     },
-    onError: () => toast.error('Fotoğraf kaldırılamadı'),
+    onError: () => toast.error(t('profile.photoRemoveFailed')),
   });
 
   const updateProfileMutation = useMutation({
@@ -110,10 +113,10 @@ export function EditProfileDialog() {
     onSuccess: (data) => {
       useAuthStore.setState({ account: { ...account!, displayName: data.displayName ?? account!.displayName } });
       syncCaches();
-      toast.success('Profil güncellendi');
+      toast.success(t('profile.profileUpdated'));
       setIsOpen(false);
     },
-    onError: () => toast.error('Profil güncellenemedi'),
+    onError: () => toast.error(t('profile.profileUpdateFailed')),
   });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
@@ -152,12 +155,12 @@ export function EditProfileDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger render={<Button variant="outline" className="rounded-full font-bold" />}>
-        Profili Düzenle
+        {t('profile.editProfile')}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden gap-0">
         <DialogHeader className="p-4 border-b flex flex-row items-center justify-between">
-          <DialogTitle>Profili Düzenle</DialogTitle>
+          <DialogTitle>{t('profile.editProfile')}</DialogTitle>
         </DialogHeader>
 
         <div className="relative">
@@ -166,7 +169,7 @@ export function EditProfileDialog() {
             {coverUrl && (
               <img
                 src={coverUrl}
-                alt="Kapak"
+                alt={t('profile.coverAlt')}
                 draggable={false}
                 onPointerDown={onCoverPointerDown}
                 onPointerMove={onCoverPointerMove}
@@ -201,7 +204,7 @@ export function EditProfileDialog() {
 
             {coverUrl && (
               <span className="pointer-events-none absolute bottom-1 left-2 rounded bg-black/40 px-1.5 py-0.5 text-[11px] text-white/90">
-                Sürükleyerek hizala
+                {t('profile.dragToAlign')}
               </span>
             )}
           </div>
@@ -239,23 +242,23 @@ export function EditProfileDialog() {
 
         <form onSubmit={handleSubmit((d) => updateProfileMutation.mutate(d))} className="p-4 pt-16 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="displayName">Görünen Ad</Label>
+            <Label htmlFor="displayName">{t('profile.displayNameLabel')}</Label>
             <Input id="displayName" {...register('displayName')} aria-invalid={!!errors.displayName} />
             {errors.displayName && <span className="text-xs text-destructive">{errors.displayName.message}</span>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">Biyografi</Label>
+            <Label htmlFor="bio">{t('profile.bioLabel')}</Label>
             <Textarea id="bio" className="resize-none h-24" {...register('bio')} aria-invalid={!!errors.bio} />
             {errors.bio && <span className="text-xs text-destructive">{errors.bio.message}</span>}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
             <DialogClose render={<Button type="button" variant="ghost" />}>
-              İptal
+              {t('profile.cancel')}
             </DialogClose>
             <Button type="submit" disabled={busy}>
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t('profile.save')}
             </Button>
           </div>
         </form>

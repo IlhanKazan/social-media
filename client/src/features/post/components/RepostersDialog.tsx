@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useReposters } from '../hooks/use-reposters';
 import { useFollowUser } from '@/features/profile/hooks/use-follow-user';
 import { useAuthStore } from '@/stores/auth-store';
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function RepostersDialog({ postId, open, onOpenChange }: Props) {
+  const { t } = useTranslation();
   const currentUser = useAuthStore((state) => state.account);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useReposters(postId, open);
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
@@ -31,7 +33,7 @@ export function RepostersDialog({ postId, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px] h-[80vh] sm:h-[600px] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-4 border-b shrink-0">
-          <DialogTitle className="text-lg">Yeniden Paylaşanlar</DialogTitle>
+          <DialogTitle className="text-lg">{t('post.reposters.title')}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto">
@@ -81,6 +83,7 @@ export function RepostersDialog({ postId, open, onOpenChange }: Props) {
 }
 
 function FollowButton({ user }: { user: PublicAccountResponse }) {
+  const { t } = useTranslation();
   const followMutation = useFollowUser(user.username, user.id);
 
   return (
@@ -94,7 +97,7 @@ function FollowButton({ user }: { user: PublicAccountResponse }) {
       }}
       disabled={followMutation.isPending}
     >
-      {user.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+      {user.isFollowing ? t('post.userRow.following') : t('post.userRow.follow')}
     </Button>
   );
 }

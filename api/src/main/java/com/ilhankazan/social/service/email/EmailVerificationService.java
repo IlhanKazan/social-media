@@ -2,9 +2,11 @@ package com.ilhankazan.social.service.email;
 
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.EmailVerificationToken;
+import com.ilhankazan.social.exception.AppException;
 import com.ilhankazan.social.repository.EmailVerificationTokenRepository;
 import com.ilhankazan.social.util.TokenGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +40,10 @@ public class EmailVerificationService {
         String tokenHash = TokenGenerator.hashToken(plainToken);
 
         EmailVerificationToken token = repository.findByTokenHash(tokenHash)
-            .orElseThrow(() -> new IllegalArgumentException("Geçersiz veya süresi dolmuş bağlantı."));
+            .orElseThrow(() -> new AppException(HttpStatus.BAD_REQUEST, "EMAIL_LINK_INVALID", "Geçersiz veya süresi dolmuş bağlantı."));
 
-        if (token.getUsedAt() != null) throw new IllegalArgumentException("Bu bağlantı daha önce kullanılmış.");
-        if (token.getExpiresAt().isBefore(Instant.now())) throw new IllegalArgumentException("Bu bağlantının süresi dolmuş.");
+        if (token.getUsedAt() != null) throw new AppException(HttpStatus.BAD_REQUEST, "EMAIL_LINK_ALREADY_USED", "Bu bağlantı daha önce kullanılmış.");
+        if (token.getExpiresAt().isBefore(Instant.now())) throw new AppException(HttpStatus.BAD_REQUEST, "EMAIL_LINK_EXPIRED", "Bu bağlantının süresi dolmuş.");
 
         token.setUsedAt(Instant.now());
         return repository.save(token);

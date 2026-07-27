@@ -129,8 +129,14 @@ export async function uploadPostImage(uri: string): Promise<string> {
   return data.url;
 }
 
+// ['profile', username] alone is the single-account object query, not a post
+// list — only the ['profile', username, 'posts'|'replies'|'likes'] shape
+// (from useProfilePosts/useProfileReplies/useProfileLikes) holds cached posts.
 const isPostListQuery = (queryKey: readonly unknown[]) =>
-  queryKey[0] === 'feed' || queryKey[0] === 'explore' || queryKey[0] === 'post';
+  queryKey[0] === 'feed' ||
+  queryKey[0] === 'explore' ||
+  queryKey[0] === 'post' ||
+  (queryKey[0] === 'profile' && queryKey.length >= 3);
 
 type ListItem = PostResponse | FeedItemResponse;
 
@@ -189,6 +195,7 @@ export function useToggleLike() {
       }));
     },
     onError: () => invalidatePostLists(queryClient),
+    onSettled: () => invalidatePostLists(queryClient),
   });
 }
 

@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function LegalTitle({ title, updated }: { title: string; updated?: string }) {
+  const { t } = useTranslation();
+
   return (
     <header className="mb-8">
       <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-      {updated && <p className="mt-2 text-sm text-muted-foreground">Son güncelleme: {updated}</p>}
+      {updated && <p className="mt-2 text-sm text-muted-foreground">{t('legal.updatedLabel', { date: updated })}</p>}
     </header>
   );
 }
@@ -29,12 +32,11 @@ export function LegalList({ items }: { items: ReactNode[] }) {
 }
 
 export function DemoDisclaimer() {
+  const { t } = useTranslation();
+
   return (
     <div className="rounded-xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
-      <strong>SocialHan bir portfolyo / demo projesidir.</strong> Ticari bir hizmet değildir; tanıtım
-      ve teknik gösterim amacıyla yayınlanmıştır. Aşağıdaki metinler iyi niyetle hazırlanmıştır ancak
-      hukuki tavsiye niteliği taşımaz. · A portfolio/demo project, not a commercial service. These
-      texts are provided in good faith and are not legal advice.
+      <strong>{t('legal.demoDisclaimer.title')}</strong> {t('legal.demoDisclaimer.body')}
     </div>
   );
 }

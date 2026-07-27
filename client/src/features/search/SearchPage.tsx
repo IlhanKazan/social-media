@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Loader2, UserX, FileQuestion } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSearch } from './hooks/use-search';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +11,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { SuggestedUsers } from '@/features/profile/components/SuggestedUsers';
 
 export function SearchPage() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
 
@@ -41,7 +43,7 @@ export function SearchPage() {
       return (
         <div className="flex flex-col items-center justify-center py-20 flex-1 text-muted-foreground gap-3">
           <Search className="h-12 w-12 opacity-20" />
-          <p>Aramak istediğin kelimeyi yukarıya yaz.</p>
+          <p>{t('search.promptEmpty')}</p>
         </div>
       );
     }
@@ -57,7 +59,7 @@ export function SearchPage() {
     if (status === 'error') {
       return (
         <div className="p-8 text-center text-sm text-destructive">
-          Arama sonuçları getirilirken bir hata oluştu.
+          {t('search.loadError')}
         </div>
       );
     }
@@ -66,10 +68,10 @@ export function SearchPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList variant="line" className="w-full justify-start rounded-none border-b bg-transparent p-0 h-12">
           <TabsTrigger value="users" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
-            Kişiler ({data?.users.length || 0})
+            {t('search.usersTab', { count: data?.users.length || 0 })}
           </TabsTrigger>
           <TabsTrigger value="posts" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">
-            Gönderiler ({data?.posts.length || 0})
+            {t('search.postsTab', { count: data?.posts.length || 0 })}
           </TabsTrigger>
         </TabsList>
 
@@ -77,7 +79,7 @@ export function SearchPage() {
           {data?.users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
               <UserX className="h-12 w-12 opacity-20" />
-              <p>Kullanıcı bulunamadı.</p>
+              <p>{t('search.noUsers')}</p>
             </div>
           ) : (
             <div className="flex flex-col">
@@ -106,7 +108,7 @@ export function SearchPage() {
           {data?.posts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
               <FileQuestion className="h-12 w-12 opacity-20" />
-              <p>Gönderi bulunamadı.</p>
+              <p>{t('search.noPosts')}</p>
             </div>
           ) : (
             <div className="flex flex-col">
@@ -128,7 +130,7 @@ export function SearchPage() {
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Kişileri veya gönderileri ara..."
+            placeholder={t('search.placeholder')}
             className="w-full h-12 pl-12 bg-zinc-100 dark:bg-zinc-900 border-transparent focus-visible:bg-transparent focus-visible:border-primary focus-visible:ring-1 rounded-full text-[15px] transition-colors"
           />
         </form>

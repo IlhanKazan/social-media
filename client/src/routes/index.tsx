@@ -46,6 +46,8 @@ const VerifyEmailPage = lazyWithReload(() => import('@/features/auth/VerifyEmail
 // Legal / marketing — separate chunk
 const LegalLayout = lazyWithReload(() => import('@/features/marketing/LegalLayout').then(m => ({ default: m.LegalLayout })));
 const AboutPage = lazyWithReload(() => import('@/features/marketing/AboutPage').then(m => ({ default: m.AboutPage })));
+const ArchitecturePage = lazyWithReload(() => import('@/features/marketing/ArchitecturePage').then(m => ({ default: m.ArchitecturePage })));
+const DownloadPage = lazyWithReload(() => import('@/features/marketing/DownloadPage').then(m => ({ default: m.DownloadPage })));
 const PrivacyPage = lazyWithReload(() => import('@/features/marketing/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazyWithReload(() => import('@/features/marketing/TermsPage').then(m => ({ default: m.TermsPage })));
 
@@ -56,6 +58,7 @@ const AdminModerationPage = lazyWithReload(() => import('@/features/admin/AdminM
 const AdminReportsPage = lazyWithReload(() => import('@/features/admin/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
 const AdminUsersPage = lazyWithReload(() => import('@/features/admin/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
 const AdminSystemSettingsPage = lazyWithReload(() => import('@/features/admin/AdminSystemSettingsPage').then(m => ({ default: m.AdminSystemSettingsPage })));
+const AdminMobileReleasePage = lazyWithReload(() => import('@/features/admin/AdminMobileReleasePage').then(m => ({ default: m.AdminMobileReleasePage })));
 const AdminMaintenancePage = lazyWithReload(() => import('@/features/admin/AdminMaintenancePage').then(m => ({ default: m.AdminMaintenancePage })));
 const AdminAuditLogPage = lazyWithReload(() => import('@/features/admin/AdminAuditLogPage').then(m => ({ default: m.AdminAuditLogPage })));
 
@@ -81,6 +84,8 @@ export const router = createBrowserRouter([
     element: withSuspense(<LegalLayout />),
     children: [
       { path: '/about', element: withSuspense(<AboutPage />) },
+      { path: '/architecture', element: withSuspense(<ArchitecturePage />) },
+      { path: '/download', element: withSuspense(<DownloadPage />) },
       { path: '/privacy', element: withSuspense(<PrivacyPage />) },
       { path: '/terms', element: withSuspense(<TermsPage />) },
     ],
@@ -131,6 +136,7 @@ export const router = createBrowserRouter([
               { path: 'reports', element: withSuspense(<AdminReportsPage />) },
               { path: 'users', element: withSuspense(<AdminUsersPage />) },
               { path: 'settings', element: withSuspense(<AdminSystemSettingsPage />) },
+              { path: 'mobile-release', element: withSuspense(<AdminMobileReleasePage />) },
               { path: 'maintenance', element: withSuspense(<AdminMaintenancePage />) },
               { path: 'audit-log', element: withSuspense(<AdminAuditLogPage />) },
             ],

@@ -3,10 +3,12 @@ package com.ilhankazan.social.service;
 import com.ilhankazan.social.entity.Account;
 import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.entity.Report;
+import com.ilhankazan.social.exception.AppException;
 import com.ilhankazan.social.repository.ReportRepository;
 import com.ilhankazan.social.repository.projection.ReportGroupProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +29,7 @@ public class ReportService {
         report.setReason(reason);
         report.setDetails(details);
         if (post.getAccount().getId().equals(reporter.getId())) {
-            throw new IllegalArgumentException("Kendi gönderinizi şikayet edemezsiniz.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "CANNOT_REPORT_OWN_POST", "Kendi gönderinizi şikayet edemezsiniz.");
         }
         return reportRepository.save(report);
     }

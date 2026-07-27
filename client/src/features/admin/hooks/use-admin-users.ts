@@ -2,6 +2,9 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import type { PageResponse } from '@/types/api';
+// Not a component: read the i18next singleton directly rather than the
+// useTranslation hook (these run inside mutation callbacks, not render).
+import i18n from '@/i18n';
 
 export interface AdminUserDto {
   id: number;
@@ -42,7 +45,7 @@ export function useAdminUserActions() {
     mutationFn: ({ id, reason }: { id: number; reason: string }) => api.post(`/admin/users/${id}/ban`, { reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.success('Kullanıcı yasaklandı.');
+      toast.success(i18n.t('admin.toasts.userBanned'));
     }
   });
 
@@ -50,20 +53,20 @@ export function useAdminUserActions() {
     mutationFn: (id: number) => api.post(`/admin/users/${id}/unban`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.success('Yasak kaldırıldı.');
+      toast.success(i18n.t('admin.toasts.banRemoved'));
     }
   });
 
   const forceLogout = useMutation({
     mutationFn: (id: number) => api.post(`/admin/users/${id}/force-logout`),
-    onSuccess: () => toast.info('Oturumlar sonlandırıldı.')
+    onSuccess: () => toast.info(i18n.t('admin.toasts.sessionsEnded'))
   });
 
   const promoteUser = useMutation({
     mutationFn: (id: number) => api.post(`/admin/users/${id}/promote`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.success('Kullanıcı ADMIN yapıldı.');
+      toast.success(i18n.t('admin.toasts.userPromoted'));
     }
   });
 
@@ -71,13 +74,13 @@ export function useAdminUserActions() {
     mutationFn: (id: number) => api.post(`/admin/users/${id}/demote`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.warning('Admin yetkisi geri alındı.');
+      toast.warning(i18n.t('admin.toasts.adminRevoked'));
     }
   });
 
   const resetPassword = useMutation({
     mutationFn: (id: number) => api.post(`/admin/users/${id}/reset-password`),
-    onSuccess: () => toast.success('Şifre sıfırlama e-postası gönderildi.')
+    onSuccess: () => toast.success(i18n.t('admin.toasts.passwordResetSent'))
   });
 
   return { banUser, unbanUser, forceLogout, promoteUser, demoteUser, resetPassword };

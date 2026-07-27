@@ -167,7 +167,8 @@ reverse proxy with automatic Let's Encrypt TLS, push-to-deploy from GitHub):
 
 Everything runs on one CX23 instance (2 vCPU, 4 GB RAM), so the JVM is tuned
 accordingly (G1GC, `-Xmx768m`, bounded metaspace/code cache — see
-`api/Dockerfile`). `/actuator/health` is the only public actuator endpoint;
+`api/Dockerfile`). `/actuator/health` is public and `/actuator/prometheus` is
+reachable with a dedicated scrape credential for the monitoring agent;
 everything else requires admin auth.
 
 ## Administration

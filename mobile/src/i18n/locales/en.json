@@ -1,0 +1,362 @@
+{
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "identifierLabel": "Username or Email",
+      "identifierPlaceholder": "Username or email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Password",
+      "submit": "Sign In",
+      "submitPending": "Signing in…",
+      "forgotPassword": "Forgot your password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "genericError": "Couldn't sign in. Check your connection.",
+      "identifierRequired": "Username or email is required",
+      "passwordRequired": "Password is required"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join SocialHan",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "Username",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Email",
+      "displayNameLabel": "Display name (optional)",
+      "displayNamePlaceholder": "Display name (optional)",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Password",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Password (confirm)",
+      "termsPrefix": "I have read and accept the ",
+      "termsLink": "Terms of Service",
+      "termsAnd": " and ",
+      "privacyLink": "Privacy Policy",
+      "termsSuffix": ".",
+      "confirmAge": "I confirm I meet the minimum age requirement",
+      "submit": "Sign Up",
+      "submitPending": "Creating…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "genericError": "Couldn't sign up. Check your connection.",
+      "usernameMin": "At least 3 characters",
+      "usernameMax": "At most 30 characters",
+      "emailInvalid": "Enter a valid email",
+      "passwordMin": "At least 6 characters",
+      "passwordMax": "At most 100 characters",
+      "displayNameMax": "At most 50 characters",
+      "mustAcceptTerms": "You must accept the Terms and Privacy Policy",
+      "mustConfirmAge": "You must confirm you meet the minimum age",
+      "passwordsMismatch": "Passwords do not match"
+    },
+    "forgotPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email and we'll send you a link",
+      "emailPlaceholder": "Email",
+      "submit": "Send Reset Link",
+      "submitPending": "Sending…",
+      "sentMessage": "If this email is registered, a reset link has been sent. The link lets you set a new password on the web app; then sign in again here.",
+      "backToLogin": "Back to sign in",
+      "emailInvalid": "Enter a valid email"
+    },
+    "mfa": {
+      "title": "Two-Factor Authentication",
+      "methodLabel": "Verification method: {{method}}",
+      "methodTotp": "Authenticator app",
+      "methodEmail": "Email code",
+      "methodRecovery": "Recovery code",
+      "codePlaceholder": "Verification code",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "resendEmailCode": "Resend email code",
+      "resendSuccess": "A new code has been sent to your email.",
+      "resendError": "Couldn't resend the code.",
+      "verifyError": "Verification failed."
+    },
+    "codeRequired": "Code is required"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": {
+      "title": "Account",
+      "emailLabel": "Email"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize the app's theme.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose the app's display language.",
+      "turkish": "Türkçe",
+      "english": "English"
+    },
+    "notificationPreferences": {
+      "title": "Notification Preferences",
+      "subtitle": "Choose which push notifications you want to receive."
+    },
+    "emailVerification": {
+      "title": "Email Verification",
+      "subtitle": "Verify your email for the blue check badge.",
+      "sendButton": "Send verification email",
+      "sendButtonPending": "Sending…",
+      "successTitle": "Sent",
+      "successBody": "Check your inbox for the verification email.",
+      "errorTitle": "Error",
+      "errorBody": "Couldn't send the verification email."
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "You'll be signed out after changing it.",
+      "currentPlaceholder": "Current password",
+      "newPlaceholder": "New password",
+      "confirmPlaceholder": "New password (confirm)",
+      "submit": "Update Password",
+      "submitPending": "Updating…",
+      "weakPasswordTitle": "Weak password",
+      "weakPasswordBody": "New password must be at least 6 characters.",
+      "mismatchTitle": "Doesn't match",
+      "mismatchBody": "New passwords don't match.",
+      "sameTitle": "Same password",
+      "sameBody": "New password can't be the same as the old one."
+    },
+    "session": {
+      "title": "Session",
+      "subtitle": "Manage your sessions.",
+      "signOut": "Sign Out",
+      "signOutAll": "Sign Out of All Devices",
+      "signOutAllConfirmTitle": "Sign out everywhere?",
+      "signOutAllConfirmBody": "This will end all your sessions, including this device.",
+      "cancel": "Cancel",
+      "confirmSignOutAll": "Sign out of all"
+    },
+    "legal": {
+      "title": "Legal",
+      "about": "About",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "updates": {
+      "title": "Updates",
+      "checkAppUpdate": "Check for app update",
+      "upToDate": "You're on the latest version.",
+      "updateAvailable": "A new version ({{version}}) is available.",
+      "checkOta": "Check for JS update",
+      "otaUpToDate": "No update available.",
+      "otaDownloading": "Downloading update...",
+      "otaReadyTitle": "Update ready",
+      "otaReadyBody": "Restart the app to apply the update.",
+      "otaRestart": "Restart now",
+      "otaLater": "Later",
+      "otaError": "Couldn't check for updates."
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "disclaimer": "These actions cannot be undone.",
+      "deleteAccount": "Delete Account",
+      "deleteAccountPending": "Deleting…",
+      "deleteConfirmTitle": "Delete your account?",
+      "deleteConfirmBody": "This action is permanent. Your posts, likes, and messages will be deleted.",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete"
+    }
+  },
+  "notificationPreferences": {
+    "likes": "Likes",
+    "reposts": "Reposts",
+    "follows": "New followers",
+    "replies": "Replies",
+    "mentions": "Mentions",
+    "recommendations": "Recommendations for you"
+  },
+  "common": {
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "searching": "Searching..."
+  },
+  "feed": {
+    "followingTab": "Following",
+    "exploreTab": "Explore",
+    "loadError": "Couldn't load the feed.",
+    "followingEmpty": "No posts yet. Follow people to fill your feed!",
+    "exploreEmpty": "No posts yet."
+  },
+  "compose": {
+    "editTitle": "Edit Post",
+    "quoteTitle": "Quote",
+    "replyTitle": "Reply",
+    "newPostTitle": "New post",
+    "replyingTo": "Replying to @{{username}}",
+    "quotePlaceholder": "Add your thoughts...",
+    "replyPlaceholder": "Post your reply",
+    "newPostPlaceholder": "What's happening?",
+    "imageTooLargeTitle": "Photo too large",
+    "imageTooLargeBody": "Photo must be smaller than 5MB.",
+    "uploadFailedTitle": "Upload failed",
+    "uploadFailedBody": "Only JPG, PNG, WEBP or GIF up to 5MB is allowed.",
+    "postFailedTitle": "Couldn't post",
+    "postFailedGenericBody": "Something went wrong. Please try again.",
+    "submitPost": "Post",
+    "submitReply": "Reply",
+    "submitEdit": "Save"
+  },
+  "search": {
+    "placeholder": "Search people or posts",
+    "promptEmpty": "Type what you're looking for above.",
+    "loadError": "Something went wrong loading search results.",
+    "usersTab": "People ({{count}})",
+    "postsTab": "Posts ({{count}})",
+    "noUsers": "No users found.",
+    "noPosts": "No posts found."
+  },
+  "post": {
+    "card": {
+      "undoRepost": "Undo Repost",
+      "repost": "Repost",
+      "quote": "Quote",
+      "shareToDm": "Share via Message",
+      "youReposted": "You reposted",
+      "userReposted": "{{name}} reposted",
+      "replyingTo": "Replying to @{{username}}",
+      "edited": "(edited)",
+      "flaggedBadge": "Violation: Hidden",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete this post? This action cannot be undone.",
+      "deleteConfirm": "Delete Post"
+    },
+    "detail": {
+      "title": "Post",
+      "loadError": "Couldn't load the post.",
+      "repostsWord": "Reposts",
+      "likesWord": "Likes",
+      "viewsWord": "Views",
+      "repliesHeader": "Replies",
+      "noReplies": "No replies yet."
+    },
+    "likers": {
+      "title": "Likes",
+      "empty": "No likes yet."
+    },
+    "reposters": {
+      "title": "Reposted by",
+      "empty": "No reposts yet."
+    },
+    "userRow": {
+      "following": "Following",
+      "follow": "Follow"
+    },
+    "shareSheet": {
+      "title": "Share via Message",
+      "captionPlaceholder": "Add a note (optional)",
+      "noChats": "No conversations yet.",
+      "sendFailedTitle": "Couldn't send",
+      "sendFailedBody": "Couldn't share the post."
+    }
+  },
+  "messaging": {
+    "list": {
+      "loadError": "Couldn't load conversations.",
+      "empty": "No conversations yet.",
+      "startChat": "Start the conversation",
+      "deleteConfirmTitle": "Delete this conversation? It reappears if a new message arrives.",
+      "deleteConfirm": "Delete Conversation"
+    },
+    "conversation": {
+      "defaultTitle": "Conversation",
+      "loadError": "Couldn't load messages.",
+      "emptyGreeting": "Say hello 👋",
+      "inputPlaceholder": "New message...",
+      "imageUploadFailedTitle": "Couldn't send",
+      "imageUploadFailedBody": "Something went wrong uploading the photo.",
+      "sending": "Sending…",
+      "readPrefix": "Read",
+      "delivered": "Delivered"
+    }
+  },
+  "notifications": {
+    "markAllRead": "Mark All as Read",
+    "deleteAll": "Delete All",
+    "deleteAllConfirmTitle": "Delete all notifications? This action cannot be undone.",
+    "loadError": "Couldn't load notifications.",
+    "empty": "No notifications yet.",
+    "systemNotification": "System Notification",
+    "moreCount": "and {{count}} more",
+    "types": {
+      "like": "liked your post.",
+      "reply": "replied to you.",
+      "mention": "mentioned you.",
+      "follow": "started following you.",
+      "repost": "reposted your post.",
+      "quoteRepost": "quoted your post.",
+      "moderationAlert": "Your post was hidden for violating community guidelines.",
+      "recommendation": "shared a post you might like.",
+      "default": "sent you a new notification."
+    }
+  },
+  "time": {
+    "now": "now",
+    "seconds": "{{count}}s",
+    "minutes": "{{count}}m",
+    "hours": "{{count}}h",
+    "days": "{{count}}d"
+  },
+  "profile": {
+    "editProfile": "Edit Profile",
+    "following": "Following",
+    "follow": "Follow",
+    "joinedOn": "Joined {{date}}",
+    "followingLabel": "Following",
+    "followersLabel": "Followers",
+    "followersTab": "Followers",
+    "tabPosts": "Posts",
+    "tabReplies": "Replies",
+    "tabLikes": "Likes",
+    "userNotFound": "User not found.",
+    "emptyList": "Nothing here yet.",
+    "emptyFollowList": "No one here yet.",
+    "defaultTitle": "Profile",
+    "followListDefaultTitle": "Follow",
+    "displayNameLabel": "Display name",
+    "displayNamePlaceholder": "Your name",
+    "bioLabel": "About",
+    "bioPlaceholder": "Tell us about yourself",
+    "displayNameMax": "At most 50 characters",
+    "bioMax": "At most 160 characters",
+    "save": "Save",
+    "updateFailedTitle": "Couldn't update",
+    "updateFailedBody": "Something went wrong. Please try again."
+  },
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "profile": "Profile"
+  },
+  "errors": {
+    "INCORRECT_PASSWORD": "Incorrect password.",
+    "EMAIL_VERIFICATION_REQUIRED_FOR_MFA": "You must verify your email before enabling two-factor authentication.",
+    "MFA_CODE_INVALID_OR_EXPIRED": "The code is invalid or has expired.",
+    "TOTP_SETUP_NOT_STARTED": "Start authenticator setup first.",
+    "TOTP_CODE_INVALID": "Invalid code. Enter the current code from your authenticator app.",
+    "EMAIL_LINK_ALREADY_USED": "This link has already been used.",
+    "EMAIL_LINK_EXPIRED": "This link has expired.",
+    "EMAIL_LINK_INVALID": "This link is invalid or has expired.",
+    "CANNOT_REPORT_OWN_POST": "You can't report your own post.",
+    "FILE_TOO_LARGE": "File size can't exceed 5MB.",
+    "INVALID_FILE_FORMAT": "Invalid file format. Only JPG, PNG, WEBP, and GIF can be uploaded.",
+    "POSTING_RESTRICTED": "Only accounts with a verified email can post right now."
+  },
+  "appUpdate": {
+    "requiredTitle": "Update required",
+    "requiredBody": "This version of the app is no longer supported. Please download the latest version to continue.",
+    "availableBanner": "A new version ({{version}}) is available.",
+    "updateButton": "Update",
+    "dismiss": "Later"
+  }
+}

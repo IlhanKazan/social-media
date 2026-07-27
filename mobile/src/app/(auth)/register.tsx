@@ -1,48 +1,59 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
+import { AuthHeader } from '@/components/auth-header';
 import { FormInput } from '@/components/form-input';
-import { registerSchema, type RegisterFormValues } from '@/features/auth/register-schema';
+import { createRegisterSchema, type RegisterFormValues } from '@/features/auth/register-schema';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { api } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { WEB_URL } from '@/lib/env';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AuthResponse, ErrorResponse } from '@/types/api';
 
 function Checkbox({
   value,
   onToggle,
-  label,
   error,
+  children,
 }: {
   value: boolean;
   onToggle: () => void;
-  label: string;
   error?: string;
+  children: React.ReactNode;
 }) {
   return (
     <>
-      <Pressable className="mt-4 flex-row items-center" onPress={onToggle}>
-        <View
-          className={`h-6 w-6 items-center justify-center rounded-md border ${
-            value ? 'border-primary bg-primary' : 'border-neutral-400'
-          }`}
-        >
-          {value && <Text className="text-xs font-sans-bold text-white">✓</Text>}
-        </View>
-        <Text className="ml-3 flex-1 text-neutral-700 dark:text-neutral-300">{label}</Text>
-      </Pressable>
+      <View className="mt-4 flex-row items-center">
+        <Pressable onPress={onToggle}>
+          <View
+            className={`h-6 w-6 items-center justify-center rounded-md border ${
+              value ? 'border-primary bg-primary' : 'border-neutral-400'
+            }`}
+          >
+            {value && <Text className="text-xs font-sans-bold text-white">✓</Text>}
+          </View>
+        </Pressable>
+        <Text className="ml-3 flex-1 text-neutral-700 dark:text-neutral-300" onPress={onToggle}>
+          {children}
+        </Text>
+      </View>
       {error && <Text className="mt-1 text-sm text-red-500">{error}</Text>}
     </>
   );
 }
 
 export default function RegisterScreen() {
+  const { t, i18n } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
   const keyboardHeight = useKeyboardHeight();
+  const registerSchema = useMemo(() => createRegisterSchema(t), [t, i18n.language]);
   const {
     control,
     handleSubmit,
@@ -76,7 +87,7 @@ export default function RegisterScreen() {
     onError: (error: { response?: { data?: ErrorResponse } }) => {
       const data = error.response?.data;
       const fieldError = data?.fieldErrors ? Object.values(data.fieldErrors)[0] : null;
-      setServerError(fieldError ?? data?.message ?? 'Kayıt olunamadı. Bağlantını kontrol et.');
+      setServerError(fieldError ?? getApiErrorMessage(t, error, 'auth.register.genericError'));
     },
   });
 
@@ -92,24 +103,27 @@ export default function RegisterScreen() {
         contentContainerStyle={{ paddingBottom: keyboardHeight + 24 }}
         keyboardShouldPersistTaps="handled"
       >
+        <AuthHeader />
         <Text className="text-center text-3xl font-sans-bold text-neutral-900 dark:text-neutral-50">
-          Hesap oluştur
+          {t('auth.register.title')}
         </Text>
-        <Text className="mb-6 mt-1.5 text-center text-base text-neutral-500">SocialHan&apos;a katıl</Text>
+        <Text className="mb-6 mt-1.5 text-center text-base text-neutral-500">{t('auth.register.subtitle')}</Text>
 
         <FormInput
           control={control}
           name="username"
+          label={t('auth.register.usernameLabel')}
           error={errors.username?.message}
-          placeholder="Kullanıcı adı"
+          placeholder={t('auth.register.usernamePlaceholder')}
           autoCapitalize="none"
           autoCorrect={false}
         />
         <FormInput
           control={control}
           name="email"
+          label={t('auth.register.emailLabel')}
           error={errors.email?.message}
-          placeholder="E-posta"
+          placeholder={t('auth.register.emailPlaceholder')}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
@@ -117,21 +131,24 @@ export default function RegisterScreen() {
         <FormInput
           control={control}
           name="displayName"
+          label={t('auth.register.displayNameLabel')}
           error={errors.displayName?.message}
-          placeholder="Görünen ad (opsiyonel)"
+          placeholder={t('auth.register.displayNamePlaceholder')}
         />
         <FormInput
           control={control}
           name="password"
+          label={t('auth.register.passwordLabel')}
           error={errors.password?.message}
-          placeholder="Şifre"
+          placeholder={t('auth.register.passwordPlaceholder')}
           secureTextEntry
         />
         <FormInput
           control={control}
           name="confirmPassword"
+          label={t('auth.register.confirmPasswordLabel')}
           error={errors.confirmPassword?.message}
-          placeholder="Şifre (tekrar)"
+          placeholder={t('auth.register.confirmPasswordPlaceholder')}
           secureTextEntry
         />
 
@@ -139,24 +156,32 @@ export default function RegisterScreen() {
           control={control}
           name="acceptedTerms"
           render={({ field: { value, onChange } }) => (
-            <Checkbox
-              value={value}
-              onToggle={() => onChange(!value)}
-              label="Kullanım Şartları ve Gizlilik Politikası'nı kabul ediyorum"
-              error={errors.acceptedTerms?.message}
-            />
+            <Checkbox value={value} onToggle={() => onChange(!value)} error={errors.acceptedTerms?.message}>
+              {t('auth.register.termsPrefix')}
+              <Text
+                className="text-primary underline"
+                onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)}
+              >
+                {t('auth.register.termsLink')}
+              </Text>
+              {t('auth.register.termsAnd')}
+              <Text
+                className="text-primary underline"
+                onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)}
+              >
+                {t('auth.register.privacyLink')}
+              </Text>
+              {t('auth.register.termsSuffix')}
+            </Checkbox>
           )}
         />
         <Controller
           control={control}
           name="confirmedAge"
           render={({ field: { value, onChange } }) => (
-            <Checkbox
-              value={value}
-              onToggle={() => onChange(!value)}
-              label="Asgari yaş şartını karşıladığımı onaylıyorum"
-              error={errors.confirmedAge?.message}
-            />
+            <Checkbox value={value} onToggle={() => onChange(!value)} error={errors.confirmedAge?.message}>
+              {t('auth.register.confirmAge')}
+            </Checkbox>
           )}
         />
 
@@ -177,14 +202,14 @@ export default function RegisterScreen() {
         >
           {registerMutation.isPending && <ActivityIndicator size="small" color="#ffffff" />}
           <Text className="text-center text-base font-sans-semibold text-white">
-            {registerMutation.isPending ? 'Oluşturuluyor…' : 'Kayıt Ol'}
+            {registerMutation.isPending ? t('auth.register.submitPending') : t('auth.register.submit')}
           </Text>
         </Pressable>
 
         <Link href="/login" asChild>
           <Pressable className="mt-6">
             <Text className="text-center text-neutral-500">
-              Zaten hesabın var mı? <Text className="font-sans-semibold text-primary">Giriş yap</Text>
+              {t('auth.register.haveAccount')} <Text className="font-sans-semibold text-primary">{t('auth.register.signIn')}</Text>
             </Text>
           </Pressable>
         </Link>

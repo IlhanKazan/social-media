@@ -105,10 +105,16 @@ public class MessageManager {
 
         MessageResponse response = messageMapper.toResponse(message);
 
+        Account recipient = conversation.getParticipantA().getId().equals(current.getId())
+            ? conversation.getParticipantB()
+            : conversation.getParticipantA();
+
         eventPublisher.publishEvent(new MessageCreatedEvent(
             response,
             conversation.getParticipantA().getUsername(),
-            conversation.getParticipantB().getUsername()
+            conversation.getParticipantB().getUsername(),
+            recipient.getId(),
+            recipient.getPreferredLanguage()
         ));
 
         return response;
