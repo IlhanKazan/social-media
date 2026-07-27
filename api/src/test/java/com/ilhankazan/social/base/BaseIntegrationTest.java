@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -48,8 +49,36 @@ public abstract class BaseIntegrationTest {
         rateLimitStore.clear();
     }
 
+    private static final String TRUNCATE_ALL =
+        "TRUNCATE TABLE refresh_tokens, login_history, messages, conversations, notifications, follows, interactions, posts, accounts RESTART IDENTITY CASCADE";
+
+    /**
+     * TRUNCATE needs an AccessExclusiveLock on every listed table, but the @Async
+     * listeners a test kicked off (audit log, login history, notifications) can
+     * still be mid-transaction holding row locks and waiting on a foreign-key
+     * check — a circular wait Postgres resolves by killing one side. That surfaced
+     * as an intermittent CI failure with no relation to the code under test.
+     * Retrying is enough: the async work finishes in milliseconds, and by the next
+     * attempt the locks are gone.
+     */
     @AfterEach
     void cleanDatabase() {
-        jdbcTemplate.execute("TRUNCATE TABLE refresh_tokens, login_history, messages, conversations, notifications, follows, interactions, posts, accounts RESTART IDENTITY CASCADE");
+        int attempts = 0;
+        while (true) {
+            try {
+                jdbcTemplate.execute(TRUNCATE_ALL);
+                return;
+            } catch (PessimisticLockingFailureException e) {
+                if (++attempts >= 5) {
+                    throw e;
+                }
+                try {
+                    Thread.sleep(100L * attempts);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
+            }
+        }
     }
 }
