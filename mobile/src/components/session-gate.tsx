@@ -11,6 +11,11 @@ import { useAuthStore } from '@/stores/auth-store';
 // usually turns out to be. Real backgrounding is rare; keyboard noise isn't.
 const MIN_REFRESH_INTERVAL_MS = 60_000;
 
+// Rotate this far ahead of expiry so an in-flight request never races the
+// boundary, and never schedule tighter than the floor.
+const REFRESH_MARGIN_MS = 60_000;
+const MIN_TIMER_DELAY_MS = 5_000;
+
 export function SessionGate({ children }: { children: React.ReactNode }) {
   const [restoring, setRestoring] = useState(true);
   const hydrated = useAuthStore((s) => s.hydrated);
@@ -47,6 +52,25 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
     });
     return () => subscription.remove();
   }, []);
+
+  const token = useAuthStore((s) => s.token);
+  const tokenExpiresAt = useAuthStore((s) => s.tokenExpiresAt);
+
+  useEffect(() => {
+    // The AppState listener above only fires on a real background->foreground
+    // trip. An app left open and idle in the foreground never gets one, so its
+    // token still expires and the STOMP connection dies silently. Rotate on a
+    // timer too, shortly before expiry.
+    if (!token || !tokenExpiresAt) return;
+
+    const delay = Math.max(tokenExpiresAt - Date.now() - REFRESH_MARGIN_MS, MIN_TIMER_DELAY_MS);
+    const timer = setTimeout(() => {
+      lastRefreshAt.current = Date.now();
+      void useAuthStore.getState().tryRefresh();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [token, tokenExpiresAt]);
 
   if (!hydrated || restoring) {
     return (
