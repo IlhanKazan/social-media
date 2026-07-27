@@ -115,7 +115,10 @@ public class AuthManager {
     public void resendMfaCode(String mfaToken) {
         Long accountId = parseMfaTokenOrThrow(mfaToken);
         Account account = accountService.getAccountById(accountId);
-        if (account.isMfaEnabled()) {
+        // Gate on email MFA specifically: isMfaEnabled() is true for TOTP-only
+        // accounts too, so this was mailing codes to people who never opted into
+        // email as a factor and can't use them (verifyMfa rejects them anyway).
+        if (account.isMfaEmailEnabled()) {
             mfaEmailService.issueCode(account);
         }
     }

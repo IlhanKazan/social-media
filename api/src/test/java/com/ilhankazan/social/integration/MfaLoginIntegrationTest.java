@@ -47,6 +47,46 @@ class MfaLoginIntegrationTest extends BaseIntegrationTest {
         assertThat(me.getStatusCode().value()).isIn(401, 403);
     }
 
+    /**
+     * Starting TOTP setup rotates the secret and clears the enabled flag. While TOTP
+     * is live that must be refused, otherwise a stolen access token alone switches
+     * MFA off — bypassing the password that disableTotp() requires.
+     */
+    @Test
+    void startingTotpSetupWhileEnabledIsRefusedAndLeavesMfaOn() throws Exception {
+        register("totpuser");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Forwarded-For", UUID.randomUUID().toString());
+        ResponseEntity<String> login = restTemplate.exchange("/api/v1/auth/login", HttpMethod.POST,
+            new HttpEntity<>(new LoginRequest("totpuser", "Pass123!"), headers), String.class);
+        String accessToken = objectMapper.readTree(login.getBody()).get("accessToken").asText();
+
+        // Simulate an account with authenticator MFA already active.
+        jdbcTemplate.update(
+            "UPDATE accounts SET mfa_totp_enabled = true, mfa_totp_secret = 'x' WHERE username = 'totpuser'");
+
+        HttpHeaders bearer = new HttpHeaders();
+        bearer.setBearerAuth(accessToken);
+        ResponseEntity<String> setup = restTemplate.exchange("/api/v1/accounts/me/mfa/totp/setup",
+            HttpMethod.POST, new HttpEntity<>(bearer), String.class);
+
+        assertThat(setup.getStatusCode())
+            .as("re-running setup on a live TOTP account must be refused")
+            .isEqualTo(HttpStatus.CONFLICT);
+
+        Boolean stillEnabled = jdbcTemplate.queryForObject(
+            "SELECT mfa_totp_enabled FROM accounts WHERE username = 'totpuser'", Boolean.class);
+        assertThat(stillEnabled).as("MFA must remain enabled").isTrue();
+
+        // And the next login must still demand the second factor.
+        HttpHeaders h2 = new HttpHeaders();
+        h2.add("X-Forwarded-For", UUID.randomUUID().toString());
+        ResponseEntity<String> relogin = restTemplate.exchange("/api/v1/auth/login", HttpMethod.POST,
+            new HttpEntity<>(new LoginRequest("totpuser", "Pass123!"), h2), String.class);
+        assertThat(objectMapper.readTree(relogin.getBody()).get("status").asText()).isEqualTo("MFA_REQUIRED");
+    }
+
     private void register(String username) {
         RegisterRequest req = new RegisterRequest(username, username + "@example.com", "Pass123!", username, true, true);
         HttpHeaders headers = new HttpHeaders();

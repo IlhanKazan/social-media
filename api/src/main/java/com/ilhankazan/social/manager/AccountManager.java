@@ -266,6 +266,14 @@ public class AccountManager {
     @Transactional
     public TotpSetupResponse startTotpSetup() {
         Account account = accountService.getAccount(currentUsername());
+        // Starting setup rotates the secret and clears the enabled flag, so allowing
+        // it while TOTP is live would let a stolen access token switch MFA off with
+        // no password — the exact check disableTotp() enforces. Re-enrolling (new
+        // phone) must go through disable first, which is password-gated.
+        if (account.isMfaTotpEnabled()) {
+            throw new AppException(HttpStatus.CONFLICT, "TOTP_ALREADY_ENABLED",
+                "Authenticator zaten kurulu. Yeniden kurmak için önce devre dışı bırak.");
+        }
         String secret = totpService.generateSecret();
         account.setMfaTotpSecret(secretCipher.encrypt(secret));
         account.setMfaTotpEnabled(false);

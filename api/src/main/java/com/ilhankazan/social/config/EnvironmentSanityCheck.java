@@ -18,6 +18,7 @@ public class EnvironmentSanityCheck implements ApplicationListener<ApplicationSt
     private static final String DEV_JWT_SECRET = "dev-secret-must-be-at-least-32-bytes-long-please-change";
     private static final String DEV_METRICS_PASSWORD = "dev-metrics-password-change-me";
     private static final int MIN_METRICS_PASSWORD_LENGTH = 32;
+    private static final String DEV_MFA_ENC_KEY = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
 
     private final Environment env;
     private final AppProperties.JwtProperties jwtProps;
@@ -70,6 +71,15 @@ public class EnvironmentSanityCheck implements ApplicationListener<ApplicationSt
             metricsProps.password().length() < MIN_METRICS_PASSWORD_LENGTH) {
             log.error("FATAL: Missing, default, or too-short METRICS_PASSWORD in prod profile (min {} chars). /actuator/prometheus would be scrapeable with a guessable credential.",
                 MIN_METRICS_PASSWORD_LENGTH);
+            failed = true;
+        }
+
+        // Every TOTP seed in the database is encrypted under this key. Booting prod
+        // with the repo's published default means a database dump yields working
+        // second-factor codes for every account.
+        String mfaEncKey = env.getProperty("app.mfa.enc-key", "");
+        if (!StringUtils.hasText(mfaEncKey) || DEV_MFA_ENC_KEY.equals(mfaEncKey)) {
+            log.error("FATAL: Missing or default MFA_ENC_KEY in prod profile. TOTP secrets would be encrypted with a key published in the repository.");
             failed = true;
         }
 
