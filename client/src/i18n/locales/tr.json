@@ -732,7 +732,7 @@
       "aboutTitle": "Bu indirme hakkında",
       "aboutBody": "Bu uygulama Play Store yerine doğrudan dağıtılır, bu yüzden Android ilk kurulumda bu kaynaktan kuruluma izin vermeni isteyecek. Uygulama yeni sürümleri kendiliğinden kontrol eder ve bir güncelleme olduğunda seni bilgilendirir.",
       "checksumTitle": "İndirmeyi doğrula",
-      "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır. İndirdikten sonra dosyanın checksum'ını kendin hesaplayıp bu değerle karşılaştırarak dosyanın değiştirilmediğini doğrulayabilirsin.",
+      "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır; indirmenin eksiksiz tamamlandığını doğrulamak için kullanışlıdır. Dosyayla aynı siteden sunulduğu için bütünlüğü doğrular, özgünlüğü değil. Uygulamanın gerçekten bize ait olduğunu doğrulamak için imza sertifikasını kontrol et: apksigner verify --print-certs <dosya>.apk",
       "copyChecksum": "Checksum'ı kopyala",
       "checksumCopied": "Checksum kopyalandı"
     }

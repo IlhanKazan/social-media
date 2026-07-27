@@ -186,8 +186,10 @@ handled live:
   `/api/v1/admin/ops` clear one or all caches, or reset the rate-limit store, each
   written to the audit log.
 - **Actuator diagnostics** — `metrics`, `loggers`, and `caches` are exposed but
-  locked to `ROLE_ADMIN`; only `/actuator/health` is public (used by the keepalive
-  ping and platform probes). `loggers` allows changing log levels live.
+  locked to `ROLE_ADMIN`. `/actuator/health` is public (used by platform probes),
+  and `/actuator/prometheus` is served to the monitoring agent behind a dedicated
+  long-lived scrape credential, since a scraper cannot hold a short-lived JWT.
+  `loggers` allows changing log levels live.
 
 ## Frontend architecture
 

@@ -732,7 +732,7 @@
       "aboutTitle": "About this download",
       "aboutBody": "This app is distributed directly rather than through the Play Store, so Android will ask you to allow installs from this source the first time. The app checks for new versions on its own and will prompt you when one is available.",
       "checksumTitle": "Verify the download",
-      "checksumBody": "This is the SHA-256 checksum of the official APK. After downloading, you can compute the checksum of the file yourself and compare it to this value to confirm it hasn't been tampered with.",
+      "checksumBody": "This is the SHA-256 checksum of the official APK, useful for confirming your download completed intact. Note that it is served from the same site as the file, so it verifies integrity, not authenticity. To confirm the app is genuinely ours, verify the signing certificate with: apksigner verify --print-certs <file>.apk",
       "copyChecksum": "Copy checksum",
       "checksumCopied": "Checksum copied"
     }
