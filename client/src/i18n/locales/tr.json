@@ -732,7 +732,7 @@
       "aboutTitle": "Bu indirme hakkında",
       "aboutBody": "Bu uygulama Play Store yerine doğrudan dağıtılır, bu yüzden Android ilk kurulumda bu kaynaktan kuruluma izin vermeni isteyecek. Uygulama yeni sürümleri kendiliğinden kontrol eder ve bir güncelleme olduğunda seni bilgilendirir.",
       "checksumTitle": "İndirmeyi doğrula",
-      "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır; indirmenin eksiksiz tamamlandığını doğrulamak için kullanışlıdır. Dosyayla aynı siteden sunulduğu için bütünlüğü doğrular, özgünlüğü değil. Uygulamanın gerçekten bize ait olduğunu doğrulamak için imza sertifikasını kontrol et: apksigner verify --print-certs <dosya>.apk",
+      "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır; indirmenin eksiksiz tamamlandığını doğrulamak için kullanışlıdır. Dosyanın kendisi GitHub Releases'te barındırılıyor, bu checksum ise buradan sunuluyor; yani yalnızca birini değiştirmek yetmez — ama indirme bağlantısını yine bu site belirliyor. Uygulamanın gerçekten bize ait olduğunu doğrulamak için imza sertifikasını kontrol et: apksigner verify --print-certs <dosya>.apk",
       "copyChecksum": "Checksum'ı kopyala",
       "checksumCopied": "Checksum kopyalandı"
     }
@@ -957,7 +957,7 @@
       "title": "Mobil Sürüm",
       "subtitle": "Uygulamanın ve indirme sayfasının okuduğu Android APK sürüm bilgilerini yayınla.",
       "formTitle": "Mevcut sürüm",
-      "formDescription": "Önce APK dosyasını sunucuya yükle, sonra bilgilerini buradan yayınla. Yeniden deploy gerekmez — anında etkili olur.",
+      "formDescription": "Önce APK'yı GitHub release olarak yayınla, sonra bilgilerini buradan yayınla. Yeniden deploy gerekmez — anında etkili olur.",
       "loadError": "Mobil sürüm ayarları yüklenemedi.",
       "optional": "(isteğe bağlı)",
       "checksumInvalid": "Checksum tam olarak 64 haneli hexadecimal olmalı.",
@@ -980,8 +980,8 @@
         },
         "apkUrl": {
           "label": "APK URL",
-          "placeholder": "https://api.example.com/api/v1/mobile/download/socialhan-1.0.0.apk",
-          "hint": "Tam indirme adresi. Sunucudaki releases klasörüne önceden yüklenmiş bir dosyayı göstermeli."
+          "placeholder": "https://github.com/IlhanKazan/socialhan-releases/releases/download/v1.0.0/socialhan-1.0.0.apk",
+          "hint": "GitHub release dosyasının adresi. Bu projenin kendi releases repo'sundaki bir dosyayı göstermeli — başka bir adres reddedilir."
         },
         "apkSha256": {
           "label": "APK SHA-256 checksum",
