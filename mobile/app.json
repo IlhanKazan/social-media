@@ -15,7 +15,7 @@
       "package": "com.ilhankazan.socialhan",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -23,6 +23,10 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -34,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#000000",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
@@ -44,10 +48,24 @@
       "expo-secure-store",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#000000"
+        }
+      ],
       "expo-localization",
-      "@sentry/react-native",
-      "./plugins/withIpv4GradleFix.js"
+      [
+        "@sentry/react-native",
+        {
+          "organization": "personal-qk0",
+          "project": "android",
+          "url": "https://de.sentry.io/"
+        }
+      ],
+      "./plugins/withIpv4GradleFix.js",
+      "./plugins/withArmOnlyAbis.js"
     ],
     "experiments": {
       "typedRoutes": true,

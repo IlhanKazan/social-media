@@ -12,14 +12,17 @@ public record MobileReleaseRequest(
     @NotBlank @Size(max = 32) String latestVersionName,
     @NotNull @Min(1) @Max(2_100_000_000) Integer minSupportedVersionCode,
 
-    // Pinned to the scheme and path shape this app actually serves, so a
+    // Pinned to release assets under this project's own GitHub account, so a
     // compromised admin session can't point the public download page (or the
     // in-app update prompt) at an arbitrary off-host payload, a javascript:/
-    // data:/intent: URL, or a non-APK file.
+    // data:/intent: URL, or a non-APK file. The owner segment is
+    // case-insensitive because GitHub resolves it that way regardless.
     @NotBlank @Size(max = 512)
     @Pattern(
-        regexp = "^https://[A-Za-z0-9.-]+(:\\d{1,5})?/api/v1/mobile/download/[A-Za-z0-9][A-Za-z0-9._-]*\\.apk$",
-        message = "Must be an https URL pointing at this app's own /api/v1/mobile/download/<file>.apk")
+        regexp = "^https://github\\.com/(?i:ilhankazan)/[A-Za-z0-9._-]{1,64}"
+            + "/releases/download/[A-Za-z0-9._-]{1,64}/[A-Za-z0-9][A-Za-z0-9._-]*\\.apk$",
+        message = "Must be an https GitHub release asset URL: "
+            + "https://github.com/IlhanKazan/<repo>/releases/download/<tag>/<file>.apk")
     String apkUrl,
 
     @NotBlank @Pattern(regexp = "^[a-fA-F0-9]{64}$", message = "Must be a 64-character hex SHA-256 checksum")

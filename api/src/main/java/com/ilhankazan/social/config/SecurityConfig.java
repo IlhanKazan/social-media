@@ -134,7 +134,7 @@ public class SecurityConfig {
                 // SockJS handshake is permitAll here; STOMP-level auth is enforced by WebSocketAuthInterceptor
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers("/ws-native", "/ws-native/**").permitAll()
-                .requestMatchers("/api/v1/mobile/version", "/api/v1/mobile/download/**").permitAll()
+                .requestMatchers("/api/v1/mobile/version").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
