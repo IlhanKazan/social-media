@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider.tsx";
 import { LanguageProvider } from "@/components/language-provider";
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { useSessionBootstrap } from '@/hooks/use-session-bootstrap';
+import { useSentryUser } from '@/hooks/use-sentry-user';
 // Side effect: initializes i18next before anything renders.
 import '@/i18n';
 
@@ -15,6 +16,7 @@ import '@/i18n';
 // invalidate the queries that raced it.
 function SessionBootstrap() {
   useSessionBootstrap();
+  useSentryUser();
   return null;
 }
 

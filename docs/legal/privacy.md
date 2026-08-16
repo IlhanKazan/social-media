@@ -31,10 +31,18 @@ Hukuki sebep çoğunlukla sözleşmenin ifası ve meşru menfaattir.
 - Cloudinary (ABD) — görsel depolama/sunum
 - Resend (ABD) — işlemsel e-posta
 - OpenAI (ABD) — otomatik içerik moderasyonu
+- Sentry (AB bölgesi) — hata ve çökme raporlaması
+- Google Firebase (ABD) — mobil uygulamaya anlık bildirim iletimi
 
-Ana uygulama ve veritabanı Almanya'da (AB içinde) barındırılır. Cloudflare,
-Cloudinary, Resend ve OpenAI ABD merkezlidir; bu dört sağlayıcıya yapılan
-aktarımlar için yurt dışı aktarım rızası kayıt sırasında alınır.
+Ana uygulama, veritabanı ve hata kayıtları Almanya/AB içinde barındırılır.
+Cloudflare, Cloudinary, Resend, OpenAI ve Firebase ABD merkezlidir; bu beş
+sağlayıcıya yapılan aktarımlar için yurt dışı aktarım rızası kayıt sırasında
+alınır.
+
+**Hata raporlarında ne gönderilir:** yalnızca teknik veri — hata mesajı, kod
+yığını, uygulama sürümü, cihaz ve işletim sistemi bilgisi ve hesap kimliğiniz.
+Gönderi ve mesaj içerikleri, e-posta adresiniz ve form alanlarına yazdıklarınız
+hata raporlarına dahil edilmez.
 
 ## Saklama süresi
 Hesap silindiğinde içerik önce soft-delete edilir, 30 gün sonra zamanlanmış görevle
@@ -46,7 +54,9 @@ Erişim, düzeltme, silme ve işlemeye itiraz. Hesap, uygulama içi Ayarlar > He
 ile doğrudan silinebilir; talep ve şikayetler için: ilhan.kazan3664@gmail.com
 
 ## Çerezler ve güvenlik
-Yalnızca işlevsel çerez: oturum için HttpOnly yenileme tokenı. Reklam/takip çerezi yok.
+Yalnızca işlevsel çerez: oturum için HttpOnly yenileme tokenı. Reklam veya
+takip çerezi kullanılmaz; ziyaretçi davranışını izleyen bir analitik aracı da
+kurulu değildir.
 Şifreler hash'lenir, iletişim HTTPS, auth uç noktaları hız sınırlamalı.
 
 ## Yaş sınırı

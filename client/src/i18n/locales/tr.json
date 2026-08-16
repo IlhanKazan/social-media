@@ -1,13 +1,13 @@
 {
   "auth": {
     "layout": {
-      "heading": "Zaten çok fazla sosyal medya var.",
-      "subtext": "Katılıyoruz. Bu yüzden bunu bildirim yağmuru, reklam ve algoritma olmadan yaptık.",
+      "heading": "Bu bir vitrin projesi.",
+      "subtext": "Gerçek bir sosyal platformun ayakta durması için gereken her şey — gerçek zamanlı akış, mesajlaşma, içerik denetimi, mobil uygulama — çalışır halde. Hesap açıp deneyebilirsin.",
       "showcase": [
         "Gerçek zamanlı diyorsak gerçekten anlık olmalı. Yenile tuşuna basmıyoruz.",
-        "Buradaki tek özellik akışın kendisi. Gerisi süs.",
+        "Buradaki her şey çalışıyor: mesajlar, bildirimler, moderasyon, mobil uygulama.",
         "Bir gönderiyi beğendiğinde karşı taraf o anda görüyor. Basit ama iyi hissettiriyor.",
-        "Reklamsız bir zaman tüneli nasıl olurmuş, hatırlatayım."
+        "Reklam yok, algoritma yok, veri satmıyoruz. Satacak bir şeyimiz yok zaten."
       ]
     },
     "login": {
@@ -268,7 +268,11 @@
       "title": "Beklenmedik bir hata oluştu",
       "description": "Uygulama çalışırken bir sorunla karşılaştık. Endişelenme, bu durumu kaydettik. Lütfen sayfayı yenilemeyi dene.",
       "reload": "Sayfayı Yenile"
-    }
+    },
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "edit": "Düzenle",
+    "delete": "Sil"
   },
   "feed": {
     "headerFeed": "Akış",
@@ -573,16 +577,17 @@
           "meta": "Fail-closed"
         }
       },
-      "securityLine": "Uçtan uca şifreli iletim, dönen oturum anahtarları ve değiştirilemez denetim kaydı.",
+      "securityLine": "TLS üzerinden şifreli iletim, her kullanımda dönen oturum anahtarları, kötüye kullanımı yakalayan hız sınırları ve değiştirilemeyen bir denetim kaydı.",
       "securityLabel": "Güvenlik"
     },
     "footer": {
       "aboutLink": "Hakkında",
       "architectureLink": "Mimari",
-      "downloadLink": "Uygulamayı al",
+      "downloadLink": "Uygulamayı indir",
       "privacyLink": "Gizlilik",
       "termsLink": "Şartlar",
-      "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir."
+      "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir.",
+      "changelogLink": "Sürüm notları"
     }
   },
   "legal": {
@@ -628,13 +633,15 @@
       },
       "providers": {
         "title": "Hizmet sağlayıcılar ve yurt dışı aktarım",
-        "body": "Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Ana uygulama ve veritabanı Almanya'da (AB içinde) barındırılır; Cloudflare, Cloudinary, Resend ve OpenAI ABD merkezlidir ve bu dördüne yapılan aktarımlar yurt dışı aktarım sayılır:",
+        "body": "Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Ana uygulama, veritabanı ve hata kayıtları Almanya/AB içinde barındırılır; Cloudflare, Cloudinary, Resend, OpenAI ve Firebase ABD merkezlidir ve bu beşine yapılan aktarımlar yurt dışı aktarım sayılır:",
         "items": [
           "Hetzner (Almanya, AB içi) — API, veritabanı ve ön yüzün barındırıldığı sunucu.",
           "Cloudflare (ABD) — DNS, DDoS koruması ve içerik dağıtım ağı (CDN).",
           "Cloudinary (ABD) — görsel depolama ve sunumu.",
           "Resend (ABD) — işlemsel e-posta gönderimi (ör. şifre sıfırlama).",
-          "OpenAI (ABD) — gönderi içeriğinin otomatik moderasyonu."
+          "OpenAI (ABD) — gönderi içeriğinin otomatik moderasyonu.",
+          "Sentry (AB bölgesi) — hata ve çökme raporlaması. Yalnızca teknik veri gönderilir: hata mesajı, kod yığını, uygulama sürümü, cihaz/işletim sistemi ve hesap kimliğiniz. Gönderi ve mesaj içerikleri, e-posta adresiniz ve yazdığınız form değerleri gönderilmez.",
+          "Google Firebase (ABD) — mobil uygulamaya anlık bildirim iletimi."
         ]
       },
       "retention": {
@@ -647,7 +654,7 @@
       },
       "cookies": {
         "title": "Çerezler ve güvenlik",
-        "body": "Yalnızca işlevsel çerezler kullanılır: oturumunuzu sürdürmek için HttpOnly bir yenileme tokenı çerezi tutulur. Reklam veya üçüncü taraf takip çerezi kullanılmaz. Şifreler hash'lenir, iletişim HTTPS üzerinden yapılır ve kimlik doğrulama uç noktaları hız sınırlamasıyla korunur."
+        "body": "Yalnızca işlevsel çerezler kullanılır: oturumunuzu sürdürmek için HttpOnly bir yenileme tokenı çerezi tutulur. Reklam veya üçüncü taraf takip çerezi kullanılmaz ve ziyaretçi davranışını izleyen bir analitik aracı kurulu değildir. Şifreler hash'lenir, iletişim HTTPS üzerinden yapılır ve kimlik doğrulama uç noktaları hız sınırlamasıyla korunur."
       },
       "ageLimit": {
         "title": "Yaş sınırı",
@@ -797,6 +804,12 @@
       "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır; indirmenin eksiksiz tamamlandığını doğrulamak için kullanışlıdır. Dosyanın kendisi GitHub Releases'te barındırılıyor, bu checksum ise buradan sunuluyor; yani yalnızca birini değiştirmek yetmez — ama indirme bağlantısını yine bu site belirliyor. Uygulamanın gerçekten bize ait olduğunu doğrulamak için imza sertifikasını kontrol et: apksigner verify --print-certs <dosya>.apk",
       "copyChecksum": "Checksum'ı kopyala",
       "checksumCopied": "Checksum kopyalandı"
+    },
+    "changelog": {
+      "title": "Sürüm notları",
+      "description": "SocialHan'da neler değişti.",
+      "empty": "Henüz yayınlanmış bir sürüm notu yok.",
+      "loadError": "Sürüm notları yüklenemedi."
     }
   },
   "admin": {
@@ -813,7 +826,9 @@
         "settings": "Sistem Ayarları",
         "maintenance": "Bakım",
         "auditLog": "Audit Log",
-        "mobileRelease": "Mobil Sürüm"
+        "mobileRelease": "Mobil Sürüm",
+        "announcements": "Duyurular",
+        "changelog": "Sürüm Notları"
       }
     },
     "dashboard": {
@@ -1056,6 +1071,53 @@
           "hint": "İsteğe bağlı sürüm notu bağlantısı."
         }
       }
+    },
+    "announcements": {
+      "title": "Duyuru Gönder",
+      "subtitle": "E-posta bildirimlerini açık bırakmış, doğrulanmış hesaplara toplu duyuru gönder.",
+      "audienceTitle": "Alıcı kitlesi",
+      "audienceDescription": "Aboneliğini iptal edenler ve e-postası doğrulanmamış hesaplar listeye dahil değildir.",
+      "audienceError": "Alıcı bilgisi alınamadı.",
+      "recipients": "Alıcı",
+      "sentThisMonth": "Bu ay gönderilen",
+      "remaining": "Kalan kota",
+      "quotaWarning": "Bu duyuru aylık e-posta kotasını aşar. Gönderim engellendi — kota şifre sıfırlama gibi zorunlu e-postalarla paylaşılıyor, onların yerini alamaz.",
+      "composeTitle": "Duyuru",
+      "composeDescription": "Alıcının diline göre şablona yerleştirilir ve abonelikten çıkma bağlantısıyla gönderilir.",
+      "fieldTitle": "Başlık",
+      "fieldMessage": "Mesaj",
+      "fieldLink": "Buton adresi",
+      "messageHint": "Düz metin yaz. Biçimlendirme şablon tarafından yapılır.",
+      "confirmLabel": "Onaylamak için alıcı sayısını yaz: {{count}}",
+      "confirmHint": "Toplu gönderim geri alınamaz. Sayıyı okuyup elle yazman isteniyor.",
+      "submit": "Duyuruyu gönder",
+      "queued": "{{count}} alıcı için kuyruğa alındı.",
+      "sendError": "Duyuru gönderilemedi."
+    },
+    "changelog": {
+      "title": "Sürüm Notları",
+      "subtitle": "Yayınlanan sürümleri ve değişiklikleri yönet.",
+      "new": "Yeni not",
+      "newTitle": "Yeni sürüm notu",
+      "editTitle": "Sürüm notunu düzenle",
+      "formDescription": "İki dilde de yaz. Kullanıcı hangi dili seçtiyse o gösterilir.",
+      "fieldVersion": "Sürüm",
+      "fieldTitleTr": "Başlık (TR)",
+      "fieldTitleEn": "Başlık (EN)",
+      "fieldBodyTr": "İçerik (TR)",
+      "fieldBodyEn": "İçerik (EN)",
+      "versionInvalid": "Sürüm 1.2.0 biçiminde olmalı.",
+      "publishLabel": "Yayınla (işaretlenmezse taslak olarak kalır)",
+      "listTitle": "Mevcut notlar",
+      "published": "Yayında",
+      "draft": "Taslak",
+      "empty": "Henüz sürüm notu yok.",
+      "loadError": "Sürüm notları yüklenemedi.",
+      "saved": "Sürüm notu kaydedildi.",
+      "saveError": "Sürüm notu kaydedilemedi.",
+      "deleted": "Sürüm notu silindi.",
+      "deleteError": "Sürüm notu silinemedi.",
+      "deleteConfirm": "{{version}} sürüm notu silinsin mi?"
     }
   },
   "errors": {

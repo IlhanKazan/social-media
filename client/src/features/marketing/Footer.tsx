@@ -15,6 +15,7 @@ export function Footer() {
           <Link to="/about" className="transition-colors hover:text-foreground">{t('marketing.footer.aboutLink')}</Link>
           <Link to="/architecture" className="transition-colors hover:text-foreground">{t('marketing.footer.architectureLink')}</Link>
           <Link to="/download" className="transition-colors hover:text-foreground">{t('marketing.footer.downloadLink')}</Link>
+          <Link to="/changelog" className="transition-colors hover:text-foreground">{t('marketing.footer.changelogLink')}</Link>
           <Link to="/privacy" className="transition-colors hover:text-foreground">{t('marketing.footer.privacyLink')}</Link>
           <Link to="/terms" className="transition-colors hover:text-foreground">{t('marketing.footer.termsLink')}</Link>
         </nav>

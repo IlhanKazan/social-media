@@ -1,7 +1,7 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth-store';
-import { LayoutDashboard, Settings, Users, ShieldAlert, LogOut, ArrowLeft, Activity, Filter, Wrench, Smartphone } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, ShieldAlert, LogOut, ArrowLeft, Activity, Filter, Wrench, Smartphone, Megaphone, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -17,6 +17,8 @@ export function AdminLayout() {
     { name: t('admin.layout.nav.users'), to: '/admin/users', icon: Users, end: false },
     { name: t('admin.layout.nav.settings'), to: '/admin/settings', icon: Settings, end: false },
     { name: t('admin.layout.nav.mobileRelease'), to: '/admin/mobile-release', icon: Smartphone, end: false },
+    { name: t('admin.layout.nav.announcements'), to: '/admin/announcements', icon: Megaphone, end: false },
+    { name: t('admin.layout.nav.changelog'), to: '/admin/changelog', icon: FileText, end: false },
     { name: t('admin.layout.nav.maintenance'), to: '/admin/maintenance', icon: Wrench, end: false },
     { name: t('admin.layout.nav.auditLog'), to: '/admin/audit-log', icon: Activity, end: false },
   ];

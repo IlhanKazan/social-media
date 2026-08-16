@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Loader2, CalendarDays, Mail, Settings, BadgeCheck } from 'lucide-react';
@@ -32,10 +32,17 @@ export function ProfilePage() {
   const feedQuery = useProfileFeed(username!);
   const followMutation = useFollowUser(username!, profile?.id || 0);
   const createConvMutation = useCreateConversation();
-  const repliesQuery = useProfileReplies(username!);
-  const likesQuery = useProfileLikes(username!);
-
   const [activeTab, setActiveTab] = useState('posts');
+  const [, startTabTransition] = useTransition();
+
+  const repliesQuery = useProfileReplies(username!, activeTab === 'replies');
+  const likesQuery = useProfileLikes(username!, activeTab === 'likes');
+
+  // The switch swaps a list of twenty cards for another, which React would
+  // otherwise render synchronously and block the click on — the tab highlight
+  // took most of a second to appear. Marking it a transition lets the tab paint
+  // immediately and the list follow.
+  const selectTab = (value: string) => startTabTransition(() => setActiveTab(value));
   const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.5 });
 
   useEffect(() => {
@@ -164,7 +171,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={selectTab} className="w-full">
         <TabsList variant="line" className="w-full justify-start rounded-none border-b bg-transparent p-0 h-12">
           <TabsTrigger value="posts" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">{t('profile.tabPosts')}</TabsTrigger>
           <TabsTrigger value="replies" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">{t('profile.tabReplies')}</TabsTrigger>
@@ -172,7 +179,7 @@ export function ProfilePage() {
         </TabsList>
 
         <TabsContent value="posts" className="m-0 border-none outline-none">
-          {feedQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : feedQuery.status === 'error' ? <div className="p-4 text-center text-sm text-destructive">{t('profile.loadError')}</div> : (
+          {activeTab !== 'posts' ? null : feedQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : feedQuery.status === 'error' ? <div className="p-4 text-center text-sm text-destructive">{t('profile.loadError')}</div> : (
             <div className="flex flex-col">
               {feedQuery.data.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
@@ -184,7 +191,7 @@ export function ProfilePage() {
         </TabsContent>
 
         <TabsContent value="replies" className="m-0 border-none outline-none">
-          {repliesQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
+          {activeTab !== 'replies' ? null : repliesQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
             <div className="flex flex-col">
               {repliesQuery.data?.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
@@ -196,7 +203,7 @@ export function ProfilePage() {
         </TabsContent>
 
         <TabsContent value="likes" className="m-0 border-none outline-none">
-          {likesQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
+          {activeTab !== 'likes' ? null : likesQuery.status === 'pending' ? <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
             <div className="flex flex-col">
               {likesQuery.data?.pages.map((page) => page.content.map(renderPostItem))}
               <div ref={targetRef} className="flex h-16 items-center justify-center">
