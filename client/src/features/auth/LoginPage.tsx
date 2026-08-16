@@ -85,7 +85,7 @@ export function LoginPage() {
           {errors.identifier && <p className="text-xs font-medium text-destructive">{errors.identifier.message}</p>}
         </div>
 
-        <RevealField show={showPassword}>
+        <RevealField show={showPassword} className="space-y-5">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>{t('auth.login.passwordLabel')}</Label>

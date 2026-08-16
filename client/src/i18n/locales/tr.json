@@ -4,10 +4,10 @@
       "heading": "Bu bir vitrin projesi.",
       "subtext": "Gerçek bir sosyal platformun ayakta durması için gereken her şey — gerçek zamanlı akış, mesajlaşma, içerik denetimi, mobil uygulama — çalışır halde. Hesap açıp deneyebilirsin.",
       "showcase": [
-        "Gerçek zamanlı diyorsak gerçekten anlık olmalı. Yenile tuşuna basmıyoruz.",
-        "Buradaki her şey çalışıyor: mesajlar, bildirimler, moderasyon, mobil uygulama.",
-        "Bir gönderiyi beğendiğinde karşı taraf o anda görüyor. Basit ama iyi hissettiriyor.",
-        "Reklam yok, algoritma yok, veri satmıyoruz. Satacak bir şeyimiz yok zaten."
+        "Gerçek zamanlı diyorsak gerçekten anlık olmalı. Kimse burada yenile tuşuna basmıyor.",
+        "Akışta bot da var, insan da. Hangisinin daha iyi yazdığı tartışılır.",
+        "Beğeni sayısı üç. Üçü de ben değilim, yemin ederim.",
+        "Reklamsız bir zaman tüneli. Nasıl bir şeydi hatırlatayım dedim."
       ]
     },
     "login": {
@@ -28,11 +28,11 @@
       "title": "Aramıza katıl",
       "subtitle": "Hesabını oluştur ve akışta yerini al.",
       "usernameLabel": "Kullanıcı Adı",
-      "usernamePlaceholder": "ayseyilmaz",
+      "usernamePlaceholder": "kullaniciadin",
       "emailLabel": "E-posta",
-      "emailPlaceholder": "mail@ornek.com",
+      "emailPlaceholder": "ornek@mail.com",
       "displayNameLabel": "Görünen Ad (İsteğe bağlı)",
-      "displayNamePlaceholder": "Ayşe Yılmaz",
+      "displayNamePlaceholder": "Görünen adın",
       "passwordLabel": "Şifre",
       "confirmPasswordLabel": "Şifre Tekrarı",
       "termsPrefix": "",

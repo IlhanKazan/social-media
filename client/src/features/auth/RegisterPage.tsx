@@ -87,7 +87,7 @@ export function RegisterPage() {
           )}
         </div>
 
-        <RevealField show={showEmail}>
+        <RevealField show={showEmail} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="email" className={errors.email ? "text-destructive" : ""}>{t('auth.register.emailLabel')}</Label>
           <Input
@@ -104,7 +104,7 @@ export function RegisterPage() {
         </div>
         </RevealField>
 
-        <RevealField show={showRest}>
+        <RevealField show={showRest} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="displayName" className={errors.displayName ? "text-destructive" : ""}>{t('auth.register.displayNameLabel')}</Label>
           <Input
@@ -151,7 +151,7 @@ export function RegisterPage() {
 
         </RevealField>
 
-        <RevealField show={showConsent}>
+        <RevealField show={showConsent} className="space-y-5">
         <div className="space-y-3 pt-1">
           <div className="space-y-1">
             <AnimatedCheckbox
