@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -26,17 +27,21 @@ export function WordReveal({ text, className }: { readonly text: string; readonl
   return (
     <h1 className={className} aria-label={text}>
       {words.map((word, i) => (
-        <motion.span
-          key={`${word}-${i}`}
-          aria-hidden
-          className="inline-block"
-          initial={{ opacity: 0, y: '0.4em' }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.05 + i * 0.045, ease: EASE }}
-        >
-          {word}
-          {i < words.length - 1 ? ' ' : ''}
-        </motion.span>
+        // The separator sits outside the span deliberately: trailing whitespace
+        // inside an inline-block is collapsed away, which ran every word of the
+        // headline together.
+        <Fragment key={`${word}-${i}`}>
+          <motion.span
+            aria-hidden
+            className="inline-block"
+            initial={{ opacity: 0, y: '0.4em' }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.05 + i * 0.045, ease: EASE }}
+          >
+            {word}
+          </motion.span>
+          {i < words.length - 1 ? ' ' : null}
+        </Fragment>
       ))}
     </h1>
   );
