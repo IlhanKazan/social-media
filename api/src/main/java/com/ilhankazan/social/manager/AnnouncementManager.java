@@ -47,7 +47,7 @@ public class AnnouncementManager {
 
     @Transactional(readOnly = true)
     public Audience preview() {
-        long recipients = accountRepository.countByEmailNotificationsEnabledTrueAndDeletedAtIsNullAndEmailVerifiedTrue();
+        long recipients = accountRepository.countAnnouncementRecipients();
         long sent = emailService.countByStatusSince(EmailStatus.SENT, Instant.now().minus(30, ChronoUnit.DAYS));
         long cap = emailProps.monthlyCap();
         return new Audience(recipients, sent, cap, Math.max(cap - sent, 0));
@@ -76,7 +76,7 @@ public class AnnouncementManager {
         }
 
         List<Account> recipients =
-            accountRepository.findByEmailNotificationsEnabledTrueAndDeletedAtIsNullAndEmailVerifiedTrue();
+            accountRepository.findAnnouncementRecipients();
 
         for (Account account : recipients) {
             emailService.enqueue(EmailMessage.notification(
