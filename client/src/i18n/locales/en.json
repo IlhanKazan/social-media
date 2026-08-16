@@ -591,7 +591,6 @@
     }
   },
   "legal": {
-    "backHome": "Home",
     "updatedLabel": "Last updated: {{date}}",
     "demoDisclaimer": {
       "title": "SocialHan is a portfolio/demo project.",

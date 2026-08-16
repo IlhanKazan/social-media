@@ -591,7 +591,6 @@
     }
   },
   "legal": {
-    "backHome": "Ana sayfa",
     "updatedLabel": "Son güncelleme: {{date}}",
     "demoDisclaimer": {
       "title": "SocialHan bir portfolyo / demo projesidir.",

@@ -13,6 +13,7 @@ import { ScrollHighlight } from './ScrollHighlight';
 import { ShineText } from './ShineText';
 import { HoverCardStack } from './HoverCardStack';
 import { FeatureMarquee } from './FeatureMarquee';
+import { SiteHeader } from './SiteHeader';
 import { ScrambleText } from './ScrambleText';
 import { MagneticCursor } from './MagneticCursor';
 import { PressableCta, WordReveal } from './MotionPrimitives';
@@ -53,16 +54,7 @@ export function LandingPage() {
   return (
     <div className="relative flex min-h-screen flex-col bg-background">
       <MagneticCursor />
-      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-3 text-xl font-bold tracking-tight text-foreground">
-          <img src="/logo.svg" alt="SocialHan" className="h-9 w-9 rounded-xl shadow-lg shadow-primary/20" />
-          SocialHan
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" render={<Link to="/login" />}>{t('nav.signIn')}</Button>
-          <Button render={<Link to="/register" />}>{t('nav.signUp')}</Button>
-        </div>
-      </header>
+      <SiteHeader transparent />
 
       <main className="relative z-10 flex-1">
         <section className="mx-auto max-w-6xl px-6 pb-20 pt-12 sm:pt-20">
