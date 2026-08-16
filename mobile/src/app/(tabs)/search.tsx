@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
+import { LIST_PERF } from '@/lib/list-config';
 import { useSearch } from '@/features/search/queries';
 import type { PublicAccountResponse } from '@/types/api';
 
@@ -139,6 +140,7 @@ export default function SearchScreen() {
 
           {activeTab === 'users' ? (
             <FlatList
+        {...LIST_PERF}
               data={data?.users ?? []}
               keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => <UserRow user={item} />}
@@ -149,6 +151,7 @@ export default function SearchScreen() {
             />
           ) : (
             <FlatList
+        {...LIST_PERF}
               data={data?.posts ?? []}
               keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => <PostCard post={item} />}

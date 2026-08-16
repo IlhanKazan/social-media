@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
+import { LIST_PERF } from '@/lib/list-config';
 import { ThemedRefreshControl } from '@/components/themed-refresh';
 import { useConversations, useDeleteConversation } from '@/features/messaging/queries';
 import { useNow } from '@/hooks/use-now';
@@ -131,6 +132,7 @@ export default function MessagesScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <FlatList
+        {...LIST_PERF}
         data={items}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <ConversationRow conversation={item} />}

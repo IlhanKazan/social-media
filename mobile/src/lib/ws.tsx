@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-native';
+import { AppState } from 'react-native';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 import {
   createContext,
@@ -40,8 +41,25 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const clientRef = useRef<Client | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Torn down when the app is backgrounded rather than left open. A STOMP
+  // client with a 4s heartbeat keeps the radio busy for as long as the process
+  // survives, which on a phone is battery spent on messages nobody is reading;
+  // the reconnect on return is cheaper than holding the socket for hours.
+  const [foreground, setForeground] = useState(AppState.currentState !== 'background');
+
   useEffect(() => {
-    if (!token) return;
+    const subscription = AppState.addEventListener('change', (next) => {
+      // Only 'background' counts as leaving — MIUI reports 'inactive' on a
+      // keyboard toggle, and dropping the socket for that would reconnect
+      // constantly while someone is typing.
+      if (next === 'background') setForeground(false);
+      else if (next === 'active') setForeground(true);
+    });
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (!token || !foreground) return;
 
     const client = new Client({
       brokerURL: WS_URL,
@@ -95,7 +113,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       clientRef.current = null;
       setIsConnected(false);
     };
-  }, [token]);
+  }, [token, foreground]);
 
   const subscribe = useCallback((destination: string, callback: (message: IMessage) => void) => {
     const client = clientRef.current;

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { useLikers } from '@/features/posts/queries';
+import { LIST_PERF } from '@/lib/list-config';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import type { PublicAccountResponse } from '@/types/api';
@@ -93,6 +94,7 @@ export default function LikersScreen() {
       <Stack.Screen options={{ title: t('post.likers.title'), headerShown: true }} />
 
       <FlatList
+        {...LIST_PERF}
         data={items}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <LikerRow user={item} />}

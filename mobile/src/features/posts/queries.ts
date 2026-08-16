@@ -17,6 +17,8 @@ import type {
   UpdatePostRequest,
 } from '@/types/api';
 
+import { MAX_CACHED_PAGES } from '@/lib/list-config';
+
 const PAGE_SIZE = 20;
 
 function usePagedPosts<T>(key: (string | number)[], url: string) {
@@ -30,6 +32,10 @@ function usePagedPosts<T>(key: (string | number)[], url: string) {
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
+    // Without a cap every page ever loaded stays in memory; a long scroll would
+    // hold hundreds of posts long after they left the screen.
+    maxPages: MAX_CACHED_PAGES,
+    getPreviousPageParam: (firstPage) => (firstPage.page === 0 ? undefined : firstPage.page - 1),
   });
 }
 

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
+import { LIST_PERF } from '@/lib/list-config';
 import { ThemedRefreshControl } from '@/components/themed-refresh';
 import {
   useFollowUser,
@@ -247,6 +248,7 @@ export function ProfileView({ username }: { username: string | undefined }) {
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <FlatList
+        {...LIST_PERF}
         data={items}
         keyExtractor={(item, index) => {
           if ('post' in item) {
