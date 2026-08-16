@@ -6,6 +6,7 @@ import com.ilhankazan.social.entity.Post;
 import com.ilhankazan.social.repository.projection.FeedItemProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -92,14 +93,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
               AND p.deleted_at IS NULL AND """ + " " + PostVisibility.PUBLIC_SQL + """
         ) AS combined_feed
         ORDER BY "actionAt" DESC
-    """, countQuery = """
-        SELECT COUNT(*) FROM (
-            SELECT p.id FROM posts p WHERE (p.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR p.account_id = :userId) AND p.parent_post_id IS NULL AND p.deleted_at IS NULL AND """ + " " + PostVisibility.PUBLIC_SQL + """
-            UNION ALL
-            SELECT r.post_id FROM reposts r JOIN posts p ON r.post_id = p.id WHERE (r.account_id IN (SELECT f.following_id FROM follows f WHERE f.follower_id = :userId) OR r.account_id = :userId) AND r.deleted_at IS NULL AND p.deleted_at IS NULL AND """ + " " + PostVisibility.PUBLIC_SQL + """
-        ) AS count_feed
     """, nativeQuery = true)
-    Page<FeedItemProjection> getFollowingFeedUnion(@Param("userId") Long userId, Pageable pageable);
+    Slice<FeedItemProjection> getFollowingFeedUnion(@Param("userId") Long userId, Pageable pageable);
 
     @Query(value = """
         SELECT p.id FROM posts p

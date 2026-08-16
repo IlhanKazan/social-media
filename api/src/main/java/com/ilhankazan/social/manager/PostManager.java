@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import com.ilhankazan.social.security.AuthCacheResolver;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -292,9 +293,14 @@ public class PostManager {
         )));
     }
 
-    private PageResponse<FeedItemResponse> enrichFeedPage(Page<FeedItemProjection> projections, Long currentUserId) {
+    /**
+     * Batches every per-post lookup the feed needs into one query each, so the
+     * cost is fixed per page rather than per row. Takes a Slice so both the
+     * counted (profile) and uncounted (following) feeds share it — Page is a Slice.
+     */
+    private List<FeedItemResponse> enrichFeedContent(Slice<FeedItemProjection> projections, Long currentUserId) {
         if (projections.isEmpty()) {
-            return PageResponse.of(Page.empty());
+            return List.of();
         }
 
         List<Long> postIds = projections.stream()
@@ -311,7 +317,7 @@ public class PostManager {
             .toList();
 
         if (postIds.isEmpty()) {
-            return PageResponse.of(Page.empty());
+            return List.of();
         }
 
         // 1. Postları Toplu Çek
@@ -359,27 +365,23 @@ public class PostManager {
             );
         }).filter(java.util.Objects::nonNull).toList();
 
-        return new PageResponse<>(
-            content,
-            projections.getNumber(),
-            projections.getSize(),
-            projections.getTotalElements(),
-            projections.getTotalPages(),
-            projections.isLast()
-        );
+        return content;
     }
 
     @Transactional(readOnly = true)
     public PageResponse<FeedItemResponse> getFeedUnion(int page, int size) {
         Account current = getCurrentAccount();
-        Page<FeedItemProjection> projections = postService.getFollowingFeedUnion(current.getId(), PageRequest.of(page, size));
-        return enrichFeedPage(projections, current.getId());
+        // Sliced, not paged: counting the union meant a full scan of every post by
+        // everyone the user follows on every single feed load, and nothing renders
+        // the total.
+        Slice<FeedItemProjection> projections = postService.getFollowingFeedUnion(current.getId(), PageRequest.of(page, size));
+        return PageResponse.ofSlice(projections, enrichFeedContent(projections, current.getId()));
     }
 
     @Transactional(readOnly = true)
     public PageResponse<FeedItemResponse> getProfileFeedUnion(String username, int page, int size) {
         Account target = accountService.getAccount(username);
         Page<FeedItemProjection> projections = postService.getProfileFeedUnion(target.getId(), PageRequest.of(page, size));
-        return enrichFeedPage(projections, currentUserIdOrNull());
+        return PageResponse.ofSlice(projections, enrichFeedContent(projections, currentUserIdOrNull()));
     }
 }

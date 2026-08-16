@@ -170,7 +170,21 @@ public class SecurityConfig {
         configuration.setExposedHeaders(List.of("X-Request-Id", "Retry-After"));
         configuration.setAllowCredentials(true);
 
+        // The native WebSocket endpoint has to sit outside the origin allowlist.
+        // React Native's client derives an Origin header from the socket URL
+        // (https://api-socialhan...), which is not — and should not be — a
+        // permitted browser origin, so the CORS filter rejected the upgrade with
+        // 403 before the handshake ran. Nothing is weakened by allowing it here:
+        // CORS only governs browsers, and this endpoint's real gate is the JWT
+        // on the STOMP CONNECT frame, which a hostile page cannot obtain.
+        CorsConfiguration nativeSocket = new CorsConfiguration();
+        nativeSocket.setAllowedOriginPatterns(List.of("*"));
+        nativeSocket.setAllowedMethods(List.of("GET"));
+        nativeSocket.setAllowedHeaders(List.of("*"));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/ws-native", nativeSocket);
+        source.registerCorsConfiguration("/ws-native/**", nativeSocket);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
