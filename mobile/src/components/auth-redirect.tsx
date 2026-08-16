@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRouter, useSegments } from 'expo-router';
+import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -16,24 +16,40 @@ const PUBLIC_SEGMENTS = new Set(['(auth)', 'legal']);
  * and left the screen sitting there, still rendering a session that no longer
  * existed.
  *
- * Watching the store centrally means every screen is covered — including ones
- * added later, which a per-screen guard would silently miss.
+ * Three conditions have to hold before it may navigate, and all three were
+ * learned from it going wrong:
+ *
+ * - The root navigator must have mounted. Calling replace() before it exists
+ *   does not throw; it hangs, which is what a "stuck on the loading screen"
+ *   report actually looks like.
+ * - `segments` must be populated. It is briefly empty on a cold start, and an
+ *   empty first segment is not a public segment, so the old code read that
+ *   moment as "signed out on a private screen" and redirected out of a screen
+ *   the user had not reached yet.
+ * - The route must not already be the sign-in screen, or every render replaces
+ *   the route with itself.
  */
 export function AuthRedirect() {
   const token = useAuthStore((s) => s.token);
   const hydrated = useAuthStore((s) => s.hydrated);
   const segments = useSegments();
+  const navigationState = useRootNavigationState();
   const router = useRouter();
 
-  useEffect(() => {
-    // Before rehydration the absence of a token means nothing yet.
-    if (!hydrated || token) return;
+  // Depend on the joined path rather than the array: `useSegments` returns a
+  // fresh array on every render, which would re-run this effect constantly.
+  const path = segments.join('/');
 
-    const first = segments[0];
+  useEffect(() => {
+    if (!navigationState?.key) return;
+    if (!hydrated || token) return;
+    if (path.length === 0) return;
+
+    const first = path.split('/')[0];
     if (first && PUBLIC_SEGMENTS.has(first)) return;
 
     router.replace('/login');
-  }, [token, hydrated, segments, router]);
+  }, [token, hydrated, path, navigationState?.key, router]);
 
   return null;
 }
