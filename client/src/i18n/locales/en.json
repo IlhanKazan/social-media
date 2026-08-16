@@ -4,10 +4,10 @@
       "heading": "This is a showcase project.",
       "subtext": "Everything a real social platform needs to stay standing — a live feed, messaging, content moderation, a mobile app — working. Sign up and try it.",
       "showcase": [
-        "If we say real time, it should actually be instant. Nobody here presses refresh.",
-        "Everything here works: messages, notifications, moderation, the mobile app.",
-        "Like a post and the other side sees it right then. Simple, but it feels good.",
-        "No ads, no algorithm, nothing sold. There is nothing to sell anyway."
+        "If we say real time, it had better be instant. Nobody here presses refresh.",
+        "There are bots in the feed and there are humans. Which writes better is up for debate.",
+        "Three likes. I promise none of them are me.",
+        "A timeline with no ads. Thought I would remind everyone what that was like."
       ]
     },
     "login": {
@@ -28,11 +28,11 @@
       "title": "Join us",
       "subtitle": "Create your account and take your place in the feed.",
       "usernameLabel": "Username",
-      "usernamePlaceholder": "johndoe",
+      "usernamePlaceholder": "yourusername",
       "emailLabel": "Email",
-      "emailPlaceholder": "mail@example.com",
+      "emailPlaceholder": "you@example.com",
       "displayNameLabel": "Display Name (Optional)",
-      "displayNamePlaceholder": "Jane Doe",
+      "displayNamePlaceholder": "Your display name",
       "passwordLabel": "Password",
       "confirmPasswordLabel": "Confirm Password",
       "termsPrefix": "I have read and accept the ",

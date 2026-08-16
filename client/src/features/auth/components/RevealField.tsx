@@ -16,14 +16,21 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 export function RevealField({
   show,
   children,
+  className,
 }: {
   readonly show: boolean;
   readonly children: ReactNode;
+  /**
+   * Spacing for the fields inside. The form's own `space-y` only reaches its
+   * direct children, so a step wrapping more than one field has to space them
+   * itself — without this they sit flush against each other.
+   */
+  readonly className?: string;
 }) {
   const reduceMotion = useReducedMotion();
 
   if (reduceMotion) {
-    return show ? <div>{children}</div> : null;
+    return show ? <div className={className}>{children}</div> : null;
   }
 
   return (
@@ -38,7 +45,7 @@ export function RevealField({
           // shrinking box mid-transition.
           style={{ overflow: 'hidden' }}
         >
-          {children}
+          <div className={className}>{children}</div>
         </motion.div>
       )}
     </AnimatePresence>
