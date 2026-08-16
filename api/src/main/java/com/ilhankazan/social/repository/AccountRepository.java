@@ -14,6 +14,18 @@ import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
+
+    /**
+     * Broadcast audience: opted in, not deleted, and verified.
+     *
+     * Verification is part of the filter on purpose — mailing addresses nobody
+     * has confirmed is how a sending domain collects bounces and ends up in a
+     * spam folder for everyone else.
+     */
+    List<Account> findByEmailNotificationsEnabledTrueAndDeletedAtIsNullAndEmailVerifiedTrue();
+
+    long countByEmailNotificationsEnabledTrueAndDeletedAtIsNullAndEmailVerifiedTrue();
+
     Optional<Account> findByUsername(String username);
     Optional<Account> findByEmail(String email);
     boolean existsByUsername(String username);

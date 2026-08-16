@@ -21,14 +21,15 @@ public class WelcomeEmailListener {
     public void handleUserRegistered(UserRegisteredEvent event) {
         String frontendOrigin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
 
-        EmailMessage message = new EmailMessage(
+        EmailMessage message = EmailMessage.transactional(
             event.account().getEmail(),
-            "Welcome to SocialHan!",
+            null,
             "WELCOME",
             Map.of(
                 "name", event.account().getDisplayName() != null ? event.account().getDisplayName() : event.account().getUsername(),
                 "link", frontendOrigin
-            )
+            ),
+            event.account().getPreferredLanguage()
         );
 
         emailService.enqueue(message);

@@ -135,6 +135,11 @@ public class SecurityConfig {
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers("/ws-native", "/ws-native/**").permitAll()
                 .requestMatchers("/api/v1/mobile/version").permitAll()
+                // Unsubscribing must work from a mail client with no session —
+                // requiring a login to stop unwanted email is what gets a sender
+                // reported as spam. The signed token is the credential.
+                .requestMatchers("/api/v1/email/unsubscribe").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/changelog").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

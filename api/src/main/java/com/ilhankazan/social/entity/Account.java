@@ -65,6 +65,12 @@ public class Account extends BaseEntity {
     @Column(name = "preferred_language", nullable = false, length = 2)
     private String preferredLanguage = "tr";
 
+    @Column(name = "email_notifications_enabled", nullable = false)
+    private boolean emailNotificationsEnabled = true;
+
+    @Column(name = "email_unsubscribed_at")
+    private java.time.Instant emailUnsubscribedAt;
+
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 

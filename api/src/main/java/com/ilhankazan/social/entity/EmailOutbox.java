@@ -29,6 +29,10 @@ public class EmailOutbox {
     @Column(nullable = false, length = 64)
     private String template;
 
+    /** Kept alongside the body so the header and the in-body link cannot diverge. */
+    @Column(name = "unsubscribe_url", length = 512)
+    private String unsubscribeUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EmailStatus status;
