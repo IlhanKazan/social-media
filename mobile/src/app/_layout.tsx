@@ -20,6 +20,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppUpdateGate } from '@/components/app-update-gate';
+import { AuthRedirect } from '@/components/auth-redirect';
 import { SessionGate } from '@/components/session-gate';
 import { MessagingProvider } from '@/features/messaging/messaging-provider';
 // Side effect: makes Inter the default font for every Text/TextInput.
@@ -72,6 +73,7 @@ export default function RootLayout() {
         <ThemeProvider value={theme}>
           <AppUpdateGate>
             <SessionGate>
+              <AuthRedirect />
               <WebSocketProvider>
                 <MessagingProvider>
                   <PushNotificationProvider>
