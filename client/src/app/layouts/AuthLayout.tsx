@@ -1,47 +1,57 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion, useReducedMotion } from 'motion/react';
+import { LiveFeedShowcase } from '@/features/marketing/LiveFeedShowcase';
 
 export function AuthLayout() {
   const { t } = useTranslation();
-  const features = t('auth.layout.features', { returnObjects: true }) as string[];
+  const reduceMotion = useReducedMotion();
+
+  const enter = reduceMotion
+    ? {}
+    : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } };
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+    // Pinned to the viewport on wide screens so the showcase column cannot grow
+    // past the fold; the form column scrolls inside itself when a tall form
+    // (register, with its consent block) needs more room than the screen has.
+    <div className="grid min-h-screen grid-cols-1 lg:h-screen lg:min-h-0 lg:grid-cols-2">
       <div className="flex flex-col justify-center bg-background px-8 py-12 sm:px-12 lg:px-20 xl:px-32">
-        <div className="mx-auto w-full max-w-sm">
-          <Link to="/" className="mb-12 inline-flex items-center gap-3 font-bold text-2xl tracking-tight text-foreground transition-opacity hover:opacity-80">
+        <motion.div
+          className="mx-auto w-full max-w-sm"
+          {...enter}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Link
+            to="/"
+            className="mb-12 inline-flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground transition-opacity hover:opacity-80"
+          >
             <img src="/logo.svg" alt="SocialHan" className="h-10 w-10 rounded-xl shadow-lg shadow-primary/20" />
             SocialHan
           </Link>
           <Outlet />
-        </div>
+        </motion.div>
       </div>
 
-      <div className="hidden bg-zinc-950 lg:block relative overflow-hidden border-l border-zinc-800">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(39,39,42,0.8),transparent)]" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-40" />
+      <div className="sticky top-0 hidden h-screen overflow-hidden border-l border-zinc-800 bg-zinc-950 lg:block">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(39,39,42,0.75),transparent)]" />
 
-        <div className="relative flex h-full flex-col justify-end p-16 text-white">
-          <div className="max-w-md space-y-6">
-            <div className="inline-flex rounded-full bg-zinc-800/50 px-4 py-1.5 text-sm font-medium text-zinc-300 backdrop-blur-sm border border-zinc-700/50">
-              {t('auth.layout.badge')}
-            </div>
-            <h2 className="text-5xl font-bold leading-tight tracking-tighter">
+        <div className="relative flex h-full flex-col">
+          <motion.div
+            className="shrink-0 px-16 pt-16 xl:pt-20"
+            {...enter}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="max-w-md text-3xl font-bold leading-tight tracking-tight text-white">
               {t('auth.layout.heading')}
-            </h2>
-            <p className="text-xl text-zinc-400 font-light leading-relaxed">
+            </p>
+            <p className="mt-4 max-w-md text-lg font-light leading-relaxed text-zinc-400">
               {t('auth.layout.subtext')}
             </p>
-          </div>
-          <div className="mt-12 flex flex-wrap gap-2 border-t border-zinc-800 pt-8">
-            {features.map((feature) => (
-              <span
-                key={feature}
-                className="rounded-full border border-zinc-700/50 bg-zinc-800/40 px-3 py-1 text-sm text-zinc-400"
-              >
-                {feature}
-              </span>
-            ))}
+          </motion.div>
+
+          <div className="relative mt-8 min-h-0 flex-1">
+            <LiveFeedShowcase />
           </div>
         </div>
       </div>

@@ -215,3 +215,56 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+/* Specular sweep for marketing headings. The gradient is painted onto the text
+   itself via background-clip, so it wraps with the lines and leaves the glyphs
+   selectable — an overlaid shine element would do neither. */
+@keyframes shine-sweep {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+.shine-text {
+  background: linear-gradient(
+    100deg,
+    var(--color-foreground) 42%,
+    color-mix(in oklab, var(--color-primary) 65%, var(--color-foreground)) 50%,
+    var(--color-foreground) 58%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shine-sweep 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shine-text {
+    animation: none;
+    background: none;
+    color: var(--color-foreground);
+  }
+}
+
+/* Feature strip. Halves the doubled track so the loop restarts on an identical
+   frame; the gap is included because the second copy starts after one gap. */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-50% - 0.5rem)); }
+}
+
+.marquee-track {
+  animation: marquee-scroll var(--marquee-duration, 46s) linear infinite;
+}
+
+/* Written as a plain descendant selector rather than a Tailwind named-group
+   arbitrary property: that combination did not emit a rule, so the strip never
+   actually paused. */
+.marquee-wrap:hover .marquee-track,
+.marquee-wrap:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}

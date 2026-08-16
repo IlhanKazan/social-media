@@ -1,13 +1,13 @@
 {
   "auth": {
     "layout": {
-      "badge": "Gerçek zamanlı sosyal ağ",
-      "heading": "Düşüncelerini anında dünyayla paylaş.",
-      "subtext": "Gönderiler, konu zincirleri ve direkt mesajlar; hepsi anlık. Sade, hızlı ve modern bir sosyal deneyim.",
-      "features": [
-        "Gerçek zamanlı akış",
-        "Direkt mesajlar",
-        "Konu zincirleri"
+      "heading": "Zaten çok fazla sosyal medya var.",
+      "subtext": "Katılıyoruz. Bu yüzden bunu bildirim yağmuru, reklam ve algoritma olmadan yaptık.",
+      "showcase": [
+        "Gerçek zamanlı diyorsak gerçekten anlık olmalı. Yenile tuşuna basmıyoruz.",
+        "Buradaki tek özellik akışın kendisi. Gerisi süs.",
+        "Bir gönderiyi beğendiğinde karşı taraf o anda görüyor. Basit ama iyi hissettiriyor.",
+        "Reklamsız bir zaman tüneli nasıl olurmuş, hatırlatayım."
       ]
     },
     "login": {
@@ -497,22 +497,84 @@
       "browseWithoutAccount": "Üye olmadan gez",
       "features": {
         "realtime": {
-          "title": "Gerçek zamanlı akış",
-          "desc": "Beğeniler, yanıtlar ve bildirimler WebSocket ile anında."
+          "title": "Anında, gerçekten",
+          "desc": "Beğeni, yanıt ve bildirimler WebSocket üzerinden düşüyor. Sayfa yenileme 2010'da kaldı."
         },
         "threads": {
           "title": "Konu zincirleri",
-          "desc": "Twitter tarzı iç içe yanıtlarla sohbeti takip et."
+          "desc": "İç içe yanıtlar. Kim kime ne demiş, baştan sona görünüyor."
         },
         "dm": {
           "title": "Direkt mesajlar",
-          "desc": "Birebir özel sohbetler, fotoğraf ve gönderi paylaşımı."
+          "desc": "Birebir sohbet, fotoğraf ve gönderi paylaşımı. Okundu bilgisi dahil."
         },
         "media": {
           "title": "Görsel paylaşımı",
-          "desc": "Gönderilerine ve mesajlarına görsel ekle."
+          "desc": "Gönderiye de mesaja da. Boyutlandırma ve dağıtım CDN üzerinden."
+        },
+        "moderation": {
+          "title": "Otomatik denetim",
+          "desc": "Her gönderi yayına girmeden içerik kontrolünden geçiyor, hata durumunda kapalı kalıyor."
+        },
+        "mfa": {
+          "title": "İki adımlı doğrulama",
+          "desc": "Authenticator veya e-posta kodu, kurtarma kodlarıyla birlikte."
+        },
+        "sessions": {
+          "title": "Oturum güvenliği",
+          "desc": "Yenileme tokenı her kullanımda döndürülüyor; yeniden kullanım tespit edilince tüm aile iptal ediliyor."
+        },
+        "ratelimit": {
+          "title": "Hız sınırlama",
+          "desc": "Uç nokta ve kullanıcı bazlı kotalar. Kötüye kullanım servisin tamamını yavaşlatmıyor."
+        },
+        "mobile": {
+          "title": "Mobil uygulama",
+          "desc": "Aynı API üzerinde çalışan Android uygulaması, anlık bildirimlerle."
+        },
+        "audit": {
+          "title": "Denetim kaydı",
+          "desc": "Yönetici işlemleri ve güvenlik olayları değiştirilemez biçimde kaydediliyor."
+        },
+        "i18n": {
+          "title": "İki dil",
+          "desc": "Arayüz, e-postalar ve hata mesajları Türkçe ve İngilizce."
+        },
+        "search": {
+          "title": "Arama",
+          "desc": "Kullanıcı ve gönderi araması, indeksli sorgular üzerinde."
         }
-      }
+      },
+      "heroTitle": "Bir sosyal medyaya daha ihtiyacın yok. Ama iyi yapılmışına bakmaya değer.",
+      "heroSubtitle": "Gerçek zamanlı akış, konu zincirleri, direkt mesajlar. Reklam yok, algoritma yok, \"seni özledik\" bildirimi hiç yok — çünkü bu bir ürün değil, bir mühendislik işi.",
+      "metaDescription": "Gerçek zamanlı akış, konu zincirleri ve direkt mesajlar. Reklamsız, algoritmasız bir sosyal platform.",
+      "story": "Bu platform, üretim ortamında ayakta durması gereken bir sistem gibi kuruldu. Gerçek zamanlı teslimat, otomatik içerik denetimi, iki adımlı doğrulama, hız sınırlama ve denetim kayıtları; hepsi ölçülmüş ve belgelenmiş bir altyapı üzerinde çalışıyor.",
+      "storyCta": "Mimariyi incele",
+      "storyTitle": "Altyapı",
+      "proof": {
+        "load": {
+          "title": "Yük altında ölçüldü",
+          "desc": "Eşzamanlı 100 kullanıcı, gerçekçi kullanıcı yolculuklarıyla. Akış gecikmesi p95 23 ms.",
+          "meta": "2.267 oturum · %100 başarı"
+        },
+        "realtime": {
+          "title": "Gerçek zamanlı kapasite",
+          "desc": "Kimlik doğrulamalı STOMP oturumları eşzamanlı tutuldu, bağlantı hatası olmadan.",
+          "meta": "885 eşzamanlı bağlantı"
+        },
+        "security": {
+          "title": "Güvenlik katmanları",
+          "desc": "İki adımlı doğrulama, oturum rotasyonu ve yeniden kullanım tespiti, uç nokta bazlı hız sınırlama.",
+          "meta": "HSTS · CSP · denetim kaydı"
+        },
+        "moderation": {
+          "title": "Otomatik denetim",
+          "desc": "Her gönderi yayına girmeden önce içerik kontrolünden geçiyor; başarısızlıkta kapalı kalıyor.",
+          "meta": "Fail-closed"
+        }
+      },
+      "securityLine": "Uçtan uca şifreli iletim, dönen oturum anahtarları ve değiştirilemez denetim kaydı.",
+      "securityLabel": "Güvenlik"
     },
     "footer": {
       "aboutLink": "Hakkında",
@@ -1009,5 +1071,14 @@
     "FILE_TOO_LARGE": "Dosya boyutu 5MB'dan büyük olamaz.",
     "INVALID_FILE_FORMAT": "Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.",
     "POSTING_RESTRICTED": "Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir."
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "description": "Böyle bir sayfa yok.",
+    "heading": "Bu sayfa ortalıkta yok",
+    "body": "Bağlantı bozulmuş olabilir, ya da burada ne varsa silinmiş.",
+    "goHome": "Akışa dön",
+    "explore": "Keşfet",
+    "back": "Geri dön"
   }
 }
