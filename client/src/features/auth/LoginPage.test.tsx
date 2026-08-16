@@ -9,12 +9,40 @@ import { LoginPage } from './LoginPage';
 const LOGIN_URL = 'http://localhost:8080/api/v1/auth/login';
 
 describe('LoginPage', () => {
-  it('shows Zod validation errors when submitting empty fields', async () => {
+  it('reveals the password field once an identifier is entered', async () => {
+    renderWithProviders(<LoginPage />);
+
+    // The form opens on a single field, so the password is not yet in the DOM.
+    expect(screen.queryByLabelText('Şifre')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Kullanıcı Adı veya E-posta'), {
+      target: { value: 'neo' },
+    });
+
+    expect(await screen.findByLabelText('Şifre')).toBeInTheDocument();
+  });
+
+  it('shows a validation error when submitting an empty form', async () => {
     renderWithProviders(<LoginPage />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Giriş Yap' }));
 
     expect(await screen.findByText('Kullanıcı adı veya e-posta gerekli')).toBeInTheDocument();
+    // Only the visible step is reported. Complaining about a field the user has
+    // not been shown yet would be confusing, and the submit is blocked anyway.
+    expect(screen.queryByText('Şifre gerekli')).not.toBeInTheDocument();
+  });
+
+  it('validates the password once it is on screen', async () => {
+    renderWithProviders(<LoginPage />);
+
+    fireEvent.change(screen.getByLabelText('Kullanıcı Adı veya E-posta'), {
+      target: { value: 'neo' },
+    });
+    await screen.findByLabelText('Şifre');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Giriş Yap' }));
+
     expect(await screen.findByText('Şifre gerekli')).toBeInTheDocument();
   });
 
@@ -38,7 +66,7 @@ describe('LoginPage', () => {
     fireEvent.change(screen.getByLabelText('Kullanıcı Adı veya E-posta'), {
       target: { value: 'neo' },
     });
-    fireEvent.change(screen.getByLabelText('Şifre'), {
+    fireEvent.change(await screen.findByLabelText('Şifre'), {
       target: { value: 'Password123!' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Giriş Yap' }));
