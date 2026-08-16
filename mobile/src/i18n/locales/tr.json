@@ -275,7 +275,8 @@
       "imageUploadFailedBody": "Fotoğraf yüklenirken bir hata oluştu.",
       "sending": "Gönderiliyor…",
       "readPrefix": "Okundu",
-      "delivered": "İletildi"
+      "delivered": "İletildi",
+      "offline": "Bağlantı yok — şu anda mesaj gönderilemiyor."
     }
   },
   "notifications": {
@@ -358,5 +359,9 @@
     "availableBanner": "Yeni bir sürüm ({{version}}) mevcut.",
     "updateButton": "Güncelle",
     "dismiss": "Daha sonra"
+  },
+  "messages": {
+    "sendFailedTitle": "Mesaj gönderilemedi",
+    "sendFailedBody": "Bağlantın kopmuş görünüyor. İnterneti kontrol edip tekrar dene."
   }
 }

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 import {
   createContext,
@@ -13,18 +14,25 @@ import {
 import { API_BASE_URL } from '@/lib/env';
 import { useAuthStore } from '@/stores/auth-store';
 
+/** Errors and close events are not plain objects; pull out what is loggable. */
+function safeDescribe(event: unknown): string {
+  if (!event || typeof event !== 'object') return String(event);
+  const e = event as Record<string, unknown>;
+  return JSON.stringify({ type: e.type, message: e.message, code: e.code }) ?? 'unknown';
+}
+
 const WS_URL = `${API_BASE_URL.replace(/^http/, 'ws')}/ws-native`;
 
 interface WebSocketContextValue {
   isConnected: boolean;
   subscribe: (destination: string, callback: (message: IMessage) => void) => StompSubscription | null;
-  publish: (destination: string, body: unknown) => void;
+  publish: (destination: string, body: unknown) => boolean;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
   isConnected: false,
   subscribe: () => null,
-  publish: () => {},
+  publish: () => false,
 });
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
@@ -46,8 +54,37 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       appendMissingNULLonIncoming: true,
       onConnect: () => setIsConnected(true),
       onDisconnect: () => setIsConnected(false),
-      onStompError: () => setIsConnected(false),
-      onWebSocketClose: () => setIsConnected(false),
+      // Report the reason. A silent failure here strands DMs, which are only
+      // ever sent over STOMP — there is no REST path to fall back to.
+      onStompError: (frame) => {
+        setIsConnected(false);
+        Sentry.captureException(new Error(`STOMP error: ${frame.headers.message ?? 'unknown'}`), {
+          extra: { body: frame.body },
+        });
+      },
+      onWebSocketError: (event) => {
+        setIsConnected(false);
+        Sentry.captureException(new Error('WebSocket connection error'), {
+          extra: { url: WS_URL, event: safeDescribe(event) },
+        });
+      },
+      // The close frame is where the actual reason lives: 1006 means the socket
+      // died before a close handshake (proxy, TLS, DNS), while a policy code
+      // points at the server or something in front of it. Without this the error
+      // above says only that *something* failed.
+      onWebSocketClose: (event) => {
+        setIsConnected(false);
+        if (event && event.code !== 1000 && event.code !== 1001) {
+          Sentry.captureException(new Error(`WebSocket closed: ${event.code}`), {
+            extra: {
+              url: WS_URL,
+              code: event.code,
+              reason: event.reason || '(none)',
+              wasClean: event.wasClean,
+            },
+          });
+        }
+      },
     });
 
     client.activate();
@@ -66,10 +103,14 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     return client.subscribe(destination, callback);
   }, []);
 
-  const publish = useCallback((destination: string, body: unknown) => {
+  // Reports whether the frame actually went out. Callers optimistically render
+  // what they send, so a dropped publish has to be visible to them — otherwise
+  // the message sits on screen looking delivered and never arrives.
+  const publish = useCallback((destination: string, body: unknown): boolean => {
     const client = clientRef.current;
-    if (!client?.connected) return;
+    if (!client?.connected) return false;
     client.publish({ destination, body: JSON.stringify(body) });
+    return true;
   }, []);
 
   const value = useMemo(

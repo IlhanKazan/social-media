@@ -12,6 +12,12 @@ const authUrl = (path: string) => `${API_BASE_URL}/api/v1/auth${path}`;
 
 const MOBILE_HEADERS = { 'X-Client-Platform': 'mobile' };
 
+// These calls use bare axios, not the configured `api` instance, so they carry
+// no timeout of their own. Without one a stalled network leaves the refresh
+// promise pending forever — and SessionGate, which only stops showing its
+// spinner in that promise's .finally(), waits with it.
+const AUTH_TIMEOUT_MS = 15_000;
+
 // Single-flight: the refresh token is single-use and rotated server-side, so two
 // concurrent /refresh calls trip reuse-detection and kill the whole session.
 // Every caller (interceptor, auth gate) shares this one in-flight promise.
@@ -62,6 +68,7 @@ export const useAuthStore = create<AuthState>()(
               ...MOBILE_HEADERS,
               ...(get().token ? { Authorization: `Bearer ${get().token}` } : {}),
             },
+            timeout: AUTH_TIMEOUT_MS,
           });
         } catch {
           // best-effort server-side revocation; clear local state regardless
@@ -82,7 +89,7 @@ export const useAuthStore = create<AuthState>()(
             const { data } = await axios.post<AuthResponse>(
               authUrl('/refresh'),
               { refreshToken },
-              { headers: MOBILE_HEADERS }
+              { headers: MOBILE_HEADERS, timeout: AUTH_TIMEOUT_MS }
             );
             if (data.refreshToken) {
               await setRefreshToken(data.refreshToken);
@@ -93,9 +100,19 @@ export const useAuthStore = create<AuthState>()(
               tokenExpiresAt: Date.now() + (data.accessTokenExpiresIn || DEFAULT_ACCESS_TTL_MS),
             });
             return true;
-          } catch {
-            await clearRefreshToken();
-            set({ token: null, account: null, tokenExpiresAt: null });
+          } catch (error) {
+            // Only a rejection from the server proves the credential is dead.
+            // A timeout, a dropped connection or a 5xx says nothing about it, so
+            // the session is left exactly as it was and the next attempt can
+            // recover — signing the user out over a momentary network blip is
+            // both wrong and, since every route keys off `token`, indistinguishable
+            // from a real logout.
+            const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+            const rejected = status !== undefined && status >= 400 && status < 500;
+            if (rejected) {
+              await clearRefreshToken();
+              set({ token: null, account: null, tokenExpiresAt: null });
+            }
             return false;
           }
         })().finally(() => {
