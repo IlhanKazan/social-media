@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { PostCard } from '@/components/post-card';
+import { LIST_PERF } from '@/lib/list-config';
 import { ThemedRefreshControl } from '@/components/themed-refresh';
 import { useExplore, useFeed } from '@/features/posts/queries';
 import { useLiveFeed } from '@/features/posts/use-live-feed';
@@ -49,6 +50,7 @@ function FeedList({ query, emptyMessage }: FeedListProps) {
 
   return (
     <FlatList
+        {...LIST_PERF}
       data={items}
       keyExtractor={(item, index) => {
         if ('post' in item) {

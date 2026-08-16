@@ -2,6 +2,7 @@ package com.ilhankazan.social.service.email;
 
 import com.ilhankazan.social.config.AppProperties;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.util.Map;
 
@@ -13,7 +14,8 @@ class EmailTemplateRegistryTest {
         true, "resend", "noreply@socialhan.dev", "SocialHan", "", 90, 2800,
         "SocialHan", "https://socialhan.dev/logo.png"
     );
-    private final EmailTemplateRegistry registry = new EmailTemplateRegistry(props);
+    private final EmailTemplateRegistry registry = new EmailTemplateRegistry(
+        props, new MockEnvironment().withProperty("FRONTEND_ORIGIN", "https://socialhan.dev"));
 
     @Test
     void welcomeCarriesTheRecipientNameAndLink() {

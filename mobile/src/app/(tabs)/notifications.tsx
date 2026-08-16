@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ActionSheet } from '@/components/action-sheet';
+import { LIST_PERF } from '@/lib/list-config';
 import { NotificationCard } from '@/components/notification-card';
 import { ThemedRefreshControl } from '@/components/themed-refresh';
 import {
@@ -77,6 +78,7 @@ export default function NotificationsScreen() {
       />
 
       <FlatList
+        {...LIST_PERF}
         data={items}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <NotificationCard notification={item} />}

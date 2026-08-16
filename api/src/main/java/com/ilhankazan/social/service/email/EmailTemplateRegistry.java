@@ -2,6 +2,7 @@ package com.ilhankazan.social.service.email;
 
 import com.ilhankazan.social.config.AppProperties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.time.Year;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class EmailTemplateRegistry {
 
     private final AppProperties.EmailProperties emailProps;
+    private final Environment env;
 
     private static final String INK = "#0a0a0a";
     private static final String PAPER = "#ffffff";
@@ -216,16 +218,17 @@ public class EmailTemplateRegistry {
             ? emailProps.appName() : "SocialHan";
     }
 
+    /**
+     * Base for the links in the footer.
+     *
+     * Read from the same FRONTEND_ORIGIN every other link in the app uses.
+     * Deriving it from the logo URL — as this once did — pointed the privacy
+     * and terms links at the image host the moment the logo was served from a
+     * CDN, which is exactly what happened.
+     */
     private String webUrl() {
-        String logo = emailProps.logoUrl();
-        // Derived rather than configured twice: the logo already points at the
-        // public site, and a second URL setting would be one more thing to get
-        // out of sync in an environment file.
-        if (logo != null && logo.startsWith("http")) {
-            int slash = logo.indexOf('/', logo.indexOf("//") + 2);
-            if (slash > 0) return logo.substring(0, slash);
-        }
-        return "https://socialhan.ilhankazan.com";
+        String origin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
+        return origin.endsWith("/") ? origin.substring(0, origin.length() - 1) : origin;
     }
 
     private String apply(String template, Map<String, String> params) {

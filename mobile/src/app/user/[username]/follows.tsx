@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { api } from '@/lib/api';
+import { LIST_PERF } from '@/lib/list-config';
 import { useFollowList, useProfile } from '@/features/profile/queries';
 import { useAuthStore } from '@/stores/auth-store';
 import type { PublicAccountResponse } from '@/types/api';
@@ -126,6 +127,7 @@ export default function FollowsScreen() {
       </View>
 
       <FlatList
+        {...LIST_PERF}
         data={items}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <FollowRow user={item} />}

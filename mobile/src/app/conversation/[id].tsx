@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MentionSuggestions } from '@/components/mention-suggestions';
+import { LIST_PERF } from '@/lib/list-config';
 import { MentionText } from '@/components/mention-text';
 import { useMessaging } from '@/features/messaging/messaging-provider';
 import { useWebSocket } from '@/lib/ws';
@@ -322,6 +323,11 @@ export default function ConversationScreen() {
         </View>
       ) : (
         <FlatList
+        {...LIST_PERF}
+        // An inverted list on Android drops rows into blank space when
+        // off-screen children are detached, so this one keeps them attached and
+        // relies on the smaller window alone.
+        removeClippedSubviews={false}
           data={messages}
           inverted
           keyExtractor={(item) => String(item.id)}

@@ -2,9 +2,9 @@ package com.ilhankazan.social.service.email;
 
 import com.ilhankazan.social.entity.EmailOutbox;
 import com.ilhankazan.social.entity.EmailStatus;
-import com.ilhankazan.social.config.AppProperties;
 import com.ilhankazan.social.repository.EmailOutboxRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +15,7 @@ public class EmailService {
     private final EmailOutboxRepository outboxRepository;
     private final EmailTemplateRegistry templateRegistry;
     private final UnsubscribeTokenService unsubscribeTokens;
-    private final AppProperties.EmailProperties emailProps;
+    private final Environment env;
 
     @Transactional
     public Long enqueue(EmailMessage msg) {
@@ -46,16 +46,23 @@ public class EmailService {
         if (!msg.category().isUnsubscribable() || msg.accountId() == null) {
             return null;
         }
-        return webUrl() + "/api/v1/email/unsubscribe?token=" + unsubscribeTokens.sign(msg.accountId());
+        return apiOrigin() + "/api/v1/email/unsubscribe?token=" + unsubscribeTokens.sign(msg.accountId());
     }
 
-    private String webUrl() {
-        String logo = emailProps.logoUrl();
-        if (logo != null && logo.startsWith("http")) {
-            int slash = logo.indexOf('/', logo.indexOf("//") + 2);
-            if (slash > 0) return logo.substring(0, slash);
-        }
-        return "https://socialhan.ilhankazan.com";
+    /**
+     * Base for the unsubscribe link.
+     *
+     * This one is the API, not the site: the SPA's nginx does not proxy /api,
+     * so a link built from the frontend origin would land on the 404 page — and
+     * one-click unsubscribe POSTs straight at the URL, with no page to run.
+     *
+     * COOLIFY_URL is injected by the platform and already holds the API's public
+     * address, so nothing new has to be configured for this to be right.
+     */
+    private String apiOrigin() {
+        String origin = env.getProperty("API_ORIGIN",
+            env.getProperty("COOLIFY_URL", "http://localhost:8080"));
+        return origin.endsWith("/") ? origin.substring(0, origin.length() - 1) : origin;
     }
 
     @Transactional(readOnly = true)
