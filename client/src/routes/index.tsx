@@ -48,6 +48,7 @@ const LegalLayout = lazyWithReload(() => import('@/features/marketing/LegalLayou
 const AboutPage = lazyWithReload(() => import('@/features/marketing/AboutPage').then(m => ({ default: m.AboutPage })));
 const ArchitecturePage = lazyWithReload(() => import('@/features/marketing/ArchitecturePage').then(m => ({ default: m.ArchitecturePage })));
 const DownloadPage = lazyWithReload(() => import('@/features/marketing/DownloadPage').then(m => ({ default: m.DownloadPage })));
+const ChangelogPage = lazyWithReload(() => import('@/features/marketing/ChangelogPage').then(m => ({ default: m.ChangelogPage })));
 const PrivacyPage = lazyWithReload(() => import('@/features/marketing/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazyWithReload(() => import('@/features/marketing/TermsPage').then(m => ({ default: m.TermsPage })));
 
@@ -60,6 +61,8 @@ const AdminUsersPage = lazyWithReload(() => import('@/features/admin/AdminUsersP
 const AdminSystemSettingsPage = lazyWithReload(() => import('@/features/admin/AdminSystemSettingsPage').then(m => ({ default: m.AdminSystemSettingsPage })));
 const AdminMobileReleasePage = lazyWithReload(() => import('@/features/admin/AdminMobileReleasePage').then(m => ({ default: m.AdminMobileReleasePage })));
 const AdminMaintenancePage = lazyWithReload(() => import('@/features/admin/AdminMaintenancePage').then(m => ({ default: m.AdminMaintenancePage })));
+const AdminAnnouncementsPage = lazyWithReload(() => import('@/features/admin/AdminAnnouncementsPage').then(m => ({ default: m.AdminAnnouncementsPage })));
+const AdminChangelogPage = lazyWithReload(() => import('@/features/admin/AdminChangelogPage').then(m => ({ default: m.AdminChangelogPage })));
 const AdminAuditLogPage = lazyWithReload(() => import('@/features/admin/AdminAuditLogPage').then(m => ({ default: m.AdminAuditLogPage })));
 
 const PageLoader = () => (
@@ -68,10 +71,8 @@ const PageLoader = () => (
   </div>
 );
 
-const NotFound = () => (
-  <div className="p-8 text-center">
-    <h1 className="text-2xl font-bold">404 Not Found</h1>
-  </div>
+const NotFoundPage = lazyWithReload(() =>
+  import('@/features/marketing/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
 );
 
 const withSuspense = (element: React.ReactNode) => (
@@ -86,6 +87,7 @@ export const router = createBrowserRouter([
       { path: '/about', element: withSuspense(<AboutPage />) },
       { path: '/architecture', element: withSuspense(<ArchitecturePage />) },
       { path: '/download', element: withSuspense(<DownloadPage />) },
+      { path: '/changelog', element: withSuspense(<ChangelogPage />) },
       { path: '/privacy', element: withSuspense(<PrivacyPage />) },
       { path: '/terms', element: withSuspense(<TermsPage />) },
     ],
@@ -137,6 +139,8 @@ export const router = createBrowserRouter([
               { path: 'users', element: withSuspense(<AdminUsersPage />) },
               { path: 'settings', element: withSuspense(<AdminSystemSettingsPage />) },
               { path: 'mobile-release', element: withSuspense(<AdminMobileReleasePage />) },
+              { path: 'announcements', element: withSuspense(<AdminAnnouncementsPage />) },
+              { path: 'changelog', element: withSuspense(<AdminChangelogPage />) },
               { path: 'maintenance', element: withSuspense(<AdminMaintenancePage />) },
               { path: 'audit-log', element: withSuspense(<AdminAuditLogPage />) },
             ],
@@ -145,5 +149,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '*', element: <NotFound /> },
+  { path: '*', element: withSuspense(<NotFoundPage />) },
 ]);

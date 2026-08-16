@@ -35,11 +35,12 @@ public class SpamBurstMonitor {
 
                 auditLogService.record("SPAM_BURST_DETECTED", "SYSTEM", null, Map.of("count", flaggedCount));
 
-                emailService.enqueue(new EmailMessage(
+                emailService.enqueue(EmailMessage.transactional(
                     "",
                     "Spam Burst Alert",
                     "ADMIN_ALERT",
-                    Map.of("flaggedCount", String.valueOf(flaggedCount))
+                    Map.of("flaggedCount", String.valueOf(flaggedCount)),
+                    null
                 ));
 
                 lastAlertSentAt = Instant.now();

@@ -1,28 +1,14 @@
-import { Link, Outlet } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Outlet } from 'react-router-dom';
 import { Footer } from './Footer';
+import { SiteHeader } from './SiteHeader';
 
 export function LegalLayout() {
-  const { t } = useTranslation();
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="border-b border-zinc-200 dark:border-zinc-800/60">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2 font-bold tracking-tight text-foreground">
-            <img src="/logo.svg" alt="SocialHan" className="h-8 w-8 rounded-lg" />
-            SocialHan
-          </Link>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" /> {t('legal.backHome')}
-          </Link>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+      <SiteHeader />
+      {/* Narrower than the header's container on purpose: prose is read, not
+          scanned, and a full-width column of body text is hard to follow. */}
+      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
         <Outlet />
       </main>
       <Footer />

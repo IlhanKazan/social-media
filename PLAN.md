@@ -1750,6 +1750,110 @@ consent and stores it; account deletion verifiably clears user data; a visible
 
 ---
 
+## Phase 41 — Observability & product analytics (+ legal disclosure)
+
+**Gate: the legal slice ships WITH the tooling, never after.** `docs/legal/privacy.md`
+currently lists five processors (Hetzner, Cloudflare, Cloudinary, Resend, OpenAI)
+and states *"Reklam/takip çerezi yok"*. Both statements go stale the moment
+anything below lands, and Sentry is **already** live on mobile without being
+listed — so 41.4 is a correction, not just an addition.
+
+### [ ] 41.1 Sentry on the web client
+`@sentry/react` in `client/`. Highest-value gap: browser errors are currently
+invisible (no log access on the user's machine), unlike the API where
+`docker logs` + Logback JSON + Prometheus already cover us.
+- Reuse the existing EU-region org (`personal-qk0`, `de.sentry.io`) — a separate
+  project so mobile/web quotas stay legible.
+- DSN via `VITE_*` env, source maps uploaded at build time, `release` tied to the
+  git SHA. Scrub PII: no message bodies, no emails in breadcrumbs.
+
+### [ ] 41.2 Sentry on the API (optional, lower priority)
+`sentry-spring-boot-starter`. Deliberately **not** first: the box is ours, so
+exceptions are already reachable via structured logs and Netdata. The delta is
+aggregation/dedupe + release regression tracking, not visibility.
+- If adopted: `GlobalExceptionHandler` must not double-report handled 4xx.
+
+### [ ] 41.3 Mixpanel product analytics
+`mixpanel-react-native` (mobile) and/or `mixpanel-browser` (web). Free tier
+exists — **verify current event limits before wiring**, they change.
+- **Native module → requires a new APK, cannot ship over OTA.** Batch it with
+  another native change to avoid a wasted build cycle.
+- Prefer the **EU residency host** (`api-eu.mixpanel.com`) for consistency with
+  the EU Sentry org and the KVKK posture.
+- **Web has a materially higher legal cost than mobile:** the browser SDK persists
+  a `distinct_id` in cookies/localStorage, which is a tracking identifier — that
+  triggers a consent banner obligation and directly contradicts the current
+  "functional cookies only" line. Mobile-only analytics avoids the banner while
+  still requiring disclosure. Decide scope on that basis, not on feature parity.
+- Instrument funnels worth talking about in an interview (register → first post,
+  feed → profile → follow), not vanity counters.
+
+### [ ] 41.4 Update the privacy policy + KVKK text
+- Add **Sentry** (already live on mobile — currently undisclosed) and Mixpanel to
+  the processors list in `docs/legal/privacy.md` **and** `PrivacyPage.tsx`, in
+  both TR and the EN summary.
+- Fix the transfer paragraph: it says *"bu dört sağlayıcıya"* — the count changes.
+- Revisit *"Reklam/takip çerezi yok"* if the web SDK ships.
+- Note Sentry's EU region as a mitigating fact for cross-border transfer.
+- **Verified accurate, leave alone:** the 30-day erasure claim is real —
+  `AccountCleanupTask.hardDeleteExpiredAccounts()` runs daily at 04:00, purges
+  Cloudinary profile/cover/post/DM assets, then hard-deletes the row.
+
+**Acceptance:** a thrown error appears in the right Sentry project with a readable
+stack trace; if Mixpanel ships, a funnel is visible in the dashboard; the privacy
+policy names every processor actually in use, in both languages.
+
+---
+
+## Phase 42 — Landing page polish (motion + craft)
+
+**Gate: post-launch, portfolio-driven.** Phase 39 shipped a functional landing;
+this is the "recruiter opens it for 8 seconds" pass.
+
+### [ ] 42.1 Motion pass
+- Scroll-driven reveals, a hero with real depth, tasteful stagger on the feature
+  list. Library choice open (`motion`/Framer vs CSS-only) — decide on bundle cost.
+- **Hard constraint: must not feel heavy.** Respect `prefers-reduced-motion`,
+  keep animation off the main thread (`transform`/`opacity` only, no layout
+  thrash), and hold Lighthouse performance ≥ 90 on mid-tier mobile.
+- Ship a real product visual (screenshot/loop), not a placeholder.
+
+### [ ] 42.2 Consistency with the app shell
+Reuse the Tailwind v4 `@theme` tokens and shadcn primitives already in
+`client/src` so the landing and the product read as one brand. Dark mode must be
+first-class, not an afterthought.
+
+**Acceptance:** the page feels fluid on a mid-range Android, reduced-motion users
+get a static layout, and Lighthouse performance does not regress.
+
+---
+
+## Phase 43 — HTML email template redesign
+
+**Gate: post-launch.** Transactional mail is currently the least-polished
+user-facing surface.
+
+### [ ] 43.1 Rebuild the templates
+`EmailTemplateRegistry.java` (123 lines) concatenates inline HTML strings with
+shared style constants (`P`, `P_MUTED`) — workable but hostile to iteration, and
+`src/main/resources/templates/` sits empty.
+- Covers: welcome, password reset, email verification, MFA code, generic notice.
+- Decide: keep code-built HTML (no new dependency, testable) vs move to real
+  template files. **Do not reach for a templating engine without a reason** —
+  the registry is small and typed.
+- Table-based layout, inline CSS, ~600px, dark-mode-aware, plain-text fallback.
+- Brand it: the same black/white monogram used for the app icon.
+- Verify rendering in Gmail, Outlook, and iOS Mail before shipping.
+
+### [ ] 43.2 Localise
+Recipient language already exists (`accounts.preferred_language`, V36) and was
+added with exactly this in mind. Compose in the recipient's language.
+
+**Acceptance:** every transactional email renders correctly in the three major
+clients, in both languages, with a working plain-text part.
+
+---
+
 ## Backlog — quality / hardening follow-ups
 
 Surfaced during Phase 29 (load + security). Not blockers; schedule around launch.

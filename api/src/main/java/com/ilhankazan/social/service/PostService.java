@@ -15,6 +15,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -245,7 +246,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Page<FeedItemProjection> getFollowingFeedUnion(Long userId, Pageable pageable) {
+    public Slice<FeedItemProjection> getFollowingFeedUnion(Long userId, Pageable pageable) {
         return postRepository.getFollowingFeedUnion(userId, pageable);
     }
 

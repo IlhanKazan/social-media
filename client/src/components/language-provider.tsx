@@ -37,6 +37,9 @@ export function LanguageProvider({
 
   useEffect(() => {
     void i18n.changeLanguage(language);
+    // The shell ships lang="en" statically; without this a Turkish session stays
+    // declared as English, which misleads screen readers and search engines alike.
+    document.documentElement.lang = language;
   }, [language]);
 
   const value = {

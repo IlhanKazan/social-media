@@ -47,3 +47,5 @@ PORTFOLIO_PROMPT.txt
 api/bad-words.txt
 docs/MOBILE_RELEASE_RUNBOOK.md
 docs/RELEASE_ADIMLARI.md
+docs/YENI_SESSION_PROMPT.txt
+tests/load/reports/

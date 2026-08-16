@@ -1,13 +1,13 @@
 {
   "auth": {
     "layout": {
-      "badge": "Gerçek zamanlı sosyal ağ",
-      "heading": "Düşüncelerini anında dünyayla paylaş.",
-      "subtext": "Gönderiler, konu zincirleri ve direkt mesajlar; hepsi anlık. Sade, hızlı ve modern bir sosyal deneyim.",
-      "features": [
-        "Gerçek zamanlı akış",
-        "Direkt mesajlar",
-        "Konu zincirleri"
+      "heading": "Bu bir vitrin projesi.",
+      "subtext": "Gerçek bir sosyal platformun ayakta durması için gereken her şey — gerçek zamanlı akış, mesajlaşma, içerik denetimi, mobil uygulama — çalışır halde. Hesap açıp deneyebilirsin.",
+      "showcase": [
+        "Gerçek zamanlı diyorsak gerçekten anlık olmalı. Yenile tuşuna basmıyoruz.",
+        "Buradaki her şey çalışıyor: mesajlar, bildirimler, moderasyon, mobil uygulama.",
+        "Bir gönderiyi beğendiğinde karşı taraf o anda görüyor. Basit ama iyi hissettiriyor.",
+        "Reklam yok, algoritma yok, veri satmıyoruz. Satacak bir şeyimiz yok zaten."
       ]
     },
     "login": {
@@ -268,7 +268,11 @@
       "title": "Beklenmedik bir hata oluştu",
       "description": "Uygulama çalışırken bir sorunla karşılaştık. Endişelenme, bu durumu kaydettik. Lütfen sayfayı yenilemeyi dene.",
       "reload": "Sayfayı Yenile"
-    }
+    },
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "edit": "Düzenle",
+    "delete": "Sil"
   },
   "feed": {
     "headerFeed": "Akış",
@@ -497,34 +501,96 @@
       "browseWithoutAccount": "Üye olmadan gez",
       "features": {
         "realtime": {
-          "title": "Gerçek zamanlı akış",
-          "desc": "Beğeniler, yanıtlar ve bildirimler WebSocket ile anında."
+          "title": "Anında, gerçekten",
+          "desc": "Beğeni, yanıt ve bildirimler WebSocket üzerinden düşüyor. Sayfa yenileme 2010'da kaldı."
         },
         "threads": {
           "title": "Konu zincirleri",
-          "desc": "Twitter tarzı iç içe yanıtlarla sohbeti takip et."
+          "desc": "İç içe yanıtlar. Kim kime ne demiş, baştan sona görünüyor."
         },
         "dm": {
           "title": "Direkt mesajlar",
-          "desc": "Birebir özel sohbetler, fotoğraf ve gönderi paylaşımı."
+          "desc": "Birebir sohbet, fotoğraf ve gönderi paylaşımı. Okundu bilgisi dahil."
         },
         "media": {
           "title": "Görsel paylaşımı",
-          "desc": "Gönderilerine ve mesajlarına görsel ekle."
+          "desc": "Gönderiye de mesaja da. Boyutlandırma ve dağıtım CDN üzerinden."
+        },
+        "moderation": {
+          "title": "Otomatik denetim",
+          "desc": "Her gönderi yayına girmeden içerik kontrolünden geçiyor, hata durumunda kapalı kalıyor."
+        },
+        "mfa": {
+          "title": "İki adımlı doğrulama",
+          "desc": "Authenticator veya e-posta kodu, kurtarma kodlarıyla birlikte."
+        },
+        "sessions": {
+          "title": "Oturum güvenliği",
+          "desc": "Yenileme tokenı her kullanımda döndürülüyor; yeniden kullanım tespit edilince tüm aile iptal ediliyor."
+        },
+        "ratelimit": {
+          "title": "Hız sınırlama",
+          "desc": "Uç nokta ve kullanıcı bazlı kotalar. Kötüye kullanım servisin tamamını yavaşlatmıyor."
+        },
+        "mobile": {
+          "title": "Mobil uygulama",
+          "desc": "Aynı API üzerinde çalışan Android uygulaması, anlık bildirimlerle."
+        },
+        "audit": {
+          "title": "Denetim kaydı",
+          "desc": "Yönetici işlemleri ve güvenlik olayları değiştirilemez biçimde kaydediliyor."
+        },
+        "i18n": {
+          "title": "İki dil",
+          "desc": "Arayüz, e-postalar ve hata mesajları Türkçe ve İngilizce."
+        },
+        "search": {
+          "title": "Arama",
+          "desc": "Kullanıcı ve gönderi araması, indeksli sorgular üzerinde."
         }
-      }
+      },
+      "heroTitle": "Bir sosyal medyaya daha ihtiyacın yok. Ama iyi yapılmışına bakmaya değer.",
+      "heroSubtitle": "Gerçek zamanlı akış, konu zincirleri, direkt mesajlar. Reklam yok, algoritma yok, \"seni özledik\" bildirimi hiç yok — çünkü bu bir ürün değil, bir mühendislik işi.",
+      "metaDescription": "Gerçek zamanlı akış, konu zincirleri ve direkt mesajlar. Reklamsız, algoritmasız bir sosyal platform.",
+      "story": "Bu platform, üretim ortamında ayakta durması gereken bir sistem gibi kuruldu. Gerçek zamanlı teslimat, otomatik içerik denetimi, iki adımlı doğrulama, hız sınırlama ve denetim kayıtları; hepsi ölçülmüş ve belgelenmiş bir altyapı üzerinde çalışıyor.",
+      "storyCta": "Mimariyi incele",
+      "storyTitle": "Altyapı",
+      "proof": {
+        "load": {
+          "title": "Yük altında ölçüldü",
+          "desc": "Eşzamanlı 100 kullanıcı, gerçekçi kullanıcı yolculuklarıyla. Akış gecikmesi p95 23 ms.",
+          "meta": "2.267 oturum · %100 başarı"
+        },
+        "realtime": {
+          "title": "Gerçek zamanlı kapasite",
+          "desc": "Kimlik doğrulamalı STOMP oturumları eşzamanlı tutuldu, bağlantı hatası olmadan.",
+          "meta": "885 eşzamanlı bağlantı"
+        },
+        "security": {
+          "title": "Güvenlik katmanları",
+          "desc": "İki adımlı doğrulama, oturum rotasyonu ve yeniden kullanım tespiti, uç nokta bazlı hız sınırlama.",
+          "meta": "HSTS · CSP · denetim kaydı"
+        },
+        "moderation": {
+          "title": "Otomatik denetim",
+          "desc": "Her gönderi yayına girmeden önce içerik kontrolünden geçiyor; başarısızlıkta kapalı kalıyor.",
+          "meta": "Fail-closed"
+        }
+      },
+      "securityLine": "TLS üzerinden şifreli iletim, her kullanımda dönen oturum anahtarları, kötüye kullanımı yakalayan hız sınırları ve değiştirilemeyen bir denetim kaydı.",
+      "securityLabel": "Güvenlik"
     },
     "footer": {
       "aboutLink": "Hakkında",
       "architectureLink": "Mimari",
-      "downloadLink": "Uygulamayı al",
+      "downloadLink": "Uygulamayı indir",
       "privacyLink": "Gizlilik",
       "termsLink": "Şartlar",
-      "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir."
+      "disclaimer": "SocialHan bir portfolyo / demo projesidir, ticari bir hizmet değildir.",
+      "changelogLink": "Sürüm notları"
     }
   },
   "legal": {
-    "backHome": "Ana sayfa",
     "updatedLabel": "Son güncelleme: {{date}}",
     "demoDisclaimer": {
       "title": "SocialHan bir portfolyo / demo projesidir.",
@@ -566,13 +632,15 @@
       },
       "providers": {
         "title": "Hizmet sağlayıcılar ve yurt dışı aktarım",
-        "body": "Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Ana uygulama ve veritabanı Almanya'da (AB içinde) barındırılır; Cloudflare, Cloudinary, Resend ve OpenAI ABD merkezlidir ve bu dördüne yapılan aktarımlar yurt dışı aktarım sayılır:",
+        "body": "Hizmeti çalıştırmak için aşağıdaki üçüncü taraf işleyicileri kullanırız. Ana uygulama, veritabanı ve hata kayıtları Almanya/AB içinde barındırılır; Cloudflare, Cloudinary, Resend, OpenAI ve Firebase ABD merkezlidir ve bu beşine yapılan aktarımlar yurt dışı aktarım sayılır:",
         "items": [
           "Hetzner (Almanya, AB içi) — API, veritabanı ve ön yüzün barındırıldığı sunucu.",
           "Cloudflare (ABD) — DNS, DDoS koruması ve içerik dağıtım ağı (CDN).",
           "Cloudinary (ABD) — görsel depolama ve sunumu.",
           "Resend (ABD) — işlemsel e-posta gönderimi (ör. şifre sıfırlama).",
-          "OpenAI (ABD) — gönderi içeriğinin otomatik moderasyonu."
+          "OpenAI (ABD) — gönderi içeriğinin otomatik moderasyonu.",
+          "Sentry (AB bölgesi) — hata ve çökme raporlaması. Yalnızca teknik veri gönderilir: hata mesajı, kod yığını, uygulama sürümü, cihaz/işletim sistemi ve hesap kimliğiniz. Gönderi ve mesaj içerikleri, e-posta adresiniz ve yazdığınız form değerleri gönderilmez.",
+          "Google Firebase (ABD) — mobil uygulamaya anlık bildirim iletimi."
         ]
       },
       "retention": {
@@ -585,7 +653,7 @@
       },
       "cookies": {
         "title": "Çerezler ve güvenlik",
-        "body": "Yalnızca işlevsel çerezler kullanılır: oturumunuzu sürdürmek için HttpOnly bir yenileme tokenı çerezi tutulur. Reklam veya üçüncü taraf takip çerezi kullanılmaz. Şifreler hash'lenir, iletişim HTTPS üzerinden yapılır ve kimlik doğrulama uç noktaları hız sınırlamasıyla korunur."
+        "body": "Yalnızca işlevsel çerezler kullanılır: oturumunuzu sürdürmek için HttpOnly bir yenileme tokenı çerezi tutulur. Reklam veya üçüncü taraf takip çerezi kullanılmaz ve ziyaretçi davranışını izleyen bir analitik aracı kurulu değildir. Şifreler hash'lenir, iletişim HTTPS üzerinden yapılır ve kimlik doğrulama uç noktaları hız sınırlamasıyla korunur."
       },
       "ageLimit": {
         "title": "Yaş sınırı",
@@ -735,6 +803,12 @@
       "checksumBody": "Bu, resmi APK'nın SHA-256 checksum'ıdır; indirmenin eksiksiz tamamlandığını doğrulamak için kullanışlıdır. Dosyanın kendisi GitHub Releases'te barındırılıyor, bu checksum ise buradan sunuluyor; yani yalnızca birini değiştirmek yetmez — ama indirme bağlantısını yine bu site belirliyor. Uygulamanın gerçekten bize ait olduğunu doğrulamak için imza sertifikasını kontrol et: apksigner verify --print-certs <dosya>.apk",
       "copyChecksum": "Checksum'ı kopyala",
       "checksumCopied": "Checksum kopyalandı"
+    },
+    "changelog": {
+      "title": "Sürüm notları",
+      "description": "SocialHan'da neler değişti.",
+      "empty": "Henüz yayınlanmış bir sürüm notu yok.",
+      "loadError": "Sürüm notları yüklenemedi."
     }
   },
   "admin": {
@@ -751,7 +825,9 @@
         "settings": "Sistem Ayarları",
         "maintenance": "Bakım",
         "auditLog": "Audit Log",
-        "mobileRelease": "Mobil Sürüm"
+        "mobileRelease": "Mobil Sürüm",
+        "announcements": "Duyurular",
+        "changelog": "Sürüm Notları"
       }
     },
     "dashboard": {
@@ -994,6 +1070,53 @@
           "hint": "İsteğe bağlı sürüm notu bağlantısı."
         }
       }
+    },
+    "announcements": {
+      "title": "Duyuru Gönder",
+      "subtitle": "E-posta bildirimlerini açık bırakmış, doğrulanmış hesaplara toplu duyuru gönder.",
+      "audienceTitle": "Alıcı kitlesi",
+      "audienceDescription": "Aboneliğini iptal edenler ve e-postası doğrulanmamış hesaplar listeye dahil değildir.",
+      "audienceError": "Alıcı bilgisi alınamadı.",
+      "recipients": "Alıcı",
+      "sentThisMonth": "Bu ay gönderilen",
+      "remaining": "Kalan kota",
+      "quotaWarning": "Bu duyuru aylık e-posta kotasını aşar. Gönderim engellendi — kota şifre sıfırlama gibi zorunlu e-postalarla paylaşılıyor, onların yerini alamaz.",
+      "composeTitle": "Duyuru",
+      "composeDescription": "Alıcının diline göre şablona yerleştirilir ve abonelikten çıkma bağlantısıyla gönderilir.",
+      "fieldTitle": "Başlık",
+      "fieldMessage": "Mesaj",
+      "fieldLink": "Buton adresi",
+      "messageHint": "Düz metin yaz. Biçimlendirme şablon tarafından yapılır.",
+      "confirmLabel": "Onaylamak için alıcı sayısını yaz: {{count}}",
+      "confirmHint": "Toplu gönderim geri alınamaz. Sayıyı okuyup elle yazman isteniyor.",
+      "submit": "Duyuruyu gönder",
+      "queued": "{{count}} alıcı için kuyruğa alındı.",
+      "sendError": "Duyuru gönderilemedi."
+    },
+    "changelog": {
+      "title": "Sürüm Notları",
+      "subtitle": "Yayınlanan sürümleri ve değişiklikleri yönet.",
+      "new": "Yeni not",
+      "newTitle": "Yeni sürüm notu",
+      "editTitle": "Sürüm notunu düzenle",
+      "formDescription": "İki dilde de yaz. Kullanıcı hangi dili seçtiyse o gösterilir.",
+      "fieldVersion": "Sürüm",
+      "fieldTitleTr": "Başlık (TR)",
+      "fieldTitleEn": "Başlık (EN)",
+      "fieldBodyTr": "İçerik (TR)",
+      "fieldBodyEn": "İçerik (EN)",
+      "versionInvalid": "Sürüm 1.2.0 biçiminde olmalı.",
+      "publishLabel": "Yayınla (işaretlenmezse taslak olarak kalır)",
+      "listTitle": "Mevcut notlar",
+      "published": "Yayında",
+      "draft": "Taslak",
+      "empty": "Henüz sürüm notu yok.",
+      "loadError": "Sürüm notları yüklenemedi.",
+      "saved": "Sürüm notu kaydedildi.",
+      "saveError": "Sürüm notu kaydedilemedi.",
+      "deleted": "Sürüm notu silindi.",
+      "deleteError": "Sürüm notu silinemedi.",
+      "deleteConfirm": "{{version}} sürüm notu silinsin mi?"
     }
   },
   "errors": {
@@ -1009,5 +1132,14 @@
     "FILE_TOO_LARGE": "Dosya boyutu 5MB'dan büyük olamaz.",
     "INVALID_FILE_FORMAT": "Geçersiz dosya formatı. Sadece JPG, PNG, WEBP ve GIF yüklenebilir.",
     "POSTING_RESTRICTED": "Sistem ayarları gereği şu anda sadece e-postası doğrulanmış hesaplar gönderi paylaşabilir."
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "description": "Böyle bir sayfa yok.",
+    "heading": "Bu sayfa ortalıkta yok",
+    "body": "Bağlantı bozulmuş olabilir, ya da burada ne varsa silinmiş.",
+    "goHome": "Akışa dön",
+    "explore": "Keşfet",
+    "back": "Geri dön"
   }
 }

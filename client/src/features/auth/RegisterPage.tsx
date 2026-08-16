@@ -6,6 +6,8 @@ import { AxiosError } from 'axios';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { AnimatedCheckbox } from '@/components/ui/animated-checkbox';
+import { RevealField } from './components/RevealField';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import { createRegisterSchema, type RegisterInput } from './schemas';
@@ -22,7 +24,7 @@ export function RegisterPage() {
 
   const registerSchema = useMemo(() => createRegisterSchema(t), [t, i18n.language]);
 
-  const { register, handleSubmit, formState: { errors }, setError } = useForm<RegisterInput>({
+  const { register, handleSubmit, watch, formState: { errors }, setError } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: { username: '', email: '', password: '', displayName: '', acceptedTerms: false, confirmedAge: false },
   });
@@ -46,6 +48,17 @@ export function RegisterPage() {
       }
     }
   });
+
+  // Each step unlocks the next once it holds something plausible. Kept to a
+  // length check rather than full validation so the form does not appear to
+  // stall while someone is still mid-word.
+  const username = watch('username');
+  const email = watch('email');
+  const password = watch('password');
+
+  const showEmail = (username?.length ?? 0) >= 3;
+  const showRest = showEmail && (email?.length ?? 0) >= 3 && email.includes('@');
+  const showConsent = showRest && (password?.length ?? 0) >= 6;
 
   const onSubmit = (values: RegisterInput) => {
     const { confirmPassword, ...dataToSend } = values;
@@ -74,6 +87,7 @@ export function RegisterPage() {
           )}
         </div>
 
+        <RevealField show={showEmail}>
         <div className="space-y-2">
           <Label htmlFor="email" className={errors.email ? "text-destructive" : ""}>{t('auth.register.emailLabel')}</Label>
           <Input
@@ -88,7 +102,9 @@ export function RegisterPage() {
             <p className="text-xs font-medium text-destructive">{errors.email.message}</p>
           )}
         </div>
+        </RevealField>
 
+        <RevealField show={showRest}>
         <div className="space-y-2">
           <Label htmlFor="displayName" className={errors.displayName ? "text-destructive" : ""}>{t('auth.register.displayNameLabel')}</Label>
           <Input
@@ -133,41 +149,42 @@ export function RegisterPage() {
           )}
         </div>
 
+        </RevealField>
+
+        <RevealField show={showConsent}>
         <div className="space-y-3 pt-1">
           <div className="space-y-1">
-            <label className="flex items-start gap-3 text-sm text-muted-foreground">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary"
-                {...register('acceptedTerms')}
-              />
-              <span>
-                {t('auth.register.termsPrefix')}
-                <Link to="/terms" target="_blank" className="font-medium text-primary hover:underline">{t('auth.register.termsLink')}</Link>
-                {t('auth.register.termsAnd')}
-                <Link to="/privacy" target="_blank" className="font-medium text-primary hover:underline">{t('auth.register.privacyLink')}</Link>
-                {t('auth.register.termsSuffix')}
-              </span>
-            </label>
+            <AnimatedCheckbox
+              invalid={!!errors.acceptedTerms}
+              {...register('acceptedTerms')}
+              label={
+                <>
+                  {t('auth.register.termsPrefix')}
+                  <Link to="/terms" target="_blank" className="font-medium text-primary hover:underline">{t('auth.register.termsLink')}</Link>
+                  {t('auth.register.termsAnd')}
+                  <Link to="/privacy" target="_blank" className="font-medium text-primary hover:underline">{t('auth.register.privacyLink')}</Link>
+                  {t('auth.register.termsSuffix')}
+                </>
+              }
+            />
             {errors.acceptedTerms && (
               <p className="text-xs font-medium text-destructive">{errors.acceptedTerms.message}</p>
             )}
           </div>
 
           <div className="space-y-1">
-            <label className="flex items-start gap-3 text-sm text-muted-foreground">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary"
-                {...register('confirmedAge')}
-              />
-              <span>{t('auth.register.ageConfirm')}</span>
-            </label>
+            <AnimatedCheckbox
+              invalid={!!errors.confirmedAge}
+              {...register('confirmedAge')}
+              label={t('auth.register.ageConfirm')}
+            />
             {errors.confirmedAge && (
               <p className="text-xs font-medium text-destructive">{errors.confirmedAge.message}</p>
             )}
           </div>
         </div>
+
+        </RevealField>
 
         {errors.root && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive border border-destructive/20">

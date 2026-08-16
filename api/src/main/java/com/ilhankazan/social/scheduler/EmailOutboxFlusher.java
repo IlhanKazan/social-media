@@ -64,13 +64,24 @@ public class EmailOutboxFlusher {
             if (sentInTick >= 4) break;
 
             try {
-                CreateEmailOptions params = CreateEmailOptions.builder()
+                CreateEmailOptions.Builder builder = CreateEmailOptions.builder()
                     .from(emailProps.fromName() + " <" + emailProps.fromAddress() + ">")
                     .to(pending.getToAddress())
                     .subject(pending.getSubject())
                     .html(pending.getBodyHtml())
-                    .text(pending.getBodyText())
-                    .build();
+                    .text(pending.getBodyText());
+
+                // RFC 8058. Gmail and Yahoo have required a working one-click
+                // unsubscribe from bulk senders since 2024, and offer the button
+                // in their own UI when these are present — which keeps recipients
+                // from reaching for "report spam" instead, the outcome that
+                // actually damages a sending domain.
+                if (pending.getUnsubscribeUrl() != null && !pending.getUnsubscribeUrl().isBlank()) {
+                    builder.addHeader("List-Unsubscribe", "<" + pending.getUnsubscribeUrl() + ">");
+                    builder.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+                }
+
+                CreateEmailOptions params = builder.build();
 
                 CreateEmailResponse data = resendOpt.get().emails().send(params);
 

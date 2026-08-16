@@ -1,5 +1,7 @@
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
 
 import { api } from '@/lib/api';
 import { useWebSocket } from '@/lib/ws';
@@ -37,6 +39,7 @@ function prependMessage(old: MessagePages | undefined, message: MessageResponse)
 export function MessagingProvider({ children }: { children: ReactNode }) {
   const { isConnected, subscribe, publish } = useWebSocket();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const account = useAuthStore((s) => s.account);
 
   // A ref (not effect deps) so the single subscription doesn't tear down and
@@ -140,9 +143,25 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
         return { ...old, pages: [{ ...first, content: [optimistic, ...first.content] }, ...rest] };
       });
 
-      publish('/app/dm.send', { conversationId, content });
+      // DMs only travel over STOMP — there is no REST path to fall back to — so a
+      // dropped publish means the message is simply gone. Take the optimistic
+      // bubble back rather than leaving it on screen looking delivered.
+      const sent = publish('/app/dm.send', { conversationId, content });
+      if (!sent) {
+        queryClient.setQueryData<MessagePages>(['messages', conversationId], (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              content: page.content.filter((m) => m.id !== optimistic.id),
+            })),
+          };
+        });
+        Alert.alert(t('messages.sendFailedTitle'), t('messages.sendFailedBody'));
+      }
     },
-    [account, publish, queryClient]
+    [account, publish, queryClient, t]
   );
 
   const setActiveConversationId = useCallback((id: number | undefined) => {

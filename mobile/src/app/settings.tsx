@@ -5,7 +5,9 @@ import { Stack } from 'expo-router';
 import { ChevronRight, Languages, LogOut, Monitor, Moon, ShieldAlert, Sun } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+
+import { Toggle } from '@/components/toggle';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { useMobileVersionCheck } from '@/features/app-update/queries';
 import { useMe } from '@/features/profile/queries';
@@ -59,7 +61,7 @@ function NotificationPreferencesControls() {
           <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">
             {t(`notificationPreferences.${key}`)}
           </Text>
-          <Switch
+          <Toggle
             value={prefs[key]}
             onValueChange={(value) => update.mutate({ ...prefs, [key]: value })}
             disabled={update.isPending}

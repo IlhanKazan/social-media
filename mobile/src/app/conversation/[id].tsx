@@ -3,7 +3,7 @@ import { enUS, tr } from 'date-fns/locale';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ImagePlus, Send, X } from 'lucide-react-native';
+import { ImagePlus, Send, X, WifiOff } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MentionSuggestions } from '@/components/mention-suggestions';
 import { MentionText } from '@/components/mention-text';
 import { useMessaging } from '@/features/messaging/messaging-provider';
+import { useWebSocket } from '@/lib/ws';
 import { getActiveMentionQuery, insertMention } from '@/features/mentions/mention-utils';
 import {
   useConversations,
@@ -191,6 +192,7 @@ export default function ConversationScreen() {
   const conversations = useConversations();
   const markRead = useMarkConversationRead();
   const { sendMessage, setActiveConversationId } = useMessaging();
+  const { isConnected } = useWebSocket();
   const sendImage = useSendDmImage(conversationId);
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -395,6 +397,16 @@ export default function ConversationScreen() {
                 <X size={13} color="#ffffff" />
               </Pressable>
             </View>
+          </View>
+        )}
+        {!isConnected && (
+          // Text messages only travel over STOMP. Saying so beats letting
+          // someone type a paragraph that cannot be delivered.
+          <View className="mb-1.5 flex-row items-center gap-2 rounded-xl bg-amber-100 px-3 py-2 dark:bg-amber-950">
+            <WifiOff size={14} color="#b45309" />
+            <Text className="flex-1 text-[12px] text-amber-800 dark:text-amber-300">
+              {t('messaging.conversation.offline')}
+            </Text>
           </View>
         )}
         <View className="flex-row items-end rounded-2xl border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-800 dark:bg-neutral-900">

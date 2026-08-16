@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, View } from 'react-native';
+import { ActivityIndicator, AppState, Text, View } from 'react-native';
 
 import { useAuthStore } from '@/stores/auth-store';
+import { API_BASE_URL, HAS_DEV_API_IN_RELEASE } from '@/lib/env';
 
 // Some Android OEM skins (MIUI in particular) briefly report an
 // inactive->active AppState transition when a soft keyboard opens/closes,
@@ -71,6 +72,21 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
 
     return () => clearTimeout(timer);
   }, [token, tokenExpiresAt]);
+
+  // Fail loudly instead of behaving like a broken app: a release bundle aimed at
+  // localhost cannot reach anything, and every downstream symptom (no login, no
+  // messages) looks like a different bug.
+  if (HAS_DEV_API_IN_RELEASE) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+        <Text style={{ fontSize: 16, fontWeight: '700', textAlign: 'center' }}>Yapılandırma hatası</Text>
+        <Text style={{ textAlign: 'center', opacity: 0.7 }}>
+          Bu sürüm {API_BASE_URL} adresine bağlanmaya çalışıyor. Güncellemeyi
+          `--environment production` ile yeniden yayınlayın.
+        </Text>
+      </View>
+    );
+  }
 
   if (!hydrated || restoring) {
     return (

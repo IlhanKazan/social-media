@@ -193,11 +193,12 @@ public class AccountManager {
         String frontendOrigin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
         String verifyLink = frontendOrigin + "/verify-email?token=" + plainToken;
 
-        emailService.enqueue(new EmailMessage(
+        emailService.enqueue(EmailMessage.transactional(
             account.getEmail(),
-            "Verify your SocialHan email",
+            null,
             "EMAIL_VERIFICATION",
-            Map.of("verifyLink", verifyLink)
+            Map.of("verifyLink", verifyLink),
+            account.getPreferredLanguage()
         ));
     }
 

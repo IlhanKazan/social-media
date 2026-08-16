@@ -36,11 +36,12 @@ public class MfaEmailService {
             .expiresAt(Instant.now().plus(TTL_MINUTES, ChronoUnit.MINUTES))
             .build());
 
-        emailService.enqueue(new EmailMessage(
+        emailService.enqueue(EmailMessage.transactional(
             account.getEmail(),
-            "SocialHan doğrulama kodun",
+            null,
             "MFA_CODE",
-            Map.of("code", code, "minutes", String.valueOf(TTL_MINUTES))
+            Map.of("code", code, "minutes", String.valueOf(TTL_MINUTES)),
+            account.getPreferredLanguage()
         ));
     }
 

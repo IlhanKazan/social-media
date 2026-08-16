@@ -8,6 +8,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, Vie
 
 import { AuthHeader } from '@/components/auth-header';
 import { FormInput } from '@/components/form-input';
+import { RevealField } from '@/components/reveal-field';
 import { createLoginSchema, type LoginFormValues } from '@/features/auth/login-schema';
 import { api } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-error';
@@ -22,6 +23,7 @@ export default function LoginScreen() {
     control,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { identifier: '', password: '' },
@@ -46,6 +48,10 @@ export default function LoginScreen() {
       setServerError(getApiErrorMessage(t, error, 'auth.login.genericError'));
     },
   });
+
+  // Matches the web form: the password appears once there is an identifier.
+  const identifier = watch('identifier');
+  const showPassword = (identifier?.length ?? 0) >= 3;
 
   const onSubmit = (values: LoginFormValues) => {
     setServerError(null);
@@ -72,6 +78,7 @@ export default function LoginScreen() {
         autoCapitalize="none"
         autoCorrect={false}
       />
+      <RevealField show={showPassword}>
       <FormInput
         control={control}
         name="password"
@@ -80,6 +87,7 @@ export default function LoginScreen() {
         placeholder={t('auth.login.passwordPlaceholder')}
         secureTextEntry
       />
+      </RevealField>
 
       {serverError && (
         <View className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">

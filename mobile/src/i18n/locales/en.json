@@ -275,7 +275,8 @@
       "imageUploadFailedBody": "Something went wrong uploading the photo.",
       "sending": "Sending…",
       "readPrefix": "Read",
-      "delivered": "Delivered"
+      "delivered": "Delivered",
+      "offline": "You are offline — messages cannot be sent right now."
     }
   },
   "notifications": {
@@ -358,5 +359,9 @@
     "availableBanner": "A new version ({{version}}) is available.",
     "updateButton": "Update",
     "dismiss": "Later"
+  },
+  "messages": {
+    "sendFailedTitle": "Message not sent",
+    "sendFailedBody": "You appear to be offline. Check your connection and try again."
   }
 }

@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Authenticated or per-user surfaces: nothing here is useful in an index, and
+# crawling them just burns budget on pages that redirect to the login wall.
+Disallow: /admin
+Disallow: /settings
+Disallow: /messages
+Disallow: /notifications
+Disallow: /search
+Disallow: /mfa
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: https://socialhan.ilhankazan.com/sitemap.xml

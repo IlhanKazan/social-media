@@ -195,11 +195,12 @@ public class AuthManager {
             String frontendOrigin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
             String resetLink = frontendOrigin + "/reset-password?token=" + plainToken;
 
-            emailService.enqueue(new EmailMessage(
+            emailService.enqueue(EmailMessage.transactional(
                 account.getEmail(),
-                "Reset your SocialHan password",
+                null,
                 "PASSWORD_RESET",
-                Map.of("resetLink", resetLink)
+                Map.of("resetLink", resetLink),
+                account.getPreferredLanguage()
             ));
         });
     }

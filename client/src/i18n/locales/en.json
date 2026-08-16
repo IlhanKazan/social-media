@@ -1,13 +1,13 @@
 {
   "auth": {
     "layout": {
-      "badge": "Real-time social network",
-      "heading": "Share your thoughts with the world instantly.",
-      "subtext": "Posts, threads, and direct messages — all instant. A clean, fast, modern social experience.",
-      "features": [
-        "Real-time feed",
-        "Direct messages",
-        "Threads"
+      "heading": "This is a showcase project.",
+      "subtext": "Everything a real social platform needs to stay standing — a live feed, messaging, content moderation, a mobile app — working. Sign up and try it.",
+      "showcase": [
+        "If we say real time, it should actually be instant. Nobody here presses refresh.",
+        "Everything here works: messages, notifications, moderation, the mobile app.",
+        "Like a post and the other side sees it right then. Simple, but it feels good.",
+        "No ads, no algorithm, nothing sold. There is nothing to sell anyway."
       ]
     },
     "login": {
@@ -268,7 +268,11 @@
       "title": "Something went wrong",
       "description": "We ran into a problem while running the app. Don't worry, we've logged it. Please try reloading the page.",
       "reload": "Reload Page"
-    }
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "feed": {
     "headerFeed": "Feed",
@@ -497,34 +501,96 @@
       "browseWithoutAccount": "Browse without an account",
       "features": {
         "realtime": {
-          "title": "Real-time feed",
-          "desc": "Likes, replies, and notifications land instantly via WebSocket."
+          "title": "Instant, actually",
+          "desc": "Likes, replies and notifications arrive over WebSocket. Refreshing stayed in 2010."
         },
         "threads": {
-          "title": "Threaded conversations",
-          "desc": "Follow the discussion with Twitter-style nested replies."
+          "title": "Threaded replies",
+          "desc": "Nested conversations. Who said what to whom, from start to finish."
         },
         "dm": {
           "title": "Direct messages",
-          "desc": "One-on-one private chats, with photo and post sharing."
+          "desc": "Private chat with photo and post sharing. Read receipts included."
         },
         "media": {
           "title": "Image sharing",
-          "desc": "Attach images to your posts and messages."
+          "desc": "On posts and in messages. Resizing and delivery through a CDN."
+        },
+        "moderation": {
+          "title": "Automated moderation",
+          "desc": "Every post passes a content check before going live, and stays closed on failure."
+        },
+        "mfa": {
+          "title": "Two-factor auth",
+          "desc": "Authenticator or email codes, with recovery codes."
+        },
+        "sessions": {
+          "title": "Session security",
+          "desc": "Refresh tokens rotate on every use; detected reuse revokes the whole family."
+        },
+        "ratelimit": {
+          "title": "Rate limiting",
+          "desc": "Per-endpoint and per-user quotas, so abuse cannot slow the service down."
+        },
+        "mobile": {
+          "title": "Mobile app",
+          "desc": "An Android app on the same API, with push notifications."
+        },
+        "audit": {
+          "title": "Audit log",
+          "desc": "Administrative actions and security events recorded immutably."
+        },
+        "i18n": {
+          "title": "Two languages",
+          "desc": "Interface, emails and error messages in Turkish and English."
+        },
+        "search": {
+          "title": "Search",
+          "desc": "User and post search over indexed queries."
         }
-      }
+      },
+      "heroTitle": "You don't need another social network. But a well-built one is worth a look.",
+      "heroSubtitle": "A real-time feed, threaded replies, direct messages. No ads, no algorithm, no \"we miss you\" notifications — because this is an engineering project, not a product.",
+      "metaDescription": "A real-time feed, threaded replies and direct messages. A social platform with no ads and no algorithm.",
+      "story": "This platform was built the way a system that has to survive production is built. Real-time delivery, automated content moderation, two-factor authentication, rate limiting and audit logging all run on infrastructure that has been measured and documented.",
+      "storyCta": "Review the architecture",
+      "storyTitle": "Infrastructure",
+      "proof": {
+        "load": {
+          "title": "Measured under load",
+          "desc": "100 concurrent users following realistic journeys. Feed latency p95 of 23 ms.",
+          "meta": "2,267 sessions · 100% success"
+        },
+        "realtime": {
+          "title": "Real-time capacity",
+          "desc": "Authenticated STOMP sessions held concurrently with no failed handshakes.",
+          "meta": "885 concurrent connections"
+        },
+        "security": {
+          "title": "Layered security",
+          "desc": "Two-factor auth, refresh rotation with reuse detection, per-endpoint rate limiting.",
+          "meta": "HSTS · CSP · audit log"
+        },
+        "moderation": {
+          "title": "Automated moderation",
+          "desc": "Every post passes a content check before it goes live, and stays closed on failure.",
+          "meta": "Fail-closed"
+        }
+      },
+      "securityLine": "Encrypted transport over TLS, session keys that rotate on every use, rate limits that catch abuse, and an audit trail that cannot be rewritten.",
+      "securityLabel": "Security"
     },
     "footer": {
       "aboutLink": "About",
       "architectureLink": "Architecture",
-      "downloadLink": "Get the app",
+      "downloadLink": "Download the app",
       "privacyLink": "Privacy",
       "termsLink": "Terms",
-      "disclaimer": "SocialHan is a portfolio/demo project, not a commercial service."
+      "disclaimer": "SocialHan is a portfolio/demo project, not a commercial service.",
+      "changelogLink": "Changelog"
     }
   },
   "legal": {
-    "backHome": "Home",
     "updatedLabel": "Last updated: {{date}}",
     "demoDisclaimer": {
       "title": "SocialHan is a portfolio/demo project.",
@@ -566,13 +632,15 @@
       },
       "providers": {
         "title": "Service providers and cross-border transfer",
-        "body": "We use the following third-party processors to run the service. The main application and database are hosted in Germany (within the EU); Cloudflare, Cloudinary, Resend, and OpenAI are US-based, so data reaching those four counts as a cross-border transfer:",
+        "body": "We use the third-party processors below to run the service. The application, database and error records are hosted in Germany/the EU; Cloudflare, Cloudinary, Resend, OpenAI and Firebase are US-based, and transfers to those five count as international transfers:",
         "items": [
-          "Hetzner (Germany, EU) — the server hosting the API, database, and frontend.",
-          "Cloudflare (US) — DNS, DDoS protection, and content delivery network (CDN).",
+          "Hetzner (Germany, EU) — servers hosting the API, database and frontend.",
+          "Cloudflare (US) — DNS, DDoS protection and content delivery.",
           "Cloudinary (US) — image storage and delivery.",
-          "Resend (US) — transactional email delivery (e.g. password reset).",
-          "OpenAI (US) — automated moderation of post content."
+          "Resend (US) — transactional email such as password resets.",
+          "OpenAI (US) — automated moderation of post content.",
+          "Sentry (EU region) — error and crash reporting. Only technical data is sent: the error message, stack trace, app version, device and operating system, and your account id. Post and message content, your email address and anything you type into a form are not sent.",
+          "Google Firebase (US) — delivering push notifications to the mobile app."
         ]
       },
       "retention": {
@@ -585,7 +653,7 @@
       },
       "cookies": {
         "title": "Cookies and security",
-        "body": "Only functional cookies are used: an HttpOnly refresh-token cookie is kept to maintain your session. No advertising or third-party tracking cookies are used. Passwords are hashed, communication happens over HTTPS, and authentication endpoints are protected by rate limiting."
+        "body": "Only functional cookies are used: an HttpOnly refresh-token cookie keeps you signed in. No advertising or third-party tracking cookies are used, and no analytics tool that follows visitor behaviour is installed. Passwords are hashed, traffic runs over HTTPS, and authentication endpoints are rate limited."
       },
       "ageLimit": {
         "title": "Age limit",
@@ -735,6 +803,12 @@
       "checksumBody": "This is the SHA-256 checksum of the official APK, useful for confirming your download completed intact. The file itself is hosted on GitHub Releases while this checksum is served from here, so tampering with one would not be enough — though the download link is still set from this site. To confirm the app is genuinely ours, verify the signing certificate with: apksigner verify --print-certs <file>.apk",
       "copyChecksum": "Copy checksum",
       "checksumCopied": "Checksum copied"
+    },
+    "changelog": {
+      "title": "Changelog",
+      "description": "What has changed on SocialHan.",
+      "empty": "No release notes have been published yet.",
+      "loadError": "Could not load the release notes."
     }
   },
   "admin": {
@@ -751,7 +825,9 @@
         "settings": "System Settings",
         "maintenance": "Maintenance",
         "auditLog": "Audit Log",
-        "mobileRelease": "Mobile Release"
+        "mobileRelease": "Mobile Release",
+        "announcements": "Announcements",
+        "changelog": "Changelog"
       }
     },
     "dashboard": {
@@ -994,6 +1070,53 @@
           "hint": "Optional link to release notes."
         }
       }
+    },
+    "announcements": {
+      "title": "Send Announcement",
+      "subtitle": "Broadcast to verified accounts that still accept notification email.",
+      "audienceTitle": "Audience",
+      "audienceDescription": "Accounts that unsubscribed or never verified their email are excluded.",
+      "audienceError": "Could not load the audience.",
+      "recipients": "Recipients",
+      "sentThisMonth": "Sent this month",
+      "remaining": "Quota left",
+      "quotaWarning": "This announcement would exceed the monthly email allowance, so sending is blocked — the allowance is shared with essential mail like password resets and cannot be crowded out.",
+      "composeTitle": "Announcement",
+      "composeDescription": "Rendered into the standard template in each recipient's language, with an unsubscribe link.",
+      "fieldTitle": "Title",
+      "fieldMessage": "Message",
+      "fieldLink": "Button link",
+      "messageHint": "Write plain text. The template handles formatting.",
+      "confirmLabel": "Type the recipient count to confirm: {{count}}",
+      "confirmHint": "A broadcast cannot be recalled. You are asked to read the number and type it.",
+      "submit": "Send announcement",
+      "queued": "Queued for {{count}} recipients.",
+      "sendError": "Could not send the announcement."
+    },
+    "changelog": {
+      "title": "Changelog",
+      "subtitle": "Manage published releases and what changed in them.",
+      "new": "New entry",
+      "newTitle": "New release note",
+      "editTitle": "Edit release note",
+      "formDescription": "Write both languages. Readers see whichever they have selected.",
+      "fieldVersion": "Version",
+      "fieldTitleTr": "Title (TR)",
+      "fieldTitleEn": "Title (EN)",
+      "fieldBodyTr": "Body (TR)",
+      "fieldBodyEn": "Body (EN)",
+      "versionInvalid": "Version must look like 1.2.0.",
+      "publishLabel": "Publish (leave unchecked to keep it a draft)",
+      "listTitle": "Existing entries",
+      "published": "Published",
+      "draft": "Draft",
+      "empty": "No release notes yet.",
+      "loadError": "Could not load the release notes.",
+      "saved": "Release note saved.",
+      "saveError": "Could not save the release note.",
+      "deleted": "Release note deleted.",
+      "deleteError": "Could not delete the release note.",
+      "deleteConfirm": "Delete the release note for {{version}}?"
     }
   },
   "errors": {
@@ -1009,5 +1132,14 @@
     "FILE_TOO_LARGE": "File size can't exceed 5MB.",
     "INVALID_FILE_FORMAT": "Invalid file format. Only JPG, PNG, WEBP, and GIF can be uploaded.",
     "POSTING_RESTRICTED": "Only accounts with a verified email can post right now."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "That page does not exist.",
+    "heading": "This page went missing",
+    "body": "The link may be broken, or whatever was here has since been deleted.",
+    "goHome": "Back to the feed",
+    "explore": "Explore",
+    "back": "Go back"
   }
 }

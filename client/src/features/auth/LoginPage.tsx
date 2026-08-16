@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { useAuthStore } from '@/stores/auth-store';
 import { createLoginSchema, type LoginInput } from './schemas';
+import { RevealField } from './components/RevealField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +25,7 @@ export function LoginPage() {
 
   const loginSchema = useMemo(() => createLoginSchema(t), [t, i18n.language]);
 
-  const { register, handleSubmit, formState: { errors }, setError } = useForm<LoginInput>({
+  const { register, handleSubmit, watch, formState: { errors }, setError } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { identifier: '', password: '' },
   });
@@ -58,6 +59,10 @@ export function LoginPage() {
     }
   });
 
+  // Same progressive step as registration, so the two forms behave alike.
+  const identifier = watch('identifier');
+  const showPassword = (identifier?.length ?? 0) >= 3;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2">
@@ -80,6 +85,7 @@ export function LoginPage() {
           {errors.identifier && <p className="text-xs font-medium text-destructive">{errors.identifier.message}</p>}
         </div>
 
+        <RevealField show={showPassword}>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className={errors.password ? "text-destructive" : ""}>{t('auth.login.passwordLabel')}</Label>
@@ -95,6 +101,7 @@ export function LoginPage() {
           />
           {errors.password && <p className="text-xs font-medium text-destructive">{errors.password.message}</p>}
         </div>
+        </RevealField>
 
         {errors.root && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive border border-destructive/20">

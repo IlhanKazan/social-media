@@ -8,7 +8,11 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import * as WebBrowser from 'expo-web-browser';
 
 import { AuthHeader } from '@/components/auth-header';
+import Animated, { LinearTransition, ZoomIn } from 'react-native-reanimated';
+import { Check } from 'lucide-react-native';
+
 import { FormInput } from '@/components/form-input';
+import { RevealField } from '@/components/reveal-field';
 import { createRegisterSchema, type RegisterFormValues } from '@/features/auth/register-schema';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { api } from '@/lib/api';
@@ -31,14 +35,26 @@ function Checkbox({
   return (
     <>
       <View className="mt-4 flex-row items-center">
-        <Pressable onPress={onToggle}>
-          <View
-            className={`h-6 w-6 items-center justify-center rounded-md border ${
-              value ? 'border-primary bg-primary' : 'border-neutral-400'
+        <Pressable
+          onPress={onToggle}
+          hitSlop={8}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: value }}
+        >
+          <Animated.View
+            layout={LinearTransition.duration(160)}
+            className={`h-6 w-6 items-center justify-center rounded-md border-2 ${
+              value ? 'border-primary bg-primary' : error ? 'border-red-500' : 'border-neutral-400'
             }`}
           >
-            {value && <Text className="text-xs font-sans-bold text-white">✓</Text>}
-          </View>
+            {value && (
+              // Springs in rather than appearing, so the tick reads as a
+              // response to the tap instead of a repaint.
+              <Animated.View entering={ZoomIn.duration(180).springify().damping(12)}>
+                <Check size={15} color="#ffffff" strokeWidth={3.5} />
+              </Animated.View>
+            )}
+          </Animated.View>
         </Pressable>
         <Text className="ml-3 flex-1 text-neutral-700 dark:text-neutral-300" onPress={onToggle}>
           {children}
@@ -58,6 +74,7 @@ export default function RegisterScreen() {
     control,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -91,6 +108,17 @@ export default function RegisterScreen() {
     },
   });
 
+  // Same progressive steps as the web form, so the two behave alike. Length
+  // checks rather than full validation, so the form does not appear to stall
+  // while someone is still mid-word.
+  const username = watch('username');
+  const email = watch('email');
+  const password = watch('password');
+
+  const showEmail = (username?.length ?? 0) >= 3;
+  const showRest = showEmail && (email?.length ?? 0) >= 3 && email.includes('@');
+  const showConsent = showRest && (password?.length ?? 0) >= 6;
+
   const onSubmit = (values: RegisterFormValues) => {
     setServerError(null);
     registerMutation.mutate(values);
@@ -118,6 +146,7 @@ export default function RegisterScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
+        <RevealField show={showEmail}>
         <FormInput
           control={control}
           name="email"
@@ -128,6 +157,9 @@ export default function RegisterScreen() {
           autoCorrect={false}
           keyboardType="email-address"
         />
+        </RevealField>
+
+        <RevealField show={showRest}>
         <FormInput
           control={control}
           name="displayName"
@@ -151,7 +183,9 @@ export default function RegisterScreen() {
           placeholder={t('auth.register.confirmPasswordPlaceholder')}
           secureTextEntry
         />
+        </RevealField>
 
+        <RevealField show={showConsent}>
         <Controller
           control={control}
           name="acceptedTerms"
@@ -184,6 +218,7 @@ export default function RegisterScreen() {
             </Checkbox>
           )}
         />
+        </RevealField>
 
         {serverError && (
           <View className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
