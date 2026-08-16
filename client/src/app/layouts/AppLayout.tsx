@@ -54,14 +54,16 @@ function LayoutContent() {
 }
 
 export function AppLayout() {
-  const account = useAuthStore((state) => state.account);
+  const token = useAuthStore((state) => state.token);
   const fetchUnread = useNotificationStore((state) => state.fetchUnreadCount);
 
+  // Gated on the token, not on `account`: only `account` survives a reload, so
+  // keying on it fired this request bare and got a 403 on every cold load.
   useEffect(() => {
-    if (account) {
+    if (token) {
       void fetchUnread();
     }
-  }, [fetchUnread, account?.id]);
+  }, [fetchUnread, token]);
 
   return (
     <WebSocketProvider>

@@ -1,0 +1,29 @@
+# SocialHan
+
+> A real-time social platform — posts, threaded replies, direct messages and
+> live notifications. Built as an engineering showcase by Ilhan Kazan, not as a
+> commercial product.
+
+Web app at https://socialhan.ilhankazan.com, with a companion Android app
+distributed directly as an APK.
+
+## Stack
+
+- Backend: Java 21, Spring Boot 3.4, PostgreSQL 16, Flyway, STOMP over WebSocket
+- Web: React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query
+- Mobile: React Native (Expo), sharing the same API
+- Infrastructure: Docker on a Hetzner VPS behind Cloudflare, self-hosted with Coolify
+
+## Pages
+
+- [Architecture](https://socialhan.ilhankazan.com/architecture): how the system is put together — layering, real-time delivery, moderation pipeline
+- [Download](https://socialhan.ilhankazan.com/download): Android APK with its SHA-256 checksum
+- [About](https://socialhan.ilhankazan.com/about): what the project is
+- [Privacy](https://socialhan.ilhankazan.com/privacy): privacy policy and KVKK notice
+- [Terms](https://socialhan.ilhankazan.com/terms): terms of service
+
+## Notes
+
+- User-generated content sits behind an authentication wall; only marketing and
+  legal pages are meaningfully indexable.
+- Available in Turkish and English.

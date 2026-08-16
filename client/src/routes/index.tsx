@@ -68,10 +68,8 @@ const PageLoader = () => (
   </div>
 );
 
-const NotFound = () => (
-  <div className="p-8 text-center">
-    <h1 className="text-2xl font-bold">404 Not Found</h1>
-  </div>
+const NotFoundPage = lazyWithReload(() =>
+  import('@/features/marketing/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
 );
 
 const withSuspense = (element: React.ReactNode) => (
@@ -145,5 +143,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '*', element: <NotFound /> },
+  { path: '*', element: withSuspense(<NotFoundPage />) },
 ]);

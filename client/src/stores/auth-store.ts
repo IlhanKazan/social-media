@@ -17,6 +17,11 @@ let refreshInFlight: Promise<boolean> | null = null;
 // than the server's 15min so a stale assumption expires early rather than late.
 const DEFAULT_ACCESS_TTL_MS = 10 * 60 * 1000;
 
+// These use bare axios rather than the configured `api` instance, so they carry
+// no timeout of their own. Without one a stalled network leaves the refresh
+// promise pending forever, and every gate that waits on it hangs with it.
+const AUTH_TIMEOUT_MS = 15_000;
+
 interface AuthState {
   token: string | null;
   account: AccountSummary | null;
@@ -49,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
           const token = useAuthStore.getState().token;
           await axios.post(authUrl('/logout'), null, {
             withCredentials: true,
+            timeout: AUTH_TIMEOUT_MS,
             headers: {
               'Content-Type': 'application/json',
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -72,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
             const { data } = await axios.post<AuthResponse>(
               authUrl('/refresh'),
               null,
-              { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+              { withCredentials: true, headers: { 'Content-Type': 'application/json' }, timeout: AUTH_TIMEOUT_MS }
             );
             set({
               token: data.accessToken,
@@ -80,9 +86,16 @@ export const useAuthStore = create<AuthState>()(
               tokenExpiresAt: Date.now() + (data.accessTokenExpiresIn || DEFAULT_ACCESS_TTL_MS),
             });
             return true;
-          } catch {
-            set({ token: null, account: null, tokenExpiresAt: null });
-            localStorage.removeItem('auth-storage');
+          } catch (error) {
+            // Sign out only when the server actually refused the cookie. On a
+            // timeout or a 5xx the session may well still be valid, so leave it
+            // untouched and let the next attempt recover — every route guard
+            // keys off `token`, so clearing it here is a real logout.
+            const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+            if (status !== undefined && status >= 400 && status < 500) {
+              set({ token: null, account: null, tokenExpiresAt: null });
+              localStorage.removeItem('auth-storage');
+            }
             return false;
           }
         })().finally(() => {
