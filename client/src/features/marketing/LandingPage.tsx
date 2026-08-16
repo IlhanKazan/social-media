@@ -16,7 +16,7 @@ import { FeatureMarquee } from './FeatureMarquee';
 import { SiteHeader } from './SiteHeader';
 import { ScrambleText } from './ScrambleText';
 import { MagneticCursor } from './MagneticCursor';
-import { PressableCta, WordReveal } from './MotionPrimitives';
+import { WordReveal } from './MotionPrimitives';
 
 const FEATURE_ICONS = [
   ['realtime', Zap], ['threads', MessagesSquare], ['dm', Mail], ['media', ImageIcon],
@@ -77,18 +77,14 @@ export function LandingPage() {
               {...rise}
               transition={{ duration: 0.55, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
             >
-              <PressableCta className="w-full sm:w-auto">
-                <Button className="group h-12 w-full gap-2 px-8 text-base sm:w-auto" render={<Link to="/register" />}>
-                  {t('marketing.landing.getStarted')}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-              </PressableCta>
-              <PressableCta className="w-full sm:w-auto">
-                <Button variant="outline" className="group h-12 w-full gap-2 px-8 text-base sm:w-auto" render={<Link to="/explore" />}>
-                  <Compass className="h-4 w-4 transition-transform duration-500 group-hover:rotate-[25deg]" />
-                  {t('marketing.landing.browseWithoutAccount')}
-                </Button>
-              </PressableCta>
+              <Button className="group h-12 w-full gap-2 px-8 text-base sm:w-auto" render={<Link to="/register" />}>
+                {t('marketing.landing.getStarted')}
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
+              <Button variant="outline" className="h-12 w-full gap-2 px-8 text-base sm:w-auto" render={<Link to="/explore" />}>
+                <Compass className="h-4 w-4" />
+                {t('marketing.landing.browseWithoutAccount')}
+              </Button>
             </motion.div>
 
             <motion.div {...rise} transition={{ duration: 0.55, delay: 0.24 }}>
@@ -145,12 +141,10 @@ export function LandingPage() {
               </ScrollReveal>
 
               <ScrollReveal delay={0.16}>
-                <PressableCta className="mt-8 inline-block">
-                  <Button variant="outline" className="group gap-2" render={<Link to="/architecture" />}>
-                    {t('marketing.landing.storyCta')}
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Button>
-                </PressableCta>
+                <Button variant="outline" className="group mt-8 gap-2" render={<Link to="/architecture" />}>
+                  {t('marketing.landing.storyCta')}
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Button>
               </ScrollReveal>
             </div>
 
