@@ -70,7 +70,7 @@ class DeviceIntegrationTest extends BaseIntegrationTest {
         RegisterDeviceRequest req = new RegisterDeviceRequest("fcm-token-anon", "ANDROID");
 
         ResponseEntity<String> res = restTemplate.postForEntity("/api/v1/devices", req, String.class);
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

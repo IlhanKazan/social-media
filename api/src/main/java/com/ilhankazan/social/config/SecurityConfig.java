@@ -2,6 +2,7 @@ package com.ilhankazan.social.config;
 
 import com.ilhankazan.social.security.JwtAuthenticationFilter;
 import com.ilhankazan.social.security.ReadOnlyModeFilter;
+import com.ilhankazan.social.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.DispatcherType;
+
 import java.util.List;
 
 @Configuration
@@ -43,6 +46,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ReadOnlyModeFilter readOnlyModeFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final AppProperties.CorsProperties corsProps;
     private final AppProperties.MetricsProperties metricsProps;
 
@@ -118,6 +122,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint))
             .headers(headers -> {
                 headers.contentTypeOptions(c -> {});
                 headers.frameOptions(f -> f.deny());
@@ -129,6 +134,11 @@ public class SecurityConfig {
                 ));
             })
             .authorizeHttpRequests(auth -> auth
+                // The container re-enters the chain for its own ERROR/ASYNC dispatches, where the
+                // SecurityContext is already gone. Without this the anonymous re-entry is denied and
+                // the entry point overwrites the original status — a 403 for an authenticated
+                // non-admin came back as 401. Only the container can set these dispatcher types.
+                .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC).permitAll()
                 .requestMatchers("/api/v1/auth/logout-all").authenticated()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 // SockJS handshake is permitAll here; STOMP-level auth is enforced by WebSocketAuthInterceptor

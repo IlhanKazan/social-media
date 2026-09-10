@@ -84,13 +84,12 @@ The following were triaged as accepted or deferred:
   or the filter-chain bean so it throws during refresh, which fails closed before
   the port opens. Low severity — the window is milliseconds and requires the
   operator to have skipped the env var in the first place.
-- **Anonymous requests get 403 rather than a 401 challenge.** `BasicAuthenticationEntryPoint`
-  sets `WWW-Authenticate` and calls `sendError(401)`, but the resulting ERROR
-  dispatch to `/error` no longer matches the prometheus `securityMatcher`, falls
-  to the main chain, and is overwritten as 403. Not exploitable, and preemptive
-  Basic auth (what scrapers send) works fine — but it is not RFC-7235 conformant,
-  and the tests assert `isIn(401, 403)` to paper over it. Fix by adding `/error`
-  to the chain's matcher, or moot it by moving actuator to a management port.
+- ~~**Anonymous requests get 403 rather than a 401 challenge.**~~ **FIXED 2026-09-10.**
+  `BasicAuthenticationEntryPoint` set `WWW-Authenticate` and called `sendError(401)`, but the
+  resulting ERROR dispatch to `/error` no longer matched the prometheus `securityMatcher`, fell to
+  the main chain, and was overwritten as 403. Permitting `DispatcherType.ERROR`/`ASYNC` in the main
+  chain (see *JWT token confusion* above) lets the original 401 stand; the test now asserts 401
+  exactly instead of `isIn(401, 403)`.
 - **`jwtAuthenticationFilter` and `readOnlyModeFilter` are double-registered.**
   Both are `@Component` `Filter` beans, so Spring Boot auto-registers them at the
   servlet container on `/*` in addition to their place inside the security chain.
@@ -247,6 +246,66 @@ Open items:
   navigation state (and the address bar on a web build), unlike web which uses
   router state. Short-lived and useless without a code. Fix: pass via the auth
   store.
+
+## JWT token confusion (2026-09-10) — FIXED
+
+Access, refresh and MFA-challenge tokens are all HS256-signed with the same key. The MFA token was
+separated by a `purpose` claim that the filter checked, but **nothing distinguished an access token
+from a refresh token**. `JwtAuthenticationFilter` verified only the signature and then built an
+authentication from the `sub` claim — which a refresh token has — with `roles` null (empty
+authorities) and `accountId` null.
+
+Demonstrated end-to-end against a Testcontainers stack before the fix:
+
+| Probe | Before |
+|-------|--------|
+| `GET /api/v1/accounts/me` with the refresh token as `Bearer` | 200 OK |
+| `POST /api/v1/posts` with the refresh token as `Bearer` | 201 CREATED |
+| `POST /api/v1/auth/refresh` with the same token *after logout* | 401 (rotation worked) |
+| `GET /api/v1/accounts/me` with that **revoked** token as `Bearer` | **200 OK** |
+
+The last row is the severity. The filter consults the access-token blacklist but never the
+`refresh_tokens` table, so none of `logout`, `logout-all`, `confirmPasswordReset` or reuse-detection
+family revocation reached the request path: a stolen refresh token stayed usable as a session
+credential for its full 30-day TTL, surviving the password change meant to end it. `ROLE_ADMIN` was
+not reachable (no `roles` claim), so the ceiling was the victim's own account: read/write posts, DMs,
+profile. `WebSocketAuthInterceptor` had the same hole on STOMP CONNECT.
+
+**Fix.** Every token now carries a `typ` claim (`access` / `refresh` / `mfa`), and
+`JwtTokenProvider.parseAccessToken` — the only parse path the request filters use — requires
+`typ = access` **and** a non-null `accountId`, throwing `JwtException` so a wrong-type token is
+handled exactly like an expired one (falls through unauthenticated, no error-level log). The filter's
+special-cased MFA branch is gone: type enforcement makes it structurally redundant. `parseMfaToken`
+rejects `access`/`refresh` types while still accepting a missing `typ`, since pre-fix challenge
+tokens age out with their 5-minute TTL. The `accountId` check also closes a fail-open path that
+previously authenticated a principal with a null id.
+
+Regression coverage: `JwtTokenProviderTest` (type enforcement plus permanent probes for `alg=none`
+in both casings, stripped signature, wrong secret, RS256→HS256 confusion and `jwk` header injection —
+all already rejected by jjwt 0.12.6, now pinned by tests) and `TokenConfusionIntegrationTest` (the
+table above, inverted).
+
+**Fixed alongside it: the API answered every unauthenticated request with 403, not 401.** Pre-existing
+and not caused by the type check, but that change would have made it bite: `client/src/lib/api.ts`
+and `mobile/src/lib/api.ts` retry only on 401, so the interceptor's refresh-and-retry branch could
+never fire for an expired access token, and `useSessionKeepAlive`'s proactive timer was the only
+thing keeping sessions alive — its own comment ("nothing rotates it until something happens to make
+a REST call and trip the 401 interceptor") described a path that did not work. Without this, a deploy
+of the type check would leave already-open tabs failing until their keep-alive timer fired (≤15 min)
+instead of recovering on the next request.
+
+`RestAuthenticationEntryPoint` now returns 401 (with `WWW-Authenticate: Bearer` and the standard
+`ErrorResponse` body) for an unauthenticated caller, while an authenticated caller without the role
+still gets 403 from the access-denied handler. Making that split hold required permitting
+`DispatcherType.ERROR`/`ASYNC` in the main chain: the container re-enters the filter chain for its
+own error dispatch with the SecurityContext already cleared, so the anonymous re-entry was denied and
+the entry point overwrote the original status — an authenticated non-admin's 403 came back as 401.
+Only the container can set those dispatcher types, so permitting them opens nothing to a caller.
+
+That same overwrite is what made anonymous `/actuator/prometheus` return 403 instead of the
+`WWW-Authenticate` challenge `BasicAuthenticationEntryPoint` had already written (the third bullet
+under *Actuator metrics scraping* below). It now returns 401, asserted exactly rather than with the
+old `isIn(401, 403)`.
 
 ## OWASP ZAP scan results (2026-06-19)
 
