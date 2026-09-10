@@ -52,6 +52,7 @@ public class AccountManager {
     private final TotpService totpService;
     private final MfaRecoveryService mfaRecoveryService;
     private final MfaChallengeService mfaChallengeService;
+    private final PasswordPolicyService passwordPolicyService;
     private final SecretCipher secretCipher;
 
     private String currentUsername() {
@@ -225,6 +226,7 @@ public class AccountManager {
         if (!passwordEncoder.matches(request.oldPassword(), account.getPassword())) {
             throw new AppException(HttpStatus.UNAUTHORIZED, "INCORRECT_PASSWORD", "Mevcut şifreniz yanlış.");
         }
+        passwordPolicyService.validate(request.newPassword());
 
         account.setPassword(passwordEncoder.encode(request.newPassword()));
         accountService.saveRaw(account);

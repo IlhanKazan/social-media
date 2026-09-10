@@ -53,12 +53,15 @@ public class AuthManager {
     private final MfaRecoveryService mfaRecoveryService;
     private final SecretCipher secretCipher;
     private final MfaChallengeService mfaChallengeService;
+    private final LoginAttemptService loginAttemptService;
+    private final PasswordPolicyService passwordPolicyService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (!systemSettingsService.getBooleanSetting(SystemSettingsService.REGISTRATION_ENABLED, true)) {
             throw new AccessDeniedException("Registration is currently disabled.");
         }
+        passwordPolicyService.validate(request.password());
         Account account = authService.register(
             request.username(),
             request.email(),
@@ -71,7 +74,16 @@ public class AuthManager {
 
     @Transactional
     public LoginResult login(LoginRequest request, String ipAddress, String userAgent) {
-        Account account = authService.authenticate(request.identifier(), request.password());
+        loginAttemptService.assertNotLocked(request.identifier());
+
+        Account account;
+        try {
+            account = authService.authenticate(request.identifier(), request.password());
+        } catch (BadCredentialsException e) {
+            loginAttemptService.recordFailure(request.identifier());
+            throw e;
+        }
+        loginAttemptService.recordSuccess(account.getId());
         if (account.isMfaEnabled()) {
             List<String> methods = new java.util.ArrayList<>();
             if (account.isMfaTotpEnabled()) {
@@ -206,6 +218,7 @@ public class AuthManager {
 
     @Transactional
     public void confirmPasswordReset(String plainToken, String newPassword) {
+        passwordPolicyService.validate(newPassword);
         Account account = passwordResetService.validateAndConsumeToken(plainToken);
 
         account.setPassword(passwordEncoder.encode(newPassword));

@@ -171,6 +171,11 @@ class MobileVersionIntegrationTest extends BaseIntegrationTest {
             "/api/v1/auth/login", new LoginRequest(username, "Password123!"), String.class);
         assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         JsonNode body = objectMapper.readTree(loginResponse.getBody());
+
+        // Admin routes require a second factor. Enabled after login so the sign-in itself stays a
+        // single step; the enforcement filter reads the account, not the token.
+        jdbcTemplate.update("UPDATE accounts SET mfa_email_enabled = true WHERE username = ?", username);
+
         return body.path("accessToken").asText();
     }
 

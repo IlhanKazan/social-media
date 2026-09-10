@@ -4,6 +4,7 @@ import com.ilhankazan.social.entity.Account;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -45,6 +46,22 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     Optional<Account> findByUsername(String username);
     Optional<Account> findByEmail(String email);
+
+    /**
+     * Atomic increment, and a lock stamped in the same statement once the threshold is crossed.
+     * Read-then-write would lose counts under the concurrent attempts this exists to bound.
+     */
+    @Modifying
+    @Query("UPDATE Account a SET a.failedLoginAttempts = a.failedLoginAttempts + 1, "
+        + "a.lockoutUntil = CASE WHEN a.failedLoginAttempts + 1 >= :maxAttempts THEN :lockUntil ELSE a.lockoutUntil END "
+        + "WHERE a.id = :accountId")
+    void recordFailedLogin(@Param("accountId") Long accountId,
+                           @Param("maxAttempts") int maxAttempts,
+                           @Param("lockUntil") Instant lockUntil);
+
+    @Modifying
+    @Query("UPDATE Account a SET a.failedLoginAttempts = 0, a.lockoutUntil = NULL WHERE a.id = :accountId")
+    void clearLoginFailures(@Param("accountId") Long accountId);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 

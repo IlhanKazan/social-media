@@ -1,6 +1,7 @@
 package com.ilhankazan.social.config;
 
 import com.ilhankazan.social.security.JwtAuthenticationFilter;
+import com.ilhankazan.social.security.AdminMfaEnforcementFilter;
 import com.ilhankazan.social.security.ReadOnlyModeFilter;
 import com.ilhankazan.social.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ReadOnlyModeFilter readOnlyModeFilter;
+    private final AdminMfaEnforcementFilter adminMfaEnforcementFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final AppProperties.CorsProperties corsProps;
     private final AppProperties.MetricsProperties metricsProps;
@@ -171,7 +173,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(readOnlyModeFilter, JwtAuthenticationFilter.class);
+            .addFilterAfter(readOnlyModeFilter, JwtAuthenticationFilter.class)
+            .addFilterAfter(adminMfaEnforcementFilter, ReadOnlyModeFilter.class);
 
         return http.build();
     }
