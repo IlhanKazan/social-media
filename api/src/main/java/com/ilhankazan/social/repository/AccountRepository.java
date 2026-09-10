@@ -22,9 +22,26 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
      * has confirmed is how a sending domain collects bounces and ends up in a
      * spam folder for everyone else.
      */
-    List<Account> findByEmailNotificationsEnabledTrueAndDeletedAtIsNullAndEmailVerifiedTrue();
 
-    long countByEmailNotificationsEnabledTrueAndDeletedAtIsNullAndEmailVerifiedTrue();
+    /**
+     * Who a broadcast may go to.
+     *
+     * Bots are excluded because their addresses are seeded, not owned by anyone
+     * who asked to hear from us — mail to them is quota spent on nobody, and on
+     * a shared monthly allowance that is quota taken from password resets.
+     *
+     * Unverified addresses are excluded too: an address nobody has confirmed
+     * may belong to someone who never signed up, and their first move on an
+     * unexpected bulk mail is to report it as spam, which drags the sending
+     * reputation down for the account mail that has to arrive.
+     */
+    @Query("SELECT COUNT(a) FROM Account a WHERE a.emailNotificationsEnabled = true "
+        + "AND a.deletedAt IS NULL AND a.emailVerified = true AND a.role.name <> 'ROLE_BOT'")
+    long countAnnouncementRecipients();
+
+    @Query("SELECT a FROM Account a WHERE a.emailNotificationsEnabled = true "
+        + "AND a.deletedAt IS NULL AND a.emailVerified = true AND a.role.name <> 'ROLE_BOT'")
+    List<Account> findAnnouncementRecipients();
 
     Optional<Account> findByUsername(String username);
     Optional<Account> findByEmail(String email);

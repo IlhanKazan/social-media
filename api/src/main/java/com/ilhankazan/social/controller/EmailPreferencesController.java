@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,7 @@ import java.util.Optional;
 public class EmailPreferencesController {
 
     private final UnsubscribeTokenService tokenService;
+    private final Environment env;
     private final AccountRepository accountRepository;
 
     @RateLimit(capacity = 30, minutes = 60)
@@ -80,6 +82,19 @@ public class EmailPreferencesController {
         return "en".equalsIgnoreCase(account.getPreferredLanguage()) ? "en" : "tr";
     }
 
+    /**
+     * The site, not this API.
+     *
+     * This page is served from the API host because the unsubscribe link has to
+     * work with no session and no JavaScript. A relative link from here would
+     * point back at the API, which serves no /settings page — the button led
+     * nowhere.
+     */
+    private String siteUrl() {
+        String origin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
+        return origin.endsWith("/") ? origin.substring(0, origin.length() - 1) : origin;
+    }
+
     private String page(String lang) {
         boolean tr = !"en".equals(lang);
         String title = tr ? "Aboneliğin durduruldu" : "You have been unsubscribed";
@@ -96,8 +111,8 @@ public class EmailPreferencesController {
             <div style="max-width:520px;margin:16vh auto;padding:36px;background:#fff;border-radius:16px;border:1px solid #e6e6ea;">
               <h1 style="margin:0 0 12px;font-size:22px;color:#18181b;">%s</h1>
               <p style="margin:0 0 22px;font-size:15px;line-height:1.65;color:#52525b;">%s</p>
-              <a href="/settings" style="display:inline-block;padding:12px 22px;background:#0a0a0a;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;">%s</a>
+              <a href="%s/settings" style="display:inline-block;padding:12px 22px;background:#0a0a0a;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;">%s</a>
             </div></body></html>
-            """.formatted(lang, title, title, body, back);
+            """.formatted(lang, title, title, body, siteUrl(), back);
     }
 }

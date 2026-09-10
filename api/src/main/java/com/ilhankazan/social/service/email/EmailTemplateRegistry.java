@@ -55,9 +55,13 @@ public class EmailTemplateRegistry {
             category.isUnsubscribable() ? unsubscribeUrl : null, all);
         String text = plainText(lang, copy, ctaUrl, all);
 
+        // The HTML and text parts need the same values shaped differently: a
+        // newline is markup-significant in one and literal in the other. Admin
+        // copy typed with paragraph breaks collapsed into one run-on block
+        // because both parts were filled from the same raw map.
         return new Rendered(
             apply(copy.subject(), all),
-            apply(html, all),
+            apply(html, forHtml(all)),
             apply(text, all)
         );
     }
@@ -229,6 +233,41 @@ public class EmailTemplateRegistry {
     private String webUrl() {
         String origin = env.getProperty("FRONTEND_ORIGIN", "http://localhost:5173");
         return origin.endsWith("/") ? origin.substring(0, origin.length() - 1) : origin;
+    }
+
+    /**
+     * Escapes each value and turns newlines into line breaks.
+     *
+     * Escaping matters even though only an admin writes this: an unescaped
+     * angle bracket in an announcement would break the surrounding table
+     * layout, and a pasted link fragment could rewrite the message body.
+     */
+    private Map<String, String> forHtml(Map<String, String> params) {
+        Map<String, String> out = new java.util.HashMap<>(params.size());
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            String value = entry.getValue();
+            if (value == null) {
+                out.put(entry.getKey(), "");
+                continue;
+            }
+            // URLs go into href attributes, where escaping the separators would
+            // break the link; they carry no prose to format either.
+            if (isUrl(value)) {
+                out.put(entry.getKey(), value);
+                continue;
+            }
+            String escaped = value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
+            out.put(entry.getKey(), escaped.replace("\r\n", "\n").replace("\n", "<br/>"));
+        }
+        return out;
+    }
+
+    private boolean isUrl(String value) {
+        return value.startsWith("http://") || value.startsWith("https://");
     }
 
     private String apply(String template, Map<String, String> params) {

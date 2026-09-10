@@ -45,6 +45,38 @@ class EmailLinkTargetTest {
     }
 
     @Test
+    void adminCopyKeepsItsParagraphBreaks() {
+        var rendered = registry.render("ADMIN_ALERT", "tr", EmailCategory.NOTIFICATION,
+            "https://socialhan.example.com/api/v1/email/unsubscribe?token=x",
+            Map.of("title", "Duyuru", "message", "Birinci satir.\n\nIkinci satir.",
+                "link", "https://socialhan.example.com/changelog"));
+
+        // Without this the two paragraphs render as one run-on line.
+        assertThat(rendered.html()).contains("Birinci satir.<br/><br/>Ikinci satir.");
+        // The text part keeps real newlines rather than markup.
+        assertThat(rendered.text()).doesNotContain("<br/>");
+    }
+
+    @Test
+    void adminCopyCannotBreakOutIntoMarkup() {
+        var rendered = registry.render("ADMIN_ALERT", "tr", EmailCategory.NOTIFICATION, null,
+            Map.of("title", "Duyuru", "message", "<script>alert(1)</script>",
+                "link", "https://socialhan.example.com/changelog"));
+
+        assertThat(rendered.html()).doesNotContain("<script>");
+        assertThat(rendered.html()).contains("&lt;script&gt;");
+    }
+
+    @Test
+    void urlsSurviveEscapingIntact() {
+        var rendered = registry.render("WELCOME", "tr", EmailCategory.TRANSACTIONAL, null,
+            Map.of("name", "Ali", "link", "https://socialhan.example.com/home?a=1&b=2"));
+
+        // Escaping the ampersand would break the link in the href.
+        assertThat(rendered.html()).contains("https://socialhan.example.com/home?a=1&b=2");
+    }
+
+    @Test
     void aTrailingSlashOnTheOriginDoesNotDoubleUp() {
         var withSlash = new EmailTemplateRegistry(props,
             new MockEnvironment().withProperty("FRONTEND_ORIGIN", "https://socialhan.example.com/"));
