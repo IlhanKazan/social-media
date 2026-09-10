@@ -3,6 +3,7 @@ package com.ilhankazan.social.security;
 import com.ilhankazan.social.service.AccountService;
 import com.ilhankazan.social.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +58,7 @@ class WebSocketAuthInterceptorTest {
 
     private void connect() {
         when(tokenBlacklistService.isBlacklisted(TOKEN)).thenReturn(false);
-        when(jwtTokenProvider.validateToken(TOKEN)).thenReturn(claims);
+        when(jwtTokenProvider.parseAccessToken(TOKEN)).thenReturn(claims);
         when(claims.getSubject()).thenReturn("ws-user");
         when(claims.get("accountId", Long.class)).thenReturn(42L);
         when(claims.get("roles", List.class)).thenReturn(List.of("ROLE_USER"));
@@ -90,6 +91,22 @@ class WebSocketAuthInterceptorTest {
         assertThat(sessionAttributes)
             .containsEntry(WebSocketAuthInterceptor.SESSION_JWT, TOKEN)
             .containsEntry(WebSocketAuthInterceptor.SESSION_ACCOUNT_ID, 42L);
+    }
+
+    @Test
+    void connectIsRejectedWhenTheTokenIsNotAnAccessToken() {
+        when(tokenBlacklistService.isBlacklisted(TOKEN)).thenReturn(false);
+        when(jwtTokenProvider.parseAccessToken(TOKEN)).thenThrow(new JwtException("Not an access token"));
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+        accessor.setNativeHeader("Authorization", "Bearer " + TOKEN);
+        accessor.setSessionAttributes(sessionAttributes);
+        accessor.setLeaveMutable(true);
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThat(sessionAttributes).isEmpty();
     }
 
     @Test

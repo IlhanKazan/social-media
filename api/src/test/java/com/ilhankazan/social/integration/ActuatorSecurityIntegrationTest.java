@@ -43,7 +43,7 @@ class ActuatorSecurityIntegrationTest extends BaseIntegrationTest {
     void prometheusRequiresScraperCredentialsAndIsNotOpenedToJwtUsers() throws Exception {
         // Anonymous scrape is rejected.
         assertThat(restTemplate.getForEntity("/actuator/prometheus", String.class).getStatusCode().value())
-            .isIn(401, 403);
+            .isEqualTo(401);
 
         // The basic-auth chain is scoped to this endpoint only: a normal logged-in
         // user's JWT must not become a way in.

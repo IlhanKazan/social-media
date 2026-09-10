@@ -2,6 +2,7 @@ package com.ilhankazan.social.security;
 
 import com.ilhankazan.social.config.AppProperties;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -18,6 +19,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
+    private static final String TYPE_CLAIM = "typ";
+    private static final String TYPE_ACCESS = "access";
+    private static final String TYPE_REFRESH = "refresh";
+    private static final String TYPE_MFA = "mfa";
+
     private final AppProperties.JwtProperties jwtProps;
     private SecretKey key;
 
@@ -30,6 +36,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(username)
                 .id(UUID.randomUUID().toString())
+                .claim(TYPE_CLAIM, TYPE_ACCESS)
                 .claim("roles", roles)
                 .claim("accountId", accountId)
                 .issuedAt(new Date())
@@ -44,6 +51,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(String.valueOf(accountId))
                 .id(UUID.randomUUID().toString())
+                .claim(TYPE_CLAIM, TYPE_MFA)
                 .claim("purpose", "mfa")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + MFA_CHALLENGE_TTL_MS))
@@ -53,8 +61,14 @@ public class JwtTokenProvider {
 
     public Long parseMfaToken(String token) {
         Claims claims = validateToken(token);
+        String type = claims.get(TYPE_CLAIM, String.class);
+        // Tokens minted before the type claim existed carry only "purpose"; they age out
+        // with the 5-minute challenge TTL.
+        if (type != null && !TYPE_MFA.equals(type)) {
+            throw new JwtException("Not an MFA challenge token");
+        }
         if (!"mfa".equals(claims.get("purpose", String.class))) {
-            throw new io.jsonwebtoken.JwtException("Not an MFA challenge token");
+            throw new JwtException("Not an MFA challenge token");
         }
         return Long.valueOf(claims.getSubject());
     }
@@ -63,6 +77,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(username)
                 .id(UUID.randomUUID().toString())
+                .claim(TYPE_CLAIM, TYPE_REFRESH)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProps.refreshTtlMs()))
                 .signWith(key, Jwts.SIG.HS256)
@@ -75,5 +90,28 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    /**
+     * The only entry point that may authenticate a request. Every token this service mints is
+     * signed with the same key, so a valid signature alone proves nothing about what the token
+     * is for: without the type check a refresh token (or an MFA challenge token) authenticates
+     * API calls as its subject, and refresh-token revocation — logout, logout-all, password
+     * reset, reuse detection — never reaches the request path.
+     *
+     * Throws {@link JwtException} deliberately, so callers treat a wrong-type token exactly like
+     * an expired or forged one.
+     */
+    public Claims parseAccessToken(String token) {
+        Claims claims = validateToken(token);
+
+        if (!TYPE_ACCESS.equals(claims.get(TYPE_CLAIM, String.class))) {
+            throw new JwtException("Not an access token");
+        }
+        if (claims.get("accountId", Long.class) == null) {
+            throw new JwtException("Access token carries no accountId");
+        }
+
+        return claims;
     }
 }

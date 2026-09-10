@@ -28,8 +28,8 @@ automated ZAP scan reports.
 | Asset | Protection |
 |-------|------------|
 | Passwords | BCrypt(12) hashes; never logged |
-| Access tokens (JWT) | Short-lived, signed (HS256, ≥32-byte secret, fail-fast in prod) |
-| Refresh tokens | Web: `HttpOnly`+`Secure`+`SameSite` cookie. Mobile (`X-Client-Platform: mobile`): returned in the response body, stored in the OS keystore (expo-secure-store), presented in the request body — no ambient credential, so no CSRF surface and no origin check needed. Both paths: SHA-256 hashed at rest; rotated; family revoked on reuse |
+| Access tokens (JWT) | Short-lived, signed (HS256, ≥32-byte secret, fail-fast in prod); carry `typ: access`, which `JwtTokenProvider.parseAccessToken` requires — the only parse path that may authenticate a request |
+| Refresh tokens | Web: `HttpOnly`+`Secure`+`SameSite` cookie. Mobile (`X-Client-Platform: mobile`): returned in the response body, stored in the OS keystore (expo-secure-store), presented in the request body — no ambient credential, so no CSRF surface and no origin check needed. Both paths: SHA-256 hashed at rest; rotated; family revoked on reuse. Minted with `typ: refresh`, so a refresh token is rejected as a bearer credential and revocation actually binds on the request path |
 | User data (profiles, posts, DMs) | Authn required; ownership/participation enforced at the manager layer |
 | Uploaded media | DM photos are Cloudinary `authenticated` assets via signed URLs; posts/avatars are public by design |
 | Audit log | Append-only record of sensitive auth/admin/bot actions |
@@ -38,7 +38,7 @@ automated ZAP scan reports.
 
 | Threat | Vector | Mitigation |
 |--------|--------|------------|
-| **Token theft / replay** | XSS, network, stolen refresh cookie | `HttpOnly` cookie (JS can't read it); access token short-lived; refresh rotation + reuse-detection revokes the whole family; tokens hashed at rest |
+| **Token theft / replay** | XSS, network, stolen refresh cookie | `HttpOnly` cookie (JS can't read it); access token short-lived; refresh rotation + reuse-detection revokes the whole family; tokens hashed at rest. Access, refresh and MFA-challenge tokens share one signing key, so each carries a `typ` claim that the request path enforces — without it a refresh token authenticates as its subject and outlives every revocation |
 | **IDOR / broken access control** | Guessing another user's resource id | Manager-layer ownership checks via the authenticated principal; DM `verifyParticipant`; `/admin/**` requires `ROLE_ADMIN` |
 | **XSS** | Malicious post/bio/DM content | React escapes by default; no `dangerouslySetInnerHTML`; CSP restricts `script-src` to `'self'` |
 | **CSRF** | Forged state-changing request | Stateless JWT (no ambient session for normal calls); cookie-based refresh/logout additionally guarded by an Origin allowlist check |

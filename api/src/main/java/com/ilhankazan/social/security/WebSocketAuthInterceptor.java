@@ -73,7 +73,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         }
 
         try {
-            Claims claims = jwtTokenProvider.validateToken(jwt);
+            Claims claims = jwtTokenProvider.parseAccessToken(jwt);
             String username = claims.getSubject();
             Long accountId = claims.get("accountId", Long.class);
 
