@@ -8,6 +8,7 @@ import com.ilhankazan.social.service.email.EmailService;
 import com.ilhankazan.social.util.TokenGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -45,7 +46,11 @@ public class MfaEmailService {
         ));
     }
 
-    @Transactional
+    /**
+     * Its own transaction: both callers throw right after a false return, which used to roll the
+     * attempt increment back and left MAX_ATTEMPTS as dead code.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean verify(Long accountId, String code) {
         MfaCode mfaCode = mfaCodeRepository
             .findTopByAccountIdAndUsedAtIsNullOrderByCreatedAtDesc(accountId)

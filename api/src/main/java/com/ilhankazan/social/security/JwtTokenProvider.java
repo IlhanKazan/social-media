@@ -45,12 +45,12 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    private static final long MFA_CHALLENGE_TTL_MS = 5 * 60 * 1000L;
+    public static final long MFA_CHALLENGE_TTL_MS = 5 * 60 * 1000L;
 
-    public String generateMfaToken(Long accountId) {
+    public String generateMfaToken(Long accountId, String tokenId) {
         return Jwts.builder()
                 .subject(String.valueOf(accountId))
-                .id(UUID.randomUUID().toString())
+                .id(tokenId)
                 .claim(TYPE_CLAIM, TYPE_MFA)
                 .claim("purpose", "mfa")
                 .issuedAt(new Date())
@@ -59,7 +59,10 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public Long parseMfaToken(String token) {
+    /** Subject and jti of a challenge token; the jti keys the server-side mfa_challenges row. */
+    public record MfaTokenClaims(Long accountId, String tokenId) {}
+
+    public MfaTokenClaims parseMfaToken(String token) {
         Claims claims = validateToken(token);
         String type = claims.get(TYPE_CLAIM, String.class);
         // Tokens minted before the type claim existed carry only "purpose"; they age out
@@ -70,7 +73,10 @@ public class JwtTokenProvider {
         if (!"mfa".equals(claims.get("purpose", String.class))) {
             throw new JwtException("Not an MFA challenge token");
         }
-        return Long.valueOf(claims.getSubject());
+        if (claims.getId() == null) {
+            throw new JwtException("MFA challenge token carries no id");
+        }
+        return new MfaTokenClaims(Long.valueOf(claims.getSubject()), claims.getId());
     }
 
     public String generateRefreshToken(String username) {
