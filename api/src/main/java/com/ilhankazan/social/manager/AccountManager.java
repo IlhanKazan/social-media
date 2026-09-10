@@ -51,6 +51,8 @@ public class AccountManager {
     private final MfaEmailService mfaEmailService;
     private final TotpService totpService;
     private final MfaRecoveryService mfaRecoveryService;
+    private final MfaChallengeService mfaChallengeService;
+    private final PasswordPolicyService passwordPolicyService;
     private final SecretCipher secretCipher;
 
     private String currentUsername() {
@@ -224,6 +226,7 @@ public class AccountManager {
         if (!passwordEncoder.matches(request.oldPassword(), account.getPassword())) {
             throw new AppException(HttpStatus.UNAUTHORIZED, "INCORRECT_PASSWORD", "Mevcut şifreniz yanlış.");
         }
+        passwordPolicyService.validate(request.newPassword());
 
         account.setPassword(passwordEncoder.encode(request.newPassword()));
         accountService.saveRaw(account);
@@ -250,6 +253,7 @@ public class AccountManager {
         }
         account.setMfaEmailEnabled(true);
         accountService.saveRaw(account);
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         auditLogService.record("MFA_EMAIL_ENABLED", "ACCOUNT", account.getId(), null);
     }
 
@@ -261,6 +265,7 @@ public class AccountManager {
         }
         account.setMfaEmailEnabled(false);
         accountService.saveRaw(account);
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         auditLogService.record("MFA_EMAIL_DISABLED", "ACCOUNT", account.getId(), null);
     }
 
@@ -280,6 +285,7 @@ public class AccountManager {
         account.setMfaTotpEnabled(false);
         account.setMfaTotpLastStep(null);
         accountService.saveRaw(account);
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         return new TotpSetupResponse(secret, totpService.qrDataUri(account.getEmail(), secret));
     }
 
@@ -299,6 +305,7 @@ public class AccountManager {
         account.setMfaTotpLastStep(step);
         accountService.saveRaw(account);
         List<String> recoveryCodes = mfaRecoveryService.regenerate(account);
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         auditLogService.record("MFA_TOTP_ENABLED", "ACCOUNT", account.getId(), null);
         return recoveryCodes;
     }
@@ -314,6 +321,7 @@ public class AccountManager {
         account.setMfaTotpLastStep(null);
         accountService.saveRaw(account);
         mfaRecoveryService.clear(account.getId());
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         auditLogService.record("MFA_TOTP_DISABLED", "ACCOUNT", account.getId(), null);
     }
 

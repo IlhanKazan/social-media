@@ -209,43 +209,98 @@ enrolment; email codes use `SecureRandom`, are hashed, and a resend invalidates
 the previous code so multiple valid codes never coexist; mobile enforces MFA
 identically to web.
 
-Open items:
+### Fixed 2026-09-10 (challenge is now server-side state)
 
-- **No per-account attempt counter or lockout on `/auth/mfa/verify` (highest
-  priority here).** The rate limit is IP-keyed (the caller is unauthenticated
-  mid-challenge), so rotating source IPs resets it. Measured: 26 consecutive
-  failures, then the correct code was still accepted. Against a ±1 window that is
-  3 valid codes in 10⁶; ~80 days from a single IP but roughly two hours across a
-  1,000-IP proxy pool. Fix: a per-account failure counter across all three
-  methods that locks the challenge after ~5 failures and forces a fresh login,
-  and key the bucket on the challenge token's subject rather than the IP.
-  Compounding this, `RateLimitStore` is in-process, so every added replica
-  multiplies every limit.
-- **The `mfaToken` is a stateless multi-use JWT.** No server-side record, so one
-  challenge token completed MFA three times in a row (three separate sessions),
-  survived `logout-all`, and still worked after a password change. Fix: persist a
-  challenge row (or blacklist the `jti`) consumed on first success, and invalidate
-  pending challenges on password change, logout-all and MFA state change.
-- **The email-OTP `MAX_ATTEMPTS = 5` cap is dead code.** `MfaEmailService` bumps
-  the counter and returns false, then the caller throws in the *same* transaction,
-  rolling the increment back. Measured: five wrong guesses left `attempts = 0` and
-  the correct code still worked. Fix: increment in a `REQUIRES_NEW` transaction or
-  a committed `@Modifying` update, with a test asserting the 6th attempt fails
-  *with the correct code*.
-- **Concurrent verify with one TOTP code returns 500.** Six parallel requests gave
-  one 200 and five 500s (Postgres deadlock → `CannotAcquireLockException` →
-  unhandled). Security-wise it fails closed — the replay guard holds — but a
-  trivially triggerable 500 with a stack trace on an unauthenticated endpoint is a
-  log-flood lever. Fix: lock the account row (`FOR UPDATE` or `@Version`) and map
-  the lock exception to 401/429.
-- **No server-side policy requires MFA for `ROLE_ADMIN`**, and `/auth/login` has no
-  per-account lockout either (IP-keyed only, no failure counter) — so the
-  "attacker already knows the password" precondition above is weaker than it
-  looks.
+The first three open items below were all one missing structure: the challenge had no row on the
+server, so the JWT alone was the whole session. `mfa_challenges` (V39) binds a challenge to its
+`jti`, and `MfaChallengeService` owns its lifecycle.
+
+- **Single-use.** The challenge is consumed on first success, so one token mints exactly one
+  session. Consumption is a conditional `UPDATE ... WHERE consumed_at IS NULL` whose row count
+  decides the winner — **not** read-then-write. That distinction was measured, not assumed: with the
+  obvious read-then-write version, six concurrent verifications of one challenge returned **five**
+  `200 OK`s. `MfaChallengeIntegrationTest.concurrentVerificationsOfOneChallengeMintExactlyOneSession`
+  pins it at exactly one.
+- **Two-level lockout, covering EMAIL, TOTP and RECOVERY alike.** Five failures burn the challenge
+  and force a fresh login; ten failures per account inside a rolling 15-minute window reject even a
+  newly issued challenge, so re-logging in no longer resets the budget. Against TOTP's ±1 window
+  (3 valid codes in 10⁶) that is ~960 guesses/day, i.e. expected success in **~1 year** and
+  independent of source IP — the previous measurement was ~2 hours across a 1,000-IP pool. It is not
+  a lockout-DoS lever: `AuthManager.login` authenticates the password before any challenge exists,
+  so only someone who already has the password can burn the counter.
+- **Revocation.** `logout-all`, password reset, and enabling/disabling either factor consume every
+  pending challenge for the account.
+- **`MfaEmailService`'s `MAX_ATTEMPTS` is no longer dead code.** `verify()` runs
+  `REQUIRES_NEW`, so the increment survives the caller's rollback. The login path is now capped by
+  the challenge row anyway; where this counter actually matters is the **enable-2FA** path, which
+  has no challenge — there it is the only thing between a stolen access token and an unlimited
+  brute force of a six-digit setup code. `MfaSetupAttemptCapIntegrationTest` asserts the sixth
+  attempt fails *with the correct code*, and fails without the propagation change.
+
+Still open:
+
+- ~~**No per-account attempt counter or lockout on `/auth/mfa/verify`.**~~ Fixed above. The original
+  suggestion to key the rate-limit bucket on the challenge subject was **not** implemented: a
+  DB-backed counter is strictly stronger, because `RateLimitStore` is in-process and every added
+  replica multiplies an in-memory limit.
+- ~~**The `mfaToken` is a stateless multi-use JWT.**~~ Fixed above.
+- ~~**The email-OTP `MAX_ATTEMPTS = 5` cap is dead code.**~~ Fixed above.
+- **Concurrent verify with one TOTP code returned 500** (Postgres deadlock →
+  `CannotAcquireLockException`, unhandled). **Not re-measured for TOTP.** The concurrency probe run
+  during this pass exercised the EMAIL path and saw no 500s, but TOTP takes a different write path
+  (`account.mfaTotpLastStep`), so the original finding stands until someone measures it. Fix as
+  described before: lock the account row and map the lock exception to 401/429.
+- ~~**No server-side policy requires MFA for `ROLE_ADMIN`**, and `/auth/login` has no
+  per-account lockout either.~~ **FIXED 2026-09-10** — see *Login and password hardening* below.
 - **Mobile passes the `mfaToken` as an expo-router URL param**, which lands in
   navigation state (and the address bar on a web build), unlike web which uses
   router state. Short-lived and useless without a code. Fix: pass via the auth
   store.
+
+## Login and password hardening (2026-09-10) — FIXED, with one accepted risk
+
+The MFA work above rests on "an attacker who can burn the counter already has the password". The
+login path did not hold that up: nothing counted failed attempts per account, so the only bound was
+the IP-keyed `@RateLimit` bucket — in-process, and reset by rotating source addresses.
+
+**Per-account lockout.** `accounts.failed_login_attempts` / `lockout_until` (V40). Ten failures lock
+the account for 15 minutes. The increment is an atomic `@Modifying` UPDATE in a `REQUIRES_NEW`
+transaction — `AuthManager.login` rethrows the authentication failure, which would otherwise roll
+the count back (the same trap that made `MfaEmailService`'s cap dead code). A successful login
+clears the counter.
+
+**Accepted risk — targeted lockout DoS.** Unlike the MFA counter, this one can be burned by anyone
+who knows a username: no password required. That is inherent to per-account lockout and is the
+reason OWASP is cautious about it. Accepted because the lock is short (15 min) and **password reset
+stays open while it holds**, so a legitimate user is never permanently shut out. The alternative —
+no lockout at all — would leave distributed credential stuffing bounded only by an IP limit that the
+origin-IP bypass (still open, above) already defeats. `LoginLockoutIntegrationTest` asserts that a
+locked account is byte-for-byte indistinguishable from one that does not exist, so the lock is not
+an enumeration oracle.
+
+**Password policy.** Three DTOs carried three different rules (`min 6` / `min 6` / `min 8`) and
+register advertised `max 100` — which BCrypt silently truncates at 72 bytes, so the tail of a long
+password was never verified. All three are now `@Size(min = 8, max = 72)`. `PasswordPolicyService`
+additionally rejects a small embedded list of the passwords that dominate credential-stuffing sets,
+on register, change and reset. No composition rules on purpose: they push people toward predictable
+shapes without adding much entropy. HIBP is deliberately **not** used — it would add a fourth
+external host and latency on register; deferred as its own decision.
+
+**MFA required for `ROLE_ADMIN`.** `AdminMfaEnforcementFilter` refuses `/api/v1/admin/**` and
+`/actuator/**` to a `ROLE_ADMIN` principal whose account has no second factor (403,
+`ADMIN_MFA_REQUIRED`). It keys off the account, not the token, so enabling a factor takes effect on
+the next request rather than the next refresh. `/actuator/health` is anonymous and unaffected;
+`/actuator/prometheus` is on its own filter chain and never reaches it.
+
+*This locks the panel, not the account.* An admin without a second factor can still reach
+`/api/v1/accounts/me/mfa/**`. TOTP enrolment is the reliable recovery route: email 2FA additionally
+requires a verified address, which an admin may not have. Asserted by
+`AdminMfaEnforcementIntegrationTest.anAdminWithoutMfaCanStillEnrolInTotp`.
+
+**Deploy note.** Enable a second factor on the admin account before or right after deploying, or the
+admin panel answers 403 until you do. The local seeder (`MockDataSeeder`, `@Profile("local")`) seeds
+`admin_dev` without MFA on purpose, so a fresh local database goes through the same enrolment step
+production does.
 
 ## JWT token confusion (2026-09-10) — FIXED
 

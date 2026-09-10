@@ -56,6 +56,12 @@ public class Account extends BaseEntity {
     @Column(name = "banned_at")
     private Instant bannedAt;
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts;
+
+    @Column(name = "lockout_until")
+    private Instant lockoutUntil;
+
     @Column(name = "banned_reason", length = 500)
     private String bannedReason;
 

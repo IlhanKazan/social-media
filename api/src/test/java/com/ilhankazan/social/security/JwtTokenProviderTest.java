@@ -57,7 +57,7 @@ class JwtTokenProviderTest {
 
     @Test
     void mfaChallengeTokenCannotAuthenticateARequest() {
-        assertThatThrownBy(() -> provider.parseAccessToken(provider.generateMfaToken(7L)))
+        assertThatThrownBy(() -> provider.parseAccessToken(provider.generateMfaToken(7L, "challenge-1")))
             .isInstanceOf(JwtException.class)
             .hasMessageContaining("Not an access token");
     }
@@ -71,8 +71,13 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void mfaChallengeTokenStillParsesOnItsOwnPath() {
-        assertThat(provider.parseMfaToken(provider.generateMfaToken(7L))).isEqualTo(7L);
+    void mfaChallengeTokenParsesToItsSubjectAndId() {
+        var claims = provider.parseMfaToken(provider.generateMfaToken(7L, "challenge-1"));
+
+        assertThat(claims.accountId()).isEqualTo(7L);
+        assertThat(claims.tokenId())
+            .as("the jti is what binds the token to its server-side challenge row")
+            .isEqualTo("challenge-1");
     }
 
     @Test

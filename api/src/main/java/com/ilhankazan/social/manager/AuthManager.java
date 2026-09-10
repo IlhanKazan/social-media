@@ -5,9 +5,9 @@ import com.ilhankazan.social.dto.auth.AuthResponse;
 import com.ilhankazan.social.dto.auth.LoginRequest;
 import com.ilhankazan.social.dto.auth.LoginResult;
 import com.ilhankazan.social.dto.auth.RegisterRequest;
-import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.BadCredentialsException;
 import com.ilhankazan.social.entity.Account;
+import com.ilhankazan.social.entity.MfaChallenge;
 import com.ilhankazan.social.event.LoginSuccessEvent;
 import com.ilhankazan.social.security.SecretCipher;
 import com.ilhankazan.social.event.UserRegisteredEvent;
@@ -52,12 +52,16 @@ public class AuthManager {
     private final TotpService totpService;
     private final MfaRecoveryService mfaRecoveryService;
     private final SecretCipher secretCipher;
+    private final MfaChallengeService mfaChallengeService;
+    private final LoginAttemptService loginAttemptService;
+    private final PasswordPolicyService passwordPolicyService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (!systemSettingsService.getBooleanSetting(SystemSettingsService.REGISTRATION_ENABLED, true)) {
             throw new AccessDeniedException("Registration is currently disabled.");
         }
+        passwordPolicyService.validate(request.password());
         Account account = authService.register(
             request.username(),
             request.email(),
@@ -70,7 +74,16 @@ public class AuthManager {
 
     @Transactional
     public LoginResult login(LoginRequest request, String ipAddress, String userAgent) {
-        Account account = authService.authenticate(request.identifier(), request.password());
+        loginAttemptService.assertNotLocked(request.identifier());
+
+        Account account;
+        try {
+            account = authService.authenticate(request.identifier(), request.password());
+        } catch (BadCredentialsException e) {
+            loginAttemptService.recordFailure(request.identifier());
+            throw e;
+        }
+        loginAttemptService.recordSuccess(account.getId());
         if (account.isMfaEnabled()) {
             List<String> methods = new java.util.ArrayList<>();
             if (account.isMfaTotpEnabled()) {
@@ -84,7 +97,7 @@ public class AuthManager {
             if (account.isMfaEmailEnabled() && !account.isMfaTotpEnabled()) {
                 mfaEmailService.issueCode(account);
             }
-            return LoginResult.mfa(jwtTokenProvider.generateMfaToken(account.getId()), methods);
+            return LoginResult.mfa(mfaChallengeService.issue(account), methods);
         }
         eventPublisher.publishEvent(new LoginSuccessEvent(account, ipAddress, userAgent));
         return LoginResult.authenticated(buildInitialAuthResponse(account, ipAddress, userAgent));
@@ -92,7 +105,8 @@ public class AuthManager {
 
     @Transactional
     public AuthResponse verifyMfa(String mfaToken, String method, String code, String ipAddress, String userAgent) {
-        Long accountId = parseMfaTokenOrThrow(mfaToken);
+        MfaChallenge challenge = mfaChallengeService.validateAndGet(mfaToken);
+        Long accountId = challenge.getAccount().getId();
         Account account = accountService.getAccountById(accountId);
 
         boolean ok = switch (method == null ? "" : method.toUpperCase()) {
@@ -102,10 +116,14 @@ public class AuthManager {
             default -> false;
         };
         if (!ok) {
+            mfaChallengeService.recordFailure(challenge.getTokenId());
             auditLogService.record("MFA_FAILED", "ACCOUNT", accountId, Map.of("method", String.valueOf(method)));
             throw new BadCredentialsException("Invalid or expired verification code.");
         }
 
+        if (!mfaChallengeService.consume(challenge.getTokenId())) {
+            throw new BadCredentialsException("MFA session is invalid or has expired.");
+        }
         auditLogService.record("MFA_VERIFIED", "ACCOUNT", accountId, Map.of("method", method));
         eventPublisher.publishEvent(new LoginSuccessEvent(account, ipAddress, userAgent));
         return buildInitialAuthResponse(account, ipAddress, userAgent);
@@ -113,8 +131,8 @@ public class AuthManager {
 
     @Transactional
     public void resendMfaCode(String mfaToken) {
-        Long accountId = parseMfaTokenOrThrow(mfaToken);
-        Account account = accountService.getAccountById(accountId);
+        MfaChallenge challenge = mfaChallengeService.validateAndGet(mfaToken);
+        Account account = accountService.getAccountById(challenge.getAccount().getId());
         // Gate on email MFA specifically: isMfaEnabled() is true for TOTP-only
         // accounts too, so this was mailing codes to people who never opted into
         // email as a factor and can't use them (verifyMfa rejects them anyway).
@@ -136,14 +154,6 @@ public class AuthManager {
         account.setMfaTotpLastStep(step);
         accountService.saveRaw(account);
         return true;
-    }
-
-    private Long parseMfaTokenOrThrow(String mfaToken) {
-        try {
-            return jwtTokenProvider.parseMfaToken(mfaToken);
-        } catch (JwtException | IllegalArgumentException e) {
-            throw new BadCredentialsException("MFA session is invalid or has expired.");
-        }
     }
 
     public AuthResponse refresh(String refreshToken, String ipAddress, String userAgent) {
@@ -170,6 +180,7 @@ public class AuthManager {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountService.getAccount(username);
         refreshTokenService.revokeAllForAccount(account.getId());
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         auditLogService.record("LOGOUT_ALL", "ACCOUNT", account.getId(), null);
     }
 
@@ -207,12 +218,14 @@ public class AuthManager {
 
     @Transactional
     public void confirmPasswordReset(String plainToken, String newPassword) {
+        passwordPolicyService.validate(newPassword);
         Account account = passwordResetService.validateAndConsumeToken(plainToken);
 
         account.setPassword(passwordEncoder.encode(newPassword));
         accountService.saveRaw(account);
 
         refreshTokenService.revokeAllForAccount(account.getId());
+        mfaChallengeService.invalidateAllForAccount(account.getId());
         auditLogService.record("PASSWORD_RESET", "ACCOUNT", account.getId(), null);
     }
 }
