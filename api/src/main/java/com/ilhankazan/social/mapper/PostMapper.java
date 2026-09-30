@@ -7,6 +7,10 @@ import com.ilhankazan.social.dto.post.PostResponse;
 import com.ilhankazan.social.entity.AdminStatus;
 import com.ilhankazan.social.entity.ModerationStatus;
 import com.ilhankazan.social.entity.Post;
+import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.Hibernate;
+import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.proxy.LazyInitializer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -19,7 +23,7 @@ public interface PostMapper {
 
     @Mapping(target = "author", source = "post.account", qualifiedByName = "noFollow")
     @Mapping(target = "parentPostId", source = "post.parentPost.id")
-    @Mapping(target = "parentPostAuthorUsername", source = "post.parentPost.account.username")
+    @Mapping(target = "parentPostAuthorUsername", source = "post.parentPost", qualifiedByName = "parentAuthorUsername")
     @Mapping(target = "quotedPost", source = "post.quotedPost", qualifiedByName = "mapQuotedPost")
     @Mapping(target = "likeCount", source = "counts.likes")
     @Mapping(target = "dislikeCount", source = "counts.dislikes")
@@ -37,12 +41,12 @@ public interface PostMapper {
     default PostResponse mapQuotedPost(Post quotedPost) {
         if (quotedPost == null) return null;
 
+        boolean isDeleted = isGone(quotedPost);
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        boolean isAuthor = quotedPost.getAccount().getUsername().equals(currentUsername);
+        boolean isAuthor = !isDeleted && quotedPost.getAccount().getUsername().equals(currentUsername);
 
-        boolean isDeleted = quotedPost.getDeletedAt() != null;
-        boolean isFlagged = quotedPost.getModerationStatus() == ModerationStatus.FLAGGED;
-        boolean isInactive = quotedPost.getAdminStatus() != AdminStatus.ACTIVE;
+        boolean isFlagged = !isDeleted && quotedPost.getModerationStatus() == ModerationStatus.FLAGGED;
+        boolean isInactive = !isDeleted && quotedPost.getAdminStatus() != AdminStatus.ACTIVE;
 
         if (isDeleted || ((isFlagged || isInactive) && !isAuthor)) {
             var dummyAuthor = new PublicAccountResponse(
@@ -50,16 +54,37 @@ public interface PostMapper {
             );
 
             return new PostResponse(
-                quotedPost.getId(),
+                idOf(quotedPost),
                 "Bu gönderi topluluk kuralları ihlali veya silinme sebebiyle gösterilemiyor.",
                 null, dummyAuthor, null, null, null, 0L, 0L, 0L, 0L, false, false, false, false,
-                quotedPost.getModerationStatus(),
-                quotedPost.getAdminStatus(),
-                quotedPost.getCreatedAt(),
+                isDeleted ? ModerationStatus.CLEAN : quotedPost.getModerationStatus(),
+                isDeleted ? AdminStatus.ACTIVE : quotedPost.getAdminStatus(),
+                isDeleted ? Instant.now() : quotedPost.getCreatedAt(),
                 0L
             );
         }
 
         return toResponse(quotedPost, InteractionCounts.EMPTY, UserInteractions.EMPTY, 0L, 0L, false);
+    }
+
+    @Named("parentAuthorUsername")
+    default String parentAuthorUsername(Post parentPost) {
+        if (parentPost == null || isGone(parentPost)) return null;
+        return parentPost.getAccount().getUsername();
+    }
+
+    private static Long idOf(Post post) {
+        LazyInitializer lazy = HibernateProxy.extractLazyInitializer(post);
+        return lazy != null ? (Long) lazy.getIdentifier() : post.getId();
+    }
+
+    // A lazy proxy to a soft-deleted post throws on first access, because @SQLRestriction hides the row.
+    private static boolean isGone(Post post) {
+        try {
+            Hibernate.initialize(post);
+            return post.getDeletedAt() != null;
+        } catch (EntityNotFoundException e) {
+            return true;
+        }
     }
 }
